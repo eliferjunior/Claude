@@ -1,13 +1,18 @@
 ---
 name: document
-description: Generates documentation for code, APIs, or features
+description: Generates documentation - JSDoc, README sections, API docs, inline comments
 ---
 
 When documenting ($ARGUMENTS):
 
-1. **Read the target code** thoroughly
-2. **Add JSDoc/TSDoc comments** to functions, classes, and interfaces
-3. **Document parameters, return types, and exceptions**
-4. **Add usage examples** in doc comments
-5. **Keep documentation concise** - explain the "why", not the "what"
-6. **Follow existing documentation style** in the project
+1. **Read the code** to understand its purpose and usage
+2. **Generate appropriate docs**:
+   - **Functions**: JSDoc/TSDoc with params, return types, examples
+   - **Classes**: Description, constructor params, method docs
+   - **Modules**: Purpose, exports, usage examples
+   - **APIs**: Endpoints, request/response format, error codes
+3. **Keep docs**:
+   - Concise but complete
+   - With real usage examples
+   - Up to date with the actual code
+   - Focused on "why" not just "what"

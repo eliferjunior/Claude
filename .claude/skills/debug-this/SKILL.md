@@ -1,14 +1,17 @@
 ---
 name: debug-this
-description: Debugs issues by analyzing code, logs, and error messages
+description: Debugs issues by analyzing code, logs, and errors systematically
 ---
 
 When debugging ($ARGUMENTS):
 
-1. **Reproduce the issue** - understand the error message or unexpected behavior
-2. **Trace the execution path** - follow the code from entry point to error
-3. **Check common causes**: typos, wrong types, async issues, missing imports, stale state
-4. **Add diagnostic logging** if needed (temporary)
-5. **Fix the root cause** - not just the symptoms
-6. **Verify the fix** - run tests or demonstrate it works
-7. **Clean up** - remove any temporary debug code
+1. **Reproduce**: Understand the error/issue reported
+2. **Gather info**:
+   - Read error messages and stack traces carefully
+   - Check recent changes (git diff, git log)
+   - Look at related files and dependencies
+3. **Form hypotheses**: List possible causes ranked by likelihood
+4. **Investigate**: Check each hypothesis methodically
+5. **Fix**: Apply the minimal fix needed
+6. **Verify**: Run tests or reproduce the scenario to confirm the fix
+7. **Explain**: Describe what caused the bug and why the fix works

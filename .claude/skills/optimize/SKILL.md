@@ -1,18 +1,23 @@
 ---
 name: optimize
-description: Optimizes code for performance, bundle size, or readability
+description: Optimizes code for performance - speed, memory, bundle size
 ---
 
 When optimizing ($ARGUMENTS):
 
-1. **Read and profile the code** - identify the bottleneck
-2. **Measure before changing** - establish a baseline
-3. **Apply optimizations**:
-   - Algorithm improvements (O(n^2) -> O(n log n))
-   - Memoization / caching
-   - Lazy loading / code splitting
-   - Reduce unnecessary re-renders (React)
+1. **Profile first**: Understand where the bottleneck is
+2. **Analyze**:
+   - Time complexity (Big O)
+   - Space complexity
+   - I/O operations
+   - Unnecessary re-renders (React)
+   - Bundle size impact
+3. **Optimize** using appropriate techniques:
+   - Algorithmic improvements
+   - Caching / memoization
+   - Lazy loading
+   - Debouncing / throttling
    - Batch operations
-4. **Preserve correctness** - optimizations must not break behavior
-5. **Run tests** after changes
-6. **Report improvements** with before/after comparison
+   - Reduce allocations
+4. **Measure**: Compare before/after when possible
+5. **Document**: Explain the tradeoffs made

@@ -1,17 +1,21 @@
 ---
 name: test-generator
-description: Generates comprehensive tests for the specified code
+description: Generates comprehensive tests for code including edge cases
 ---
 
 When generating tests for ($ARGUMENTS):
 
-1. **Read the target code** to understand all branches and edge cases
-2. **Determine test framework** - Check existing tests for the framework in use (Jest, Vitest, etc.)
-3. **Generate tests** covering:
-   - Happy path / normal cases
-   - Edge cases (empty inputs, null, undefined, boundaries)
-   - Error cases (invalid inputs, exceptions)
+1. **Analyze the code** to understand all code paths
+2. **Identify test scenarios**:
+   - Happy path (normal expected usage)
+   - Edge cases (empty input, null, undefined, boundary values)
+   - Error cases (invalid input, exceptions)
    - Async behavior if applicable
-4. **Follow existing test patterns** in the project
-5. **Use descriptive test names** that explain what is being tested
-6. **Run the tests** to make sure they pass
+3. **Write tests** using the project's test framework (Jest, Vitest, Mocha, etc.)
+4. **Structure tests** with clear describe/it blocks
+5. **Include**:
+   - Descriptive test names that explain expected behavior
+   - Arrange-Act-Assert pattern
+   - Mock external dependencies
+   - Test both input and output
+6. **Run tests** to verify they pass

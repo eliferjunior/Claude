@@ -1,18 +1,19 @@
 ---
 name: refactor
-description: Refactors code following best practices and clean code principles
+description: Refactors code for better readability, performance, and maintainability
 ---
 
 When refactoring code ($ARGUMENTS):
 
-1. **Read the target code** first to understand it completely
-2. **Identify code smells**: duplication, long methods, large classes, deep nesting, etc.
-3. **Apply refactoring patterns**:
-   - Extract Method/Function for long blocks
-   - Rename variables/functions for clarity
+1. **Read the target code** thoroughly before making changes
+2. **Identify issues**: code smells, duplication, complexity, naming
+3. **Plan changes** - List what will change and why
+4. **Apply refactoring** following these principles:
+   - Extract repeated logic into functions
+   - Use meaningful variable/function names
+   - Reduce nesting (early returns, guard clauses)
+   - Follow Single Responsibility Principle
+   - Prefer immutability where possible
    - Remove dead code
-   - Simplify conditionals
-   - Use early returns to reduce nesting
-4. **Preserve behavior** - Do NOT change what the code does, only how it does it
-5. **Run tests** after refactoring to ensure nothing broke
-6. **Summarize changes** made and why
+5. **Verify** the refactored code maintains the same behavior
+6. **Summarize** what was changed and why

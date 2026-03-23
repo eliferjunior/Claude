@@ -1,15 +1,46 @@
 ---
 name: code-review
-description: Reviews code for bugs, security issues, and best practices
+description: Performs a thorough code review checking for bugs, security, and best practices
 ---
 
 When reviewing code ($ARGUMENTS):
 
-1. **Read the code** thoroughly
-2. **Check for bugs**: logic errors, off-by-one, null references, race conditions
-3. **Security audit**: injection, XSS, auth issues, sensitive data exposure
-4. **Performance**: unnecessary loops, memory leaks, expensive operations
-5. **Code quality**: naming, readability, DRY, SOLID principles
-6. **TypeScript**: proper types, no `any` abuse, correct generics
-7. **Rate severity**: Critical / Warning / Suggestion
-8. **Provide specific fixes** for each issue found
+Review the code for the following categories:
+
+### Security
+
+- SQL injection, XSS, command injection vulnerabilities
+- Hardcoded secrets or credentials
+- Insecure data handling
+
+### Bugs
+
+- Off-by-one errors, null pointer issues
+- Race conditions, async issues
+- Incorrect logic or edge cases
+
+### Performance
+
+- Unnecessary loops or computations
+- Memory leaks
+- Missing caching opportunities
+
+### Code Quality
+
+- Naming conventions
+- Code duplication
+- Function complexity (cyclomatic)
+- Error handling completeness
+
+### Best Practices
+
+- SOLID principles adherence
+- Type safety
+- Proper error handling
+- Accessibility (for UI code)
+
+Format findings as:
+
+- **CRITICAL**: Must fix before merge
+- **WARNING**: Should fix, potential issues
+- **SUGGESTION**: Nice to have improvements
