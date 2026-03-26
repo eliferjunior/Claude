@@ -121,6 +121,16 @@ function createTables(): void {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
+    CREATE TABLE IF NOT EXISTS sessions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      token TEXT UNIQUE NOT NULL,
+      user_type TEXT NOT NULL CHECK (user_type IN ('admin', 'store')),
+      user_id INTEGER NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      expires_at TEXT NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token);
     CREATE INDEX IF NOT EXISTS idx_products_category ON products(category_id);
     CREATE INDEX IF NOT EXISTS idx_orders_store ON orders(store_id);
     CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
