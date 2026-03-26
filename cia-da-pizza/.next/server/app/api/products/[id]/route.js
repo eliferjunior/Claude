@@ -1,0 +1,16 @@
+"use strict";(()=>{var e={};e.id=898,e.ids=[898],e.modules={5890:e=>{e.exports=require("better-sqlite3")},399:e=>{e.exports=require("next/dist/compiled/next-server/app-page.runtime.prod.js")},517:e=>{e.exports=require("next/dist/compiled/next-server/app-route.runtime.prod.js")},4770:e=>{e.exports=require("crypto")},2048:e=>{e.exports=require("fs")},5315:e=>{e.exports=require("path")},9553:(e,r,t)=>{t.r(r),t.d(r,{originalPathname:()=>C,patchFetch:()=>x,requestAsyncStorage:()=>E,routeModule:()=>l,serverHooks:()=>m,staticGenerationAsyncStorage:()=>g});var o={};t.r(o),t.d(o,{DELETE:()=>d,GET:()=>i,PUT:()=>c});var s=t(9303),n=t(8716),a=t(670),p=t(7070),u=t(5748);async function i(e,{params:r}){try{let e=parseInt(r.id,10),t=u.Z.prepare(`SELECT p.*, c.name AS category_name
+         FROM products p
+         JOIN categories c ON p.category_id = c.id
+         WHERE p.id = ?`).get(e);if(!t)return p.NextResponse.json({error:"Product not found"},{status:404});return p.NextResponse.json(t)}catch(e){return console.error("Error fetching product:",e),p.NextResponse.json({error:"Internal server error"},{status:500})}}async function c(e,{params:r}){try{let t=parseInt(r.id,10),{category_id:o,name:s,description:n,price_small:a,price_medium:i,price_large:c,image_url:d,active:l}=await e.json();if(!u.Z.prepare("SELECT * FROM products WHERE id = ?").get(t))return p.NextResponse.json({error:"Product not found"},{status:404});u.Z.prepare(`UPDATE products SET
+        category_id = COALESCE(?, category_id),
+        name = COALESCE(?, name),
+        description = COALESCE(?, description),
+        price_small = COALESCE(?, price_small),
+        price_medium = COALESCE(?, price_medium),
+        price_large = COALESCE(?, price_large),
+        image_url = COALESCE(?, image_url),
+        active = COALESCE(?, active)
+       WHERE id = ?`).run(o??null,s??null,n??null,a??null,i??null,c??null,d??null,l??null,t);let E=u.Z.prepare(`SELECT p.*, c.name AS category_name
+         FROM products p
+         JOIN categories c ON p.category_id = c.id
+         WHERE p.id = ?`).get(t);return p.NextResponse.json(E)}catch(e){return console.error("Error updating product:",e),p.NextResponse.json({error:"Internal server error"},{status:500})}}async function d(e,{params:r}){try{let e=parseInt(r.id,10);if(!u.Z.prepare("SELECT * FROM products WHERE id = ?").get(e))return p.NextResponse.json({error:"Product not found"},{status:404});return u.Z.prepare("UPDATE products SET active = 0 WHERE id = ?").run(e),p.NextResponse.json({message:"Product deactivated"})}catch(e){return console.error("Error deleting product:",e),p.NextResponse.json({error:"Internal server error"},{status:500})}}let l=new s.AppRouteRouteModule({definition:{kind:n.x.APP_ROUTE,page:"/api/products/[id]/route",pathname:"/api/products/[id]",filename:"route",bundlePath:"app/api/products/[id]/route"},resolvedPagePath:"/home/user/Claude/cia-da-pizza/src/app/api/products/[id]/route.ts",nextConfigOutput:"",userland:o}),{requestAsyncStorage:E,staticGenerationAsyncStorage:g,serverHooks:m}=l,C="/api/products/[id]/route";function x(){return(0,a.patchFetch)({serverHooks:m,staticGenerationAsyncStorage:g})}}};var r=require("../../../../webpack-runtime.js");r.C(e);var t=e=>r(r.s=e),o=r.X(0,[276,972,691,748],()=>t(9553));module.exports=o})();

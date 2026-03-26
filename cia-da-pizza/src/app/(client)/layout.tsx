@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import WhatsAppButton from '@/components/WhatsAppButton';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -79,6 +80,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
       {/* Main content */}
       <main className="flex-1">{children}</main>
+
+      {/* WhatsApp floating button */}
+      <WhatsAppButton />
 
       {/* Footer */}
       <footer className="border-t border-dark-700 bg-dark-950">
