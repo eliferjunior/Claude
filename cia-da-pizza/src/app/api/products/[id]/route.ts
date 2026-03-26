@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
+import { requireAdminAuth, sanitizeString } from '@/lib/auth';
 
 export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -27,17 +28,15 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
+    const auth = await requireAdminAuth();
+    if (auth.error) return auth.error;
+
     const id = parseInt(params.id, 10);
-    const {
-      category_id,
-      name,
-      description,
-      price_small,
-      price_medium,
-      price_large,
-      image_url,
-      active,
-    } = await request.json();
+    if (isNaN(id)) {
+      return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
+    }
+
+    const body = await request.json();
 
     const existing = db.prepare('SELECT * FROM products WHERE id = ?').get(id);
     if (!existing) {
@@ -56,14 +55,14 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         active = COALESCE(?, active)
        WHERE id = ?`,
     ).run(
-      category_id ?? null,
-      name ?? null,
-      description ?? null,
-      price_small ?? null,
-      price_medium ?? null,
-      price_large ?? null,
-      image_url ?? null,
-      active ?? null,
+      Number.isFinite(body.category_id) ? body.category_id : null,
+      body.name !== undefined ? sanitizeString(body.name, 200) : null,
+      body.description !== undefined ? sanitizeString(body.description, 1000) : null,
+      Number.isFinite(body.price_small) ? body.price_small : null,
+      Number.isFinite(body.price_medium) ? body.price_medium : null,
+      Number.isFinite(body.price_large) ? body.price_large : null,
+      body.image_url !== undefined ? sanitizeString(body.image_url, 500) : null,
+      body.active !== undefined ? (body.active ? 1 : 0) : null,
       id,
     );
 
@@ -85,7 +84,13 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
 export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
   try {
+    const auth = await requireAdminAuth();
+    if (auth.error) return auth.error;
+
     const id = parseInt(params.id, 10);
+    if (isNaN(id)) {
+      return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
+    }
 
     const existing = db.prepare('SELECT * FROM products WHERE id = ?').get(id);
     if (!existing) {

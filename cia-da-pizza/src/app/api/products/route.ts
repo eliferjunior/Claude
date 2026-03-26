@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
+import { requireAdminAuth, sanitizeString } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
@@ -43,10 +44,15 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { category_id, name, description, price_small, price_medium, price_large, image_url } =
-      await request.json();
+    const auth = await requireAdminAuth();
+    if (auth.error) return auth.error;
 
-    if (!category_id || !name) {
+    const body = await request.json();
+
+    const categoryId = Number.isFinite(body.category_id) ? body.category_id : null;
+    const name = sanitizeString(body.name, 200);
+
+    if (!categoryId || !name) {
       return NextResponse.json({ error: 'category_id and name are required' }, { status: 400 });
     }
 
@@ -56,13 +62,13 @@ export async function POST(request: NextRequest) {
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
       )
       .run(
-        category_id,
+        categoryId,
         name,
-        description ?? null,
-        price_small ?? null,
-        price_medium ?? null,
-        price_large ?? null,
-        image_url ?? null,
+        sanitizeString(body.description, 1000),
+        Number.isFinite(body.price_small) ? body.price_small : null,
+        Number.isFinite(body.price_medium) ? body.price_medium : null,
+        Number.isFinite(body.price_large) ? body.price_large : null,
+        sanitizeString(body.image_url, 500),
       );
 
     const product = db

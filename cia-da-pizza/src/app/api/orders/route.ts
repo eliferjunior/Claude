@@ -1,8 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
+import { requireAdminAuth, getStoreSession, sanitizeString } from '@/lib/auth';
+
+const VALID_ORDER_TYPES = ['delivery', 'pickup', 'dine_in'];
 
 export async function GET(request: NextRequest) {
   try {
+    // Require either admin or store session
+    const adminAuth = await requireAdminAuth();
+    const storeSession = getStoreSession(request);
+
+    if (adminAuth.error && !storeSession) {
+      return adminAuth.error;
+    }
+
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const search = searchParams.get('search');
@@ -11,7 +22,11 @@ export async function GET(request: NextRequest) {
     let query = 'SELECT * FROM orders WHERE 1=1';
     const params: (string | number)[] = [];
 
-    if (storeId) {
+    // If store session, force filter by their store_id
+    if (storeSession) {
+      query += ' AND store_id = ?';
+      params.push(storeSession.storeId);
+    } else if (storeId) {
       query += ' AND store_id = ?';
       params.push(parseInt(storeId, 10));
     }
@@ -22,8 +37,9 @@ export async function GET(request: NextRequest) {
     }
 
     if (search) {
+      const sanitizedSearch = sanitizeString(search, 100) ?? '';
       query += ' AND (customer_name LIKE ? OR customer_phone LIKE ?)';
-      params.push(`%${search}%`, `%${search}%`);
+      params.push(`%${sanitizedSearch}%`, `%${sanitizedSearch}%`);
     }
 
     query += ' ORDER BY created_at DESC';
@@ -38,21 +54,110 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { store_id, customer_name, customer_phone, customer_address, order_type, notes, items } =
-      await request.json();
+    const body = await request.json();
+    const { store_id, order_type, items } = body;
 
-    if (!store_id || !customer_name || !order_type || !items || items.length === 0) {
+    const customerName = sanitizeString(body.customer_name, 200);
+    const customerPhone = sanitizeString(body.customer_phone, 30);
+    const customerAddress = sanitizeString(body.customer_address, 500);
+    const notes = sanitizeString(body.notes, 1000);
+
+    if (!store_id || !customerName || !order_type || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
         { error: 'store_id, customer_name, order_type, and items are required' },
         { status: 400 },
       );
     }
 
-    const total = items.reduce(
-      (sum: number, item: { quantity: number; unit_price: number }) =>
-        sum + item.quantity * item.unit_price,
-      0,
-    );
+    if (!VALID_ORDER_TYPES.includes(order_type)) {
+      return NextResponse.json(
+        { error: 'Invalid order_type. Must be delivery, pickup, or dine_in' },
+        { status: 400 },
+      );
+    }
+
+    // Verify store exists
+    const store = db.prepare('SELECT id FROM stores WHERE id = ? AND active = 1').get(store_id);
+    if (!store) {
+      return NextResponse.json({ error: 'Store not found' }, { status: 404 });
+    }
+
+    // Server-side price calculation: look up actual prices from the database
+    // instead of trusting client-provided unit_price
+    let total = 0;
+    const validatedItems: {
+      product_id: number;
+      product_name: string;
+      size: string | null;
+      quantity: number;
+      unit_price: number;
+      notes: string | null;
+    }[] = [];
+
+    for (const item of items) {
+      if (!item.product_id || !item.quantity || item.quantity < 1) {
+        return NextResponse.json(
+          { error: 'Each item must have product_id and quantity >= 1' },
+          { status: 400 },
+        );
+      }
+
+      const product = db
+        .prepare(
+          'SELECT id, name, price_small, price_medium, price_large FROM products WHERE id = ? AND active = 1',
+        )
+        .get(item.product_id) as
+        | {
+            id: number;
+            name: string;
+            price_small: number | null;
+            price_medium: number | null;
+            price_large: number | null;
+          }
+        | undefined;
+
+      if (!product) {
+        return NextResponse.json(
+          { error: `Product with id ${item.product_id} not found or inactive` },
+          { status: 400 },
+        );
+      }
+
+      // Determine the correct price based on size
+      let unitPrice: number | null = null;
+      const size = sanitizeString(item.size, 20);
+
+      if (size === 'small') {
+        unitPrice = product.price_small;
+      } else if (size === 'large') {
+        unitPrice = product.price_large;
+      } else {
+        // Default to medium (also used for products without sizes)
+        unitPrice = product.price_medium;
+      }
+
+      if (unitPrice === null || unitPrice === undefined) {
+        return NextResponse.json(
+          { error: `Price not available for product ${product.name} in size ${size ?? 'medium'}` },
+          { status: 400 },
+        );
+      }
+
+      const quantity = Math.max(1, Math.min(Math.floor(item.quantity), 99));
+      total += quantity * unitPrice;
+
+      validatedItems.push({
+        product_id: product.id,
+        product_name: product.name,
+        size: size,
+        quantity: quantity,
+        unit_price: unitPrice,
+        notes: sanitizeString(item.notes, 500),
+      });
+    }
+
+    // Round total to 2 decimal places
+    total = Math.round(total * 100) / 100;
 
     const insertOrder = db.prepare(
       `INSERT INTO orders (store_id, customer_name, customer_phone, customer_address, order_type, notes, total)
@@ -67,25 +172,25 @@ export async function POST(request: NextRequest) {
     const createOrder = db.transaction(() => {
       const result = insertOrder.run(
         store_id,
-        customer_name,
-        customer_phone ?? null,
-        customer_address ?? null,
+        customerName,
+        customerPhone,
+        customerAddress,
         order_type,
-        notes ?? null,
+        notes,
         total,
       );
 
       const orderId = result.lastInsertRowid;
 
-      for (const item of items) {
+      for (const vItem of validatedItems) {
         insertItem.run(
           orderId,
-          item.product_id,
-          item.product_name,
-          item.size ?? null,
-          item.quantity,
-          item.unit_price,
-          item.notes ?? null,
+          vItem.product_id,
+          vItem.product_name,
+          vItem.size,
+          vItem.quantity,
+          vItem.unit_price,
+          vItem.notes,
         );
       }
 

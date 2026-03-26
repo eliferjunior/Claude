@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
+import { requireAdminAuth } from '@/lib/auth';
 
 export async function GET() {
   try {
+    const auth = await requireAdminAuth();
+    if (auth.error) return auth.error;
+
     const today = new Date().toISOString().split('T')[0];
 
     const ordersToday = db

@@ -1,12 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
+import { requireAdminAuth, getStoreSession } from '@/lib/auth';
 
-export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
+const VALID_STATUSES = ['pending', 'confirmed', 'preparing', 'ready', 'delivered', 'cancelled'];
+
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const id = parseInt(params.id, 10);
+    // Require either admin or store session
+    const adminAuth = await requireAdminAuth();
+    const storeSession = getStoreSession(request);
 
-    const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(id);
+    if (adminAuth.error && !storeSession) {
+      return adminAuth.error;
+    }
+
+    const id = parseInt(params.id, 10);
+    if (isNaN(id)) {
+      return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
+    }
+
+    const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(id) as
+      | { store_id: number }
+      | undefined;
     if (!order) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
+
+    // Store users can only see their own orders
+    if (storeSession && order.store_id !== storeSession.storeId) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
@@ -21,15 +42,41 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   try {
+    // Require either admin or store session
+    const adminAuth = await requireAdminAuth();
+    const storeSession = getStoreSession(request);
+
+    if (adminAuth.error && !storeSession) {
+      return adminAuth.error;
+    }
+
     const id = parseInt(params.id, 10);
+    if (isNaN(id)) {
+      return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
+    }
+
     const { status } = await request.json();
 
     if (!status) {
       return NextResponse.json({ error: 'Status is required' }, { status: 400 });
     }
 
-    const existing = db.prepare('SELECT * FROM orders WHERE id = ?').get(id);
+    if (!VALID_STATUSES.includes(status)) {
+      return NextResponse.json(
+        { error: `Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}` },
+        { status: 400 },
+      );
+    }
+
+    const existing = db.prepare('SELECT * FROM orders WHERE id = ?').get(id) as
+      | { store_id: number }
+      | undefined;
     if (!existing) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
+
+    // Store users can only update their own orders
+    if (storeSession && existing.store_id !== storeSession.storeId) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
