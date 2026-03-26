@@ -6,9 +6,15 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const date = searchParams.get('date');
     const status = searchParams.get('status');
+    const storeId = searchParams.get('store_id');
 
     let query = 'SELECT * FROM reservations WHERE 1=1';
-    const params: string[] = [];
+    const params: (string | number)[] = [];
+
+    if (storeId) {
+      query += ' AND store_id = ?';
+      params.push(parseInt(storeId, 10));
+    }
 
     if (date) {
       query += ' AND date = ?';

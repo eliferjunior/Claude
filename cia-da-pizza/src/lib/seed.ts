@@ -16,13 +16,15 @@ export function seedDatabase(db: Database.Database): void {
     // --- Admin user ---
     const passwordHash = bcrypt.hashSync('admin123', 10);
     db.prepare(
-      'INSERT INTO admin_users (username, password_hash, name, role) VALUES (?, ?, ?, ?)'
+      'INSERT INTO admin_users (username, password_hash, name, role) VALUES (?, ?, ?, ?)',
     ).run('admin', passwordHash, 'Administrador', 'super_admin');
 
     // --- Stores ---
+    const storePasswordHash = bcrypt.hashSync('loja123', 10);
+
     const insertStore = db.prepare(`
-      INSERT INTO stores (name, address, phone, whatsapp, opening_hours, closing_hours, active, is_delivery)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO stores (name, address, phone, whatsapp, opening_hours, closing_hours, active, is_delivery, login_username, login_password_hash)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     insertStore.run(
@@ -33,7 +35,9 @@ export function seedDatabase(db: Database.Database): void {
       '18:00',
       '23:00',
       1,
-      0
+      0,
+      'loja1',
+      storePasswordHash,
     );
     insertStore.run(
       'Loja 2 - Parque Progresso',
@@ -43,7 +47,9 @@ export function seedDatabase(db: Database.Database): void {
       '18:00',
       '23:00',
       1,
-      0
+      0,
+      'loja2',
+      storePasswordHash,
     );
     insertStore.run(
       'Loja 4 - Delivery',
@@ -53,7 +59,9 @@ export function seedDatabase(db: Database.Database): void {
       '18:00',
       '23:30',
       1,
-      1
+      1,
+      'loja4',
+      storePasswordHash,
     );
     insertStore.run(
       'Loja 6 - Pulicano',
@@ -63,12 +71,29 @@ export function seedDatabase(db: Database.Database): void {
       '18:00',
       '23:00',
       1,
-      0
+      0,
+      'loja6',
+      storePasswordHash,
     );
+
+    // --- Settings ---
+    const insertSetting = db.prepare('INSERT INTO settings (key, value) VALUES (?, ?)');
+    insertSetting.run('whatsapp_enabled', '1');
+    insertSetting.run('whatsapp_number', '16999999999');
+    insertSetting.run(
+      'whatsapp_default_message',
+      'Olá! Gostaria de fazer um pedido na Cia da Pizza!',
+    );
+    insertSetting.run('company_name', 'Cia da Pizza');
+    insertSetting.run('company_logo_url', '');
+    insertSetting.run('company_instagram', 'https://www.instagram.com/pizzacompanhiada');
+    insertSetting.run('company_facebook', 'https://www.facebook.com/ciadapizz');
+    insertSetting.run('primary_color', '#DC2626');
+    insertSetting.run('secondary_color', '#EAB308');
 
     // --- Categories ---
     const insertCategory = db.prepare(
-      'INSERT INTO categories (name, order_position, active) VALUES (?, ?, 1)'
+      'INSERT INTO categories (name, order_position, active) VALUES (?, ?, 1)',
     );
 
     const categories: { name: string; order: number }[] = [
@@ -195,7 +220,7 @@ export function seedDatabase(db: Database.Database): void {
         p.description,
         p.price_small,
         p.price_medium,
-        p.price_large
+        p.price_large,
       );
     }
 
@@ -274,7 +299,7 @@ export function seedDatabase(db: Database.Database): void {
         p.description,
         p.price_small,
         p.price_medium,
-        p.price_large
+        p.price_large,
       );
     }
 
@@ -338,7 +363,7 @@ export function seedDatabase(db: Database.Database): void {
         p.description,
         p.price_small,
         p.price_medium,
-        p.price_large
+        p.price_large,
       );
     }
 
@@ -346,8 +371,7 @@ export function seedDatabase(db: Database.Database): void {
     const burgers: ProductSeed[] = [
       {
         name: 'Classic Burger',
-        description:
-          'Pão brioche, hambúrguer 180g, alface, tomate, cebola roxa e molho especial',
+        description: 'Pão brioche, hambúrguer 180g, alface, tomate, cebola roxa e molho especial',
         price_small: null,
         price_medium: 22.9,
         price_large: null,
@@ -385,7 +409,7 @@ export function seedDatabase(db: Database.Database): void {
         p.description,
         p.price_small,
         p.price_medium,
-        p.price_large
+        p.price_large,
       );
     }
 
@@ -428,7 +452,7 @@ export function seedDatabase(db: Database.Database): void {
         p.description,
         p.price_small,
         p.price_medium,
-        p.price_large
+        p.price_large,
       );
     }
 
@@ -478,7 +502,7 @@ export function seedDatabase(db: Database.Database): void {
         p.description,
         p.price_small,
         p.price_medium,
-        p.price_large
+        p.price_large,
       );
     }
 
@@ -514,7 +538,7 @@ export function seedDatabase(db: Database.Database): void {
         p.description,
         p.price_small,
         p.price_medium,
-        p.price_large
+        p.price_large,
       );
     }
   });

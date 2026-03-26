@@ -26,8 +26,23 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, address, phone, whatsapp, opening_hours, closing_hours, is_delivery, lat, lng } =
-      await request.json();
+    const {
+      name,
+      address,
+      phone,
+      whatsapp,
+      opening_hours,
+      closing_hours,
+      is_delivery,
+      lat,
+      lng,
+      allows_delivery,
+      allows_pickup,
+      allows_reservation,
+      allows_dine_in,
+      whatsapp_number,
+      whatsapp_message,
+    } = await request.json();
 
     if (!name) {
       return NextResponse.json({ error: 'Name is required' }, { status: 400 });
@@ -35,8 +50,8 @@ export async function POST(request: NextRequest) {
 
     const result = db
       .prepare(
-        `INSERT INTO stores (name, address, phone, whatsapp, opening_hours, closing_hours, is_delivery, lat, lng)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO stores (name, address, phone, whatsapp, opening_hours, closing_hours, is_delivery, lat, lng, allows_delivery, allows_pickup, allows_reservation, allows_dine_in, whatsapp_number, whatsapp_message)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .run(
         name,
@@ -48,6 +63,12 @@ export async function POST(request: NextRequest) {
         is_delivery ?? 0,
         lat ?? null,
         lng ?? null,
+        allows_delivery ?? 1,
+        allows_pickup ?? 1,
+        allows_reservation ?? 1,
+        allows_dine_in ?? 1,
+        whatsapp_number ?? '',
+        whatsapp_message ?? 'Olá! Gostaria de fazer um pedido.',
       );
 
     const store = db.prepare('SELECT * FROM stores WHERE id = ?').get(result.lastInsertRowid);

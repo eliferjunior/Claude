@@ -50,7 +50,21 @@ function createTables(): void {
       active INTEGER NOT NULL DEFAULT 1,
       is_delivery INTEGER NOT NULL DEFAULT 0,
       lat REAL,
-      lng REAL
+      lng REAL,
+      allows_delivery INTEGER DEFAULT 1,
+      allows_pickup INTEGER DEFAULT 1,
+      allows_reservation INTEGER DEFAULT 1,
+      allows_dine_in INTEGER DEFAULT 1,
+      whatsapp_number TEXT DEFAULT '',
+      whatsapp_message TEXT DEFAULT 'Olá! Gostaria de fazer um pedido.',
+      login_username TEXT UNIQUE,
+      login_password_hash TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS settings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      key TEXT UNIQUE NOT NULL,
+      value TEXT NOT NULL
     );
 
     CREATE TABLE IF NOT EXISTS orders (
@@ -171,6 +185,20 @@ export type Store = {
   is_delivery: number;
   lat: number | null;
   lng: number | null;
+  allows_delivery: number;
+  allows_pickup: number;
+  allows_reservation: number;
+  allows_dine_in: number;
+  whatsapp_number: string;
+  whatsapp_message: string;
+  login_username: string | null;
+  login_password_hash: string | null;
+};
+
+export type Setting = {
+  id: number;
+  key: string;
+  value: string;
 };
 
 export type Order = {

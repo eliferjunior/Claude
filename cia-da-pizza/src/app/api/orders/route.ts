@@ -6,9 +6,15 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const search = searchParams.get('search');
+    const storeId = searchParams.get('store_id');
 
     let query = 'SELECT * FROM orders WHERE 1=1';
     const params: (string | number)[] = [];
+
+    if (storeId) {
+      query += ' AND store_id = ?';
+      params.push(parseInt(storeId, 10));
+    }
 
     if (status) {
       query += ' AND status = ?';

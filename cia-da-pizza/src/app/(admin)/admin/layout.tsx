@@ -11,6 +11,7 @@ const menuItems = [
   { label: 'Categorias', href: '/admin/categorias', icon: '📁' },
   { label: 'Reservas', href: '/admin/reservas', icon: '📅' },
   { label: 'Lojas', href: '/admin/lojas', icon: '🏪' },
+  { label: 'Configurações', href: '/admin/configuracoes', icon: '⚙️' },
 ];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {

@@ -15,6 +15,12 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       is_delivery,
       lat,
       lng,
+      allows_delivery,
+      allows_pickup,
+      allows_reservation,
+      allows_dine_in,
+      whatsapp_number,
+      whatsapp_message,
     } = await request.json();
 
     const existing = db.prepare('SELECT * FROM stores WHERE id = ?').get(id);
@@ -33,7 +39,13 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         active = COALESCE(?, active),
         is_delivery = COALESCE(?, is_delivery),
         lat = COALESCE(?, lat),
-        lng = COALESCE(?, lng)
+        lng = COALESCE(?, lng),
+        allows_delivery = COALESCE(?, allows_delivery),
+        allows_pickup = COALESCE(?, allows_pickup),
+        allows_reservation = COALESCE(?, allows_reservation),
+        allows_dine_in = COALESCE(?, allows_dine_in),
+        whatsapp_number = COALESCE(?, whatsapp_number),
+        whatsapp_message = COALESCE(?, whatsapp_message)
        WHERE id = ?`,
     ).run(
       name ?? null,
@@ -46,6 +58,12 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       is_delivery ?? null,
       lat ?? null,
       lng ?? null,
+      allows_delivery ?? null,
+      allows_pickup ?? null,
+      allows_reservation ?? null,
+      allows_dine_in ?? null,
+      whatsapp_number ?? null,
+      whatsapp_message ?? null,
       id,
     );
 
