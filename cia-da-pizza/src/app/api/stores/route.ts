@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
+import { requireAdminAuth, sanitizeString } from '@/lib/auth';
+
+const STORE_SAFE_COLUMNS = `id, name, address, phone, whatsapp, opening_hours, closing_hours,
+  active, is_delivery, lat, lng, allows_delivery, allows_pickup, allows_reservation,
+  allows_dine_in, whatsapp_number, whatsapp_message, login_username`;
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const active = searchParams.get('active');
 
-    let query = 'SELECT * FROM stores';
+    let query = `SELECT ${STORE_SAFE_COLUMNS} FROM stores`;
     const params: number[] = [];
 
     if (active) {
@@ -26,24 +31,12 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const {
-      name,
-      address,
-      phone,
-      whatsapp,
-      opening_hours,
-      closing_hours,
-      is_delivery,
-      lat,
-      lng,
-      allows_delivery,
-      allows_pickup,
-      allows_reservation,
-      allows_dine_in,
-      whatsapp_number,
-      whatsapp_message,
-    } = await request.json();
+    const auth = await requireAdminAuth();
+    if (auth.error) return auth.error;
 
+    const body = await request.json();
+
+    const name = sanitizeString(body.name, 200);
     if (!name) {
       return NextResponse.json({ error: 'Name is required' }, { status: 400 });
     }
@@ -55,23 +48,25 @@ export async function POST(request: NextRequest) {
       )
       .run(
         name,
-        address ?? null,
-        phone ?? null,
-        whatsapp ?? null,
-        opening_hours ?? null,
-        closing_hours ?? null,
-        is_delivery ?? 0,
-        lat ?? null,
-        lng ?? null,
-        allows_delivery ?? 1,
-        allows_pickup ?? 1,
-        allows_reservation ?? 1,
-        allows_dine_in ?? 1,
-        whatsapp_number ?? '',
-        whatsapp_message ?? 'Olá! Gostaria de fazer um pedido.',
+        sanitizeString(body.address, 500),
+        sanitizeString(body.phone, 30),
+        sanitizeString(body.whatsapp, 30),
+        sanitizeString(body.opening_hours, 10),
+        sanitizeString(body.closing_hours, 10),
+        body.is_delivery ? 1 : 0,
+        body.lat ?? null,
+        body.lng ?? null,
+        body.allows_delivery !== undefined ? (body.allows_delivery ? 1 : 0) : 1,
+        body.allows_pickup !== undefined ? (body.allows_pickup ? 1 : 0) : 1,
+        body.allows_reservation !== undefined ? (body.allows_reservation ? 1 : 0) : 1,
+        body.allows_dine_in !== undefined ? (body.allows_dine_in ? 1 : 0) : 1,
+        sanitizeString(body.whatsapp_number, 30) ?? '',
+        sanitizeString(body.whatsapp_message, 500) ?? 'Olá! Gostaria de fazer um pedido.',
       );
 
-    const store = db.prepare('SELECT * FROM stores WHERE id = ?').get(result.lastInsertRowid);
+    const store = db
+      .prepare(`SELECT ${STORE_SAFE_COLUMNS} FROM stores WHERE id = ?`)
+      .get(result.lastInsertRowid);
 
     return NextResponse.json(store, { status: 201 });
   } catch (error) {

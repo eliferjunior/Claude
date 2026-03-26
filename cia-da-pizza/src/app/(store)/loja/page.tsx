@@ -17,7 +17,7 @@ type Reservation = {
 
 export default function StoreDashboardPage() {
   const router = useRouter();
-  const [storeId, setStoreId] = useState<number | null>(null);
+  const [, setStoreId] = useState<number | null>(null);
   const [storeName, setStoreName] = useState('');
   const [todayOrders, setTodayOrders] = useState(0);
   const [pendingOrders, setPendingOrders] = useState(0);

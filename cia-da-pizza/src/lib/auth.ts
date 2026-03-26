@@ -159,6 +159,89 @@ export async function authenticate(
 
   if (!verifyPassword(password, user.password_hash)) return null;
 
-  const { password_hash: _, ...safeUser } = user;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { password_hash: _hash, ...safeUser } = user;
   return safeUser;
+}
+
+// --- Store session helpers ---
+
+const STORE_SESSION_COOKIE = 'store_session';
+
+type StoreSessionPayload = {
+  storeId: number;
+  storeName: string;
+  username: string;
+  exp: number;
+};
+
+/**
+ * Verify a store session token from a NextRequest cookie.
+ * Returns the store session payload or null.
+ */
+export function verifyStoreToken(token: string): StoreSessionPayload | null {
+  const parts = token.split('.');
+  if (parts.length !== 2) return null;
+
+  const [data, signature] = parts;
+  const expectedSig = crypto
+    .createHmac('sha256', SESSION_SECRET)
+    .update(data)
+    .digest('base64url');
+
+  if (signature !== expectedSig) return null;
+
+  try {
+    const payload = JSON.parse(
+      Buffer.from(data, 'base64url').toString()
+    ) as StoreSessionPayload;
+    if (payload.exp < Date.now()) return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Get the store session from a NextRequest. Returns the payload or null.
+ */
+export function getStoreSession(
+  request: { cookies: { get: (name: string) => { value: string } | undefined } }
+): StoreSessionPayload | null {
+  const token = request.cookies.get(STORE_SESSION_COOKIE)?.value;
+  if (!token) return null;
+  return verifyStoreToken(token);
+}
+
+/**
+ * Require admin auth for API routes. Returns a 401 Response if not authenticated,
+ * or the session payload if valid.
+ */
+export async function requireAdminAuth(): Promise<
+  { session: SessionPayload; error?: never } | { session?: never; error: Response }
+> {
+  try {
+    const session = await requireAuth();
+    return { session };
+  } catch {
+    return {
+      error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
+    };
+  }
+}
+
+// Need NextResponse for requireAdminAuth
+import { NextResponse } from 'next/server';
+
+/**
+ * Sanitize a string input: trim and enforce max length.
+ */
+export function sanitizeString(
+  value: unknown,
+  maxLength: number = 500
+): string | null {
+  if (value === null || value === undefined) return null;
+  const str = String(value).trim();
+  if (str.length === 0) return null;
+  return str.slice(0, maxLength);
 }

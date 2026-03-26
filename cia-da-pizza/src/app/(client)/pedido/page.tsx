@@ -95,7 +95,7 @@ export default function PedidoPage() {
 
   useEffect(() => {
     if (step === 2 && categories.length === 0) {
-      async function fetchMenu() {
+      const fetchMenu = async () => {
         try {
           const [catRes, prodRes] = await Promise.all([
             fetch('/api/categories'),
@@ -108,7 +108,7 @@ export default function PedidoPage() {
         } catch (error) {
           console.error('Erro ao carregar cardapio:', error);
         }
-      }
+      };
       fetchMenu();
     }
   }, [step, categories.length]);

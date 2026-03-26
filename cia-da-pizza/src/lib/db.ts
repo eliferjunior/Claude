@@ -140,10 +140,17 @@ function isDatabaseEmpty(): boolean {
 function initializeDatabase(): void {
   createTables();
 
-  if (isDatabaseEmpty()) {
-    // Dynamic import to avoid circular dependency issues
-    const { seedDatabase } = require('./seed');
-    seedDatabase(db);
+  try {
+    if (isDatabaseEmpty()) {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { seedDatabase } = require('./seed');
+      seedDatabase(db);
+    }
+  } catch (e: unknown) {
+    const err = e as { code?: string };
+    if (err.code !== 'SQLITE_CONSTRAINT_UNIQUE') {
+      throw e;
+    }
   }
 }
 
