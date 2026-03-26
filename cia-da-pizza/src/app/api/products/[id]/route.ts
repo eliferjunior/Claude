@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
-import { requireAdminAuth, sanitizeString } from '@/lib/auth';
+import { requireAdminAuth } from '@/lib/auth-helpers';
+import { sanitizeString } from '@/lib/auth';
 
 export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -28,7 +29,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const auth = await requireAdminAuth();
+    const auth = requireAdminAuth(request);
     if (auth.error) return auth.error;
 
     const id = parseInt(params.id, 10);
@@ -82,9 +83,9 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const auth = await requireAdminAuth();
+    const auth = requireAdminAuth(request);
     if (auth.error) return auth.error;
 
     const id = parseInt(params.id, 10);

@@ -8,28 +8,37 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   const [menuOpen, setMenuOpen] = useState(false);
 
   const navLinks = [
-    { href: '/cardapio', label: 'Cardapio' },
-    { href: '/pedido', label: 'Fazer Pedido' },
-    { href: '/reserva', label: 'Reservar' },
-    { href: '/acompanhar', label: 'Acompanhar Pedido' },
+    { href: '/cardapio', label: 'Cardapio', icon: '📋' },
+    { href: '/pedido', label: 'Fazer Pedido', icon: '🛒' },
+    { href: '/reserva', label: 'Reservar', icon: '📅' },
+    { href: '/acompanhar', label: 'Acompanhar Pedido', icon: '📍' },
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-dark-900 text-dark-50">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950 text-white">
       {/* Navbar */}
-      <header className="sticky top-0 z-50 glass border-b border-dark-700">
+      <header className="bg-gray-900/80 backdrop-blur-xl border-b border-gray-800/50 sticky top-0 z-50">
         <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
-            <Link href="/" className="flex items-center gap-2 text-xl font-bold text-white">
-              <span className="text-2xl">🍕</span>
-              <span>Cia da Pizza</span>
+            <Link href="/" className="flex items-center gap-2 group">
+              <span className="text-2xl transition-transform duration-300 group-hover:scale-110">
+                🍕
+              </span>
+              <span className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400">
+                Cia da Pizza
+              </span>
             </Link>
 
             {/* Desktop nav */}
-            <div className="hidden md:flex items-center gap-8">
+            <div className="hidden md:flex items-center gap-1">
               {navLinks.map((link) => (
-                <Link key={link.href} href={link.href} className="nav-link font-medium">
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="relative px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors duration-300 group"
+                >
                   {link.label}
+                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-red-500 to-yellow-500 transition-all duration-300 group-hover:w-3/4 rounded-full" />
                 </Link>
               ))}
             </div>
@@ -37,7 +46,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             {/* Mobile menu button */}
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="md:hidden p-2 rounded-lg text-dark-300 hover:text-white hover:bg-dark-700"
+              className="md:hidden p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all duration-300"
               aria-label="Abrir menu"
             >
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -62,15 +71,16 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
           {/* Mobile nav */}
           {menuOpen && (
-            <div className="md:hidden pb-4 space-y-2">
+            <div className="md:hidden pb-4 space-y-1 animate-fade-in">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
                   onClick={() => setMenuOpen(false)}
-                  className="block rounded-lg px-4 py-2 text-dark-300 hover:bg-dark-700 hover:text-white"
+                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-gray-300 hover:bg-gray-800/50 hover:text-white transition-all duration-300"
                 >
-                  {link.label}
+                  <span>{link.icon}</span>
+                  <span className="font-medium">{link.label}</span>
                 </Link>
               ))}
             </div>
@@ -85,25 +95,73 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       <WhatsAppButton />
 
       {/* Footer */}
-      <footer className="border-t border-dark-700 bg-dark-950">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+      <footer className="border-t border-gray-800/50 bg-gray-950">
+        <div className="h-px bg-gradient-to-r from-transparent via-red-500/50 to-transparent" />
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 gap-10 md:grid-cols-4">
             {/* About */}
-            <div>
-              <h3 className="text-lg font-bold text-white mb-4">🍕 Cia da Pizza</h3>
-              <p className="text-dark-400 text-sm leading-relaxed">
+            <div className="md:col-span-1">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-2xl">🍕</span>
+                <span className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400">
+                  Cia da Pizza
+                </span>
+              </div>
+              <p className="text-gray-400 text-sm leading-relaxed">
                 A melhor pizzaria e sanduicheria de Franca/SP. Mais de 80 mil clientes atendidos por
                 mes. Qualidade e sabor em cada fatia!
               </p>
             </div>
 
-            {/* Contact */}
+            {/* Links rapidos */}
             <div>
-              <h3 className="text-lg font-bold text-white mb-4">Contato</h3>
-              <ul className="space-y-2 text-sm text-dark-400">
+              <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
+                Links Rapidos
+              </h3>
+              <ul className="space-y-3">
+                {[
+                  { href: '/cardapio', label: 'Cardapio' },
+                  { href: '/pedido', label: 'Fazer Pedido' },
+                  { href: '/reserva', label: 'Reservar Mesa' },
+                  { href: '/acompanhar', label: 'Acompanhar Pedido' },
+                ].map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="text-sm text-gray-400 hover:text-red-400 transition-colors duration-300"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Horario */}
+            <div>
+              <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
+                Horario de Funcionamento
+              </h3>
+              <ul className="space-y-3 text-sm text-gray-400">
                 <li className="flex items-center gap-2">
                   <svg
-                    className="h-4 w-4 text-primary-500"
+                    className="h-4 w-4 text-red-400 shrink-0"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  Seg a Dom: 18:00 - 23:00
+                </li>
+                <li className="flex items-center gap-2">
+                  <svg
+                    className="h-4 w-4 text-red-400 shrink-0"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -125,7 +183,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                 </li>
                 <li className="flex items-center gap-2">
                   <svg
-                    className="h-4 w-4 text-primary-500"
+                    className="h-4 w-4 text-red-400 shrink-0"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -139,34 +197,20 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                   </svg>
                   (16) 3711-4444 (Delivery)
                 </li>
-                <li className="flex items-center gap-2">
-                  <svg
-                    className="h-4 w-4 text-primary-500"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  Seg a Dom: 18:00 - 23:00
-                </li>
               </ul>
             </div>
 
-            {/* Social */}
+            {/* Redes sociais */}
             <div>
-              <h3 className="text-lg font-bold text-white mb-4">Redes Sociais</h3>
-              <div className="flex gap-4">
+              <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
+                Redes Sociais
+              </h3>
+              <div className="flex gap-3">
                 <a
                   href="https://www.instagram.com/pizzacompanhiada"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center h-10 w-10 rounded-lg bg-dark-800 text-dark-400 hover:bg-primary-600 hover:text-white transition-colors"
+                  className="flex items-center justify-center h-10 w-10 rounded-xl bg-gray-800/50 border border-gray-700/50 text-gray-400 hover:bg-gradient-to-br hover:from-purple-600 hover:to-pink-500 hover:text-white hover:border-transparent hover:scale-110 transition-all duration-300"
                   aria-label="Instagram"
                 >
                   <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
@@ -177,7 +221,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                   href="https://wa.me/5516937114444"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center h-10 w-10 rounded-lg bg-dark-800 text-dark-400 hover:bg-green-600 hover:text-white transition-colors"
+                  className="flex items-center justify-center h-10 w-10 rounded-xl bg-gray-800/50 border border-gray-700/50 text-gray-400 hover:bg-green-600 hover:text-white hover:border-transparent hover:scale-110 transition-all duration-300"
                   aria-label="WhatsApp"
                 >
                   <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
@@ -188,7 +232,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                   href="https://www.facebook.com/ciadapizza"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center h-10 w-10 rounded-lg bg-dark-800 text-dark-400 hover:bg-blue-600 hover:text-white transition-colors"
+                  className="flex items-center justify-center h-10 w-10 rounded-xl bg-gray-800/50 border border-gray-700/50 text-gray-400 hover:bg-blue-600 hover:text-white hover:border-transparent hover:scale-110 transition-all duration-300"
                   aria-label="Facebook"
                 >
                   <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
@@ -196,11 +240,12 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                   </svg>
                 </a>
               </div>
+              <p className="mt-4 text-xs text-gray-500">@pizzacompanhiada</p>
             </div>
           </div>
 
-          <div className="mt-8 border-t border-dark-700 pt-8 text-center text-sm text-dark-500">
-            <p>
+          <div className="mt-12 border-t border-gray-800/50 pt-8 text-center">
+            <p className="text-sm text-gray-500">
               &copy; {new Date().getFullYear()} Cia da Pizza - Franca/SP. Todos os direitos
               reservados.
             </p>

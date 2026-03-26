@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
-import { requireAdminAuth, sanitizeString } from '@/lib/auth';
+import { requireAdminAuth } from '@/lib/auth-helpers';
+import { sanitizeString } from '@/lib/auth';
 
 const STORE_SAFE_COLUMNS = `id, name, address, phone, whatsapp, opening_hours, closing_hours,
   active, is_delivery, lat, lng, allows_delivery, allows_pickup, allows_reservation,
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const auth = await requireAdminAuth();
+    const auth = requireAdminAuth(request);
     if (auth.error) return auth.error;
 
     const body = await request.json();

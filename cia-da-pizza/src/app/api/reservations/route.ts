@@ -1,16 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
-import { requireAdminAuth, getStoreSession, sanitizeString } from '@/lib/auth';
+import { requireAnyAuth } from '@/lib/auth-helpers';
+import { sanitizeString } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
-    // Require either admin or store session
-    const adminAuth = await requireAdminAuth();
-    const storeSession = getStoreSession(request);
-
-    if (adminAuth.error && !storeSession) {
-      return adminAuth.error;
-    }
+    const auth = requireAnyAuth(request);
+    if (auth.error) return auth.error;
 
     const { searchParams } = new URL(request.url);
     const date = searchParams.get('date');
@@ -21,9 +17,9 @@ export async function GET(request: NextRequest) {
     const params: (string | number)[] = [];
 
     // Store users can only see their own reservations
-    if (storeSession) {
+    if (auth.session.type === 'store') {
       query += ' AND store_id = ?';
-      params.push(storeSession.storeId);
+      params.push(auth.session.store.storeId);
     } else if (storeId) {
       query += ' AND store_id = ?';
       params.push(parseInt(storeId, 10));

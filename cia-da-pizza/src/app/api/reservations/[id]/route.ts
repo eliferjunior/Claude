@@ -1,18 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
-import { requireAdminAuth, getStoreSession } from '@/lib/auth';
+import { requireAnyAuth } from '@/lib/auth-helpers';
 
 const VALID_STATUSES = ['pending', 'confirmed', 'cancelled'];
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    // Require either admin or store session
-    const adminAuth = await requireAdminAuth();
-    const storeSession = getStoreSession(request);
-
-    if (adminAuth.error && !storeSession) {
-      return adminAuth.error;
-    }
+    const auth = requireAnyAuth(request);
+    if (auth.error) return auth.error;
 
     const id = parseInt(params.id, 10);
     if (isNaN(id)) {
@@ -41,7 +36,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     }
 
     // Store users can only update their own reservations
-    if (storeSession && existing.store_id !== storeSession.storeId) {
+    if (auth.session.type === 'store' && existing.store_id !== auth.session.store.storeId) {
       return NextResponse.json({ error: 'Reservation not found' }, { status: 404 });
     }
 

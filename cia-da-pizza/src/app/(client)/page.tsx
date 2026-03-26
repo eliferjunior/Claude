@@ -6,61 +6,107 @@ const stores = [
     address: 'Av. Dr. Helio Palermo, 2811, Franca/SP',
     phone: '(16) 3711-1111',
     hours: '18:00 - 23:00',
-    hasRodizio: true,
+    tags: ['Rodizio', 'Retirada'],
   },
   {
     name: 'Loja 2 - Parque Progresso',
     address: 'Franca/SP',
     phone: '(16) 3711-2222',
     hours: '18:00 - 23:00',
-    hasRodizio: false,
+    tags: ['Delivery', 'Retirada'],
   },
   {
     name: 'Loja 4 - Delivery',
     address: 'Av. Adhemar Pereira de Barros, 1474, Franca/SP',
     phone: '(16) 3711-4444',
     hours: '18:00 - 23:30',
-    hasRodizio: false,
+    tags: ['Delivery'],
   },
   {
     name: 'Loja 6 - Pulicano',
     address: 'Franca/SP',
     phone: '(16) 3711-6666',
     hours: '18:00 - 23:00',
-    hasRodizio: true,
+    tags: ['Rodizio', 'Retirada'],
   },
+];
+
+const stats = [
+  { value: '80mil+', label: 'Clientes/mes', icon: '👥' },
+  { value: '4', label: 'Unidades', icon: '🏪' },
+  { value: 'Desde 1995', label: 'Tradição', icon: '🏆' },
+  { value: '54K', label: 'Seguidores', icon: '📱' },
 ];
 
 export default function HomePage() {
   return (
     <div>
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-dark-950 via-dark-900 to-primary-950 py-20 sm:py-32">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(220,38,38,0.3),transparent_50%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(234,179,8,0.2),transparent_50%)]" />
+      <section className="relative overflow-hidden py-24 sm:py-36">
+        {/* Background effects */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_40%,rgba(220,38,38,0.15),transparent_50%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_60%,rgba(234,179,8,0.1),transparent_50%)]" />
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-red-500/20 to-transparent" />
         </div>
+
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight">
-            <span className="text-white">Cia da Pizza</span>
-            <br />
-            <span className="text-gradient">Franca/SP</span>
-          </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg sm:text-xl text-dark-300 leading-relaxed">
-            A melhor pizzaria e sanduicheria da cidade! Rodizio exclusivo nas unidades Helio Palermo
-            e Pulicano. Mais de 80 mil clientes atendidos por mes!
-          </p>
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/cardapio" className="btn-primary text-lg px-8 py-4 w-full sm:w-auto">
+          <div className="animate-slide-up">
+            <span className="inline-block text-6xl sm:text-7xl mb-6 animate-float">🍕</span>
+            <h1 className="text-5xl sm:text-6xl lg:text-8xl font-extrabold tracking-tight">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-red-500 to-yellow-400">
+                Cia da Pizza
+              </span>
+            </h1>
+            <p className="text-2xl sm:text-3xl font-light text-gray-400 mt-3">Franca/SP</p>
+            <p className="mx-auto mt-6 max-w-2xl text-lg sm:text-xl text-gray-300 leading-relaxed">
+              A melhor pizzaria e sanduicheria da cidade! Rodizio exclusivo nas unidades Helio
+              Palermo e Pulicano. Mais de 80 mil clientes atendidos por mes!
+            </p>
+          </div>
+
+          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 animate-slide-up delay-200">
+            <Link
+              href="/cardapio"
+              className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg shadow-red-600/25 hover:shadow-red-500/40 hover:scale-[1.02] text-lg w-full sm:w-auto flex items-center justify-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                />
+              </svg>
               Ver Cardapio
             </Link>
-            <Link href="/pedido" className="btn-secondary text-lg px-8 py-4 w-full sm:w-auto">
+            <Link
+              href="/pedido"
+              className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg shadow-red-600/25 hover:shadow-red-500/40 hover:scale-[1.02] text-lg w-full sm:w-auto flex items-center justify-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"
+                />
+              </svg>
               Fazer Pedido
             </Link>
             <Link
               href="/reserva"
-              className="inline-flex items-center justify-center rounded-lg border-2 border-dark-600 px-8 py-4 text-lg font-semibold text-white hover:border-primary-500 hover:text-primary-500 transition-colors w-full sm:w-auto"
+              className="bg-gray-700/50 hover:bg-gray-600/50 text-gray-200 border border-gray-600/50 rounded-xl transition-all duration-300 font-semibold py-3 px-6 text-lg w-full sm:w-auto flex items-center justify-center gap-2 hover:scale-[1.02]"
             >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
               Reservar Mesa
             </Link>
           </div>
@@ -68,23 +114,23 @@ export default function HomePage() {
       </section>
 
       {/* Stores Section */}
-      <section className="py-16 sm:py-24 bg-dark-900">
+      <section className="py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="section-title">Nossas Unidades</h2>
-            <p className="section-subtitle">4 lojas para melhor atender voce</p>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400">
+              Nossas Unidades
+            </h2>
+            <p className="mt-3 text-gray-400 text-lg">4 lojas para melhor atender voce</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {stores.map((store) => (
-              <div key={store.name} className="card group relative overflow-hidden">
-                {store.hasRodizio && (
-                  <span className="absolute top-3 right-3 rounded-full bg-primary-600 px-3 py-1 text-xs font-bold text-white">
-                    Rodizio
-                  </span>
-                )}
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary-600/20">
+              <div
+                key={store.name}
+                className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl shadow-xl p-6 hover:scale-[1.02] transition-all duration-300 group"
+              >
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-red-500/10 border border-red-500/20 group-hover:bg-red-500/20 transition-colors duration-300">
                   <svg
-                    className="h-6 w-6 text-primary-500"
+                    className="h-6 w-6 text-red-400"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -103,12 +149,31 @@ export default function HomePage() {
                     />
                   </svg>
                 </div>
-                <h3 className="text-lg font-bold text-white">{store.name}</h3>
-                <p className="mt-1 text-sm text-dark-400">{store.address}</p>
-                <div className="mt-4 space-y-1 text-sm text-dark-300">
+                <h3 className="text-lg font-bold text-white mb-1">{store.name}</h3>
+                <p className="text-sm text-gray-400 mb-3">{store.address}</p>
+
+                {/* Tags */}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {store.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className={`text-xs font-semibold px-2.5 py-1 rounded-lg ${
+                        tag === 'Rodizio'
+                          ? 'bg-red-500/20 text-red-300 border border-red-500/30'
+                          : tag === 'Delivery'
+                            ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                            : 'bg-green-500/20 text-green-300 border border-green-500/30'
+                      }`}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="space-y-2 text-sm text-gray-300">
                   <p className="flex items-center gap-2">
                     <svg
-                      className="h-4 w-4 text-primary-500"
+                      className="h-4 w-4 text-red-400"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -124,7 +189,7 @@ export default function HomePage() {
                   </p>
                   <p className="flex items-center gap-2">
                     <svg
-                      className="h-4 w-4 text-primary-500"
+                      className="h-4 w-4 text-red-400"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -146,48 +211,92 @@ export default function HomePage() {
       </section>
 
       {/* Rodizio Section */}
-      <section className="py-16 sm:py-24 bg-gradient-to-r from-primary-950 via-dark-900 to-primary-950">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h2 className="section-title">Rodizio de Pizza</h2>
-            <p className="section-subtitle">Nas unidades Helio Palermo e Pulicano</p>
+      <section className="py-16 sm:py-24 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-red-950/30 via-gray-900 to-red-950/30" />
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400">
+              Rodizio de Pizza
+            </h2>
+            <p className="mt-3 text-gray-400 text-lg">Nas unidades Helio Palermo e Pulicano</p>
           </div>
-          <div className="mt-12 mx-auto max-w-3xl">
-            <div className="card bg-gradient-to-br from-dark-800 to-dark-900 border border-primary-800/30 text-center">
-              <div className="text-6xl font-extrabold text-primary-500 mb-2">R$ 39,99</div>
-              <p className="text-xl text-dark-300 mb-8">por pessoa</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md mx-auto">
-                <div className="rounded-lg bg-dark-700/50 p-4">
+          <div className="mx-auto max-w-xl">
+            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl shadow-xl p-8 sm:p-10 text-center animate-pulse-glow">
+              <div className="mb-2">
+                <span className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
+                  A partir de
+                </span>
+              </div>
+              <div className="text-6xl sm:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400 mb-2">
+                R$ 39,99
+              </div>
+              <p className="text-xl text-gray-300 mb-8">por pessoa</p>
+
+              <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto mb-8">
+                <div className="bg-gray-900/50 border border-green-500/20 rounded-xl p-4">
                   <p className="text-2xl font-bold text-green-400">Gratis!</p>
-                  <p className="text-sm text-dark-400 mt-1">Criancas ate 6 anos</p>
+                  <p className="text-sm text-gray-400 mt-1">Criancas ate 6 anos</p>
                 </div>
-                <div className="rounded-lg bg-dark-700/50 p-4">
-                  <p className="text-2xl font-bold text-secondary-400">R$ 9,99</p>
-                  <p className="text-sm text-dark-400 mt-1">Criancas de 7 a 11 anos</p>
+                <div className="bg-gray-900/50 border border-yellow-500/20 rounded-xl p-4">
+                  <p className="text-2xl font-bold text-yellow-400">R$ 9,99</p>
+                  <p className="text-sm text-gray-400 mt-1">Criancas de 7 a 11 anos</p>
                 </div>
               </div>
-              <div className="mt-8">
-                <Link href="/reserva" className="btn-primary text-lg px-8 py-4">
-                  Reservar Mesa para Rodizio
-                </Link>
-              </div>
+
+              <Link
+                href="/reserva"
+                className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-semibold py-3 px-8 rounded-xl transition-all duration-300 shadow-lg shadow-red-600/25 hover:shadow-red-500/40 hover:scale-[1.02] text-lg inline-flex items-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                Reservar Mesa para Rodizio
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Instagram Section */}
-      <section className="py-16 sm:py-24 bg-dark-900">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="section-title">Siga-nos no Instagram</h2>
-          <p className="section-subtitle mb-8">
+      {/* Stats Section */}
+      <section className="py-16 sm:py-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            {stats.map((stat) => (
+              <div
+                key={stat.label}
+                className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl shadow-xl p-6 text-center hover:scale-[1.02] transition-all duration-300"
+              >
+                <span className="text-3xl mb-3 block">{stat.icon}</span>
+                <div className="text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400">
+                  {stat.value}
+                </div>
+                <p className="text-sm text-gray-400 mt-1">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Instagram CTA Section */}
+      <section className="py-16 sm:py-24 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-950/20 via-gray-900 to-pink-950/20" />
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400 mb-4">
+            Siga-nos no Instagram
+          </h2>
+          <p className="text-gray-400 text-lg mb-8 max-w-xl mx-auto">
             Acompanhe nossas novidades, promocoes e bastidores
           </p>
           <a
             href="https://www.instagram.com/pizzacompanhiada"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-3 rounded-xl bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 px-8 py-4 text-lg font-bold text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200"
+            className="inline-flex items-center gap-3 rounded-xl bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 px-8 py-4 text-lg font-bold text-white shadow-lg shadow-pink-600/25 hover:shadow-pink-500/40 hover:scale-[1.05] transition-all duration-300"
           >
             <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />

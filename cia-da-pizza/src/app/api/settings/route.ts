@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
-import { requireAdminAuth, sanitizeString } from '@/lib/auth';
+import { requireAdminAuth } from '@/lib/auth-helpers';
+import { sanitizeString } from '@/lib/auth';
 
 type SettingRow = {
   key: string;
@@ -36,7 +37,7 @@ export async function GET() {
 
 export async function PUT(request: NextRequest) {
   try {
-    const auth = await requireAdminAuth();
+    const auth = requireAdminAuth(request);
     if (auth.error) return auth.error;
 
     const body = await request.json();

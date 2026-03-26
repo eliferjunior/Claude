@@ -71,9 +71,9 @@ export default function CardapioPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950 flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-red-600 border-t-transparent" />
+          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-red-500 border-t-transparent" />
           <p className="mt-4 text-gray-400 text-lg">Carregando cardapio...</p>
         </div>
       </div>
@@ -81,21 +81,23 @@ export default function CardapioPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 py-8 sm:py-12">
+    <div className="min-h-screen py-8 sm:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-10">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white">Nosso Cardapio</h1>
-          <p className="mt-3 text-gray-400 text-lg">
+        <div className="text-center mb-12 animate-slide-up">
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400">
+            Nosso Cardapio
+          </h1>
+          <p className="mt-4 text-gray-400 text-lg max-w-xl mx-auto">
             Escolha entre nossas deliciosas opcoes de pizzas, sanduiches e muito mais
           </p>
         </div>
 
         {/* Search */}
-        <div className="mb-8 max-w-md mx-auto">
+        <div className="mb-8 max-w-md mx-auto animate-slide-up delay-100">
           <div className="relative">
             <svg
-              className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500"
+              className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -112,78 +114,100 @@ export default function CardapioPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar no cardapio..."
-              className="w-full rounded-xl bg-gray-800 border border-gray-700 pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition"
+              className="w-full bg-gray-800/80 border border-gray-600/50 rounded-xl pl-12 pr-4 py-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all outline-none"
             />
           </div>
         </div>
 
-        {/* Category Tabs */}
-        <div className="mb-8 flex flex-wrap gap-2 justify-center">
-          <button
-            onClick={() => setSelectedCategory(null)}
-            className={`rounded-full px-5 py-2 text-sm font-semibold transition ${
-              selectedCategory === null
-                ? 'bg-red-600 text-white'
-                : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white'
-            }`}
-          >
-            Todos
-          </button>
-          {categories.map((cat) => (
+        {/* Category Pills - horizontal scroll on mobile */}
+        <div className="mb-10 animate-slide-up delay-200">
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none justify-start sm:justify-center sm:flex-wrap">
             <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`rounded-full px-5 py-2 text-sm font-semibold transition ${
-                selectedCategory === cat.id
-                  ? 'bg-red-600 text-white'
-                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white'
+              onClick={() => setSelectedCategory(null)}
+              className={`shrink-0 rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-300 ${
+                selectedCategory === null
+                  ? 'bg-gradient-to-r from-red-600 to-red-500 text-white shadow-lg shadow-red-600/25'
+                  : 'bg-gray-800/50 text-gray-300 border border-gray-700/50 hover:bg-gray-700/50 hover:text-white'
               }`}
             >
-              {cat.name}
+              Todos
             </button>
-          ))}
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`shrink-0 rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-300 ${
+                  selectedCategory === cat.id
+                    ? 'bg-gradient-to-r from-red-600 to-red-500 text-white shadow-lg shadow-red-600/25'
+                    : 'bg-gray-800/50 text-gray-300 border border-gray-700/50 hover:bg-gray-700/50 hover:text-white'
+                }`}
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Products Grid */}
         {filtered.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-gray-500 text-lg">Nenhum produto encontrado.</p>
+          <div className="text-center py-20">
+            <span className="text-5xl mb-4 block">🔍</span>
+            <p className="text-gray-400 text-lg">Nenhum produto encontrado.</p>
+            <p className="text-gray-500 text-sm mt-2">Tente buscar por outro termo.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filtered.map((product) => (
               <div
                 key={product.id}
-                className="bg-gray-800 rounded-xl p-5 hover:ring-2 ring-red-500 transition duration-200"
+                className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl shadow-xl overflow-hidden hover:scale-[1.02] transition-all duration-300 group flex flex-col"
               >
-                <div className="mb-1">
-                  <span className="text-xs font-medium text-red-400 uppercase tracking-wide">
-                    {product.category_name}
-                  </span>
+                {/* Image placeholder with gradient */}
+                <div className="h-40 bg-gradient-to-br from-red-900/30 via-gray-800 to-yellow-900/20 relative">
+                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent" />
+                  <div className="absolute top-3 left-3">
+                    <span className="text-xs font-semibold text-red-300 bg-red-500/20 border border-red-500/30 px-2.5 py-1 rounded-lg uppercase tracking-wide">
+                      {product.category_name}
+                    </span>
+                  </div>
+                  <div className="absolute bottom-3 left-3 right-3">
+                    <h3 className="text-lg font-bold text-white drop-shadow-lg">{product.name}</h3>
+                  </div>
                 </div>
-                <h3 className="text-lg font-bold text-white mb-2">{product.name}</h3>
-                {product.description && (
-                  <p className="text-sm text-gray-400 mb-4 line-clamp-2">{product.description}</p>
-                )}
-                <div className="flex flex-wrap gap-2 mt-auto">
-                  {product.price_small !== null && (
-                    <span className="inline-flex items-center gap-1 rounded-lg bg-gray-700 px-3 py-1.5 text-sm">
-                      <span className="font-semibold text-red-400">P:</span>
-                      <span className="text-white">{formatPrice(product.price_small)}</span>
-                    </span>
+
+                {/* Content */}
+                <div className="p-5 flex flex-col flex-1">
+                  {product.description && (
+                    <p className="text-sm text-gray-400 mb-4 line-clamp-2 leading-relaxed">
+                      {product.description}
+                    </p>
                   )}
-                  {product.price_medium !== null && (
-                    <span className="inline-flex items-center gap-1 rounded-lg bg-gray-700 px-3 py-1.5 text-sm">
-                      <span className="font-semibold text-red-400">M:</span>
-                      <span className="text-white">{formatPrice(product.price_medium)}</span>
-                    </span>
-                  )}
-                  {product.price_large !== null && (
-                    <span className="inline-flex items-center gap-1 rounded-lg bg-gray-700 px-3 py-1.5 text-sm">
-                      <span className="font-semibold text-red-400">G:</span>
-                      <span className="text-white">{formatPrice(product.price_large)}</span>
-                    </span>
-                  )}
+                  <div className="flex flex-wrap gap-2 mt-auto">
+                    {product.price_small !== null && (
+                      <span className="inline-flex items-center gap-1.5 rounded-xl bg-gray-900/50 border border-gray-700/50 px-3 py-2 text-sm">
+                        <span className="font-bold text-red-400">P</span>
+                        <span className="text-white font-semibold">
+                          {formatPrice(product.price_small)}
+                        </span>
+                      </span>
+                    )}
+                    {product.price_medium !== null && (
+                      <span className="inline-flex items-center gap-1.5 rounded-xl bg-gray-900/50 border border-gray-700/50 px-3 py-2 text-sm">
+                        <span className="font-bold text-red-400">M</span>
+                        <span className="text-white font-semibold">
+                          {formatPrice(product.price_medium)}
+                        </span>
+                      </span>
+                    )}
+                    {product.price_large !== null && (
+                      <span className="inline-flex items-center gap-1.5 rounded-xl bg-gray-900/50 border border-gray-700/50 px-3 py-2 text-sm">
+                        <span className="font-bold text-red-400">G</span>
+                        <span className="text-white font-semibold">
+                          {formatPrice(product.price_large)}
+                        </span>
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
