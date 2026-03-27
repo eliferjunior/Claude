@@ -70,10 +70,43 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate date is not in the past
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const reservationDate = new Date(date + 'T00:00:00');
+    if (isNaN(reservationDate.getTime())) {
+      return NextResponse.json(
+        { error: 'Data invalida. Use o formato AAAA-MM-DD.' },
+        { status: 400 },
+      );
+    }
+    if (reservationDate < today) {
+      return NextResponse.json(
+        { error: 'Nao e possivel fazer reserva para uma data no passado.' },
+        { status: 400 },
+      );
+    }
+
+    // Validate guests count
+    if (guests < 1) {
+      return NextResponse.json(
+        { error: 'O numero de convidados deve ser pelo menos 1.' },
+        { status: 400 },
+      );
+    }
+    if (guests > 20) {
+      return NextResponse.json(
+        {
+          error: 'Para grupos acima de 20 pessoas, entre em contato diretamente com a loja.',
+        },
+        { status: 400 },
+      );
+    }
+
     // Verify store exists
     const store = db.prepare('SELECT id FROM stores WHERE id = ? AND active = 1').get(storeId);
     if (!store) {
-      return NextResponse.json({ error: 'Store not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Loja nao encontrada.' }, { status: 404 });
     }
 
     const result = db

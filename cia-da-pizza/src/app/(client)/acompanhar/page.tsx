@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 
 type OrderItem = {
   id: number;
@@ -29,6 +30,14 @@ const statusLabels: Record<string, string> = {
   ready: 'Pronto',
   delivered: 'Entregue',
   cancelled: 'Cancelado',
+};
+
+const statusEstimatedTime: Record<string, string> = {
+  pending: 'Tempo estimado: ~20 minutos',
+  confirmed: 'Tempo estimado: ~18 minutos',
+  preparing: 'Tempo estimado: ~15 minutos',
+  ready: 'Tempo estimado: ~5 minutos para retirada',
+  delivered: 'Pedido entregue!',
 };
 
 const orderTypeLabels: Record<string, string> = {
@@ -99,6 +108,7 @@ export default function AcompanharPage() {
 
   const currentStepIndex = order ? getStepIndex(order.status) : -1;
   const isCancelled = order?.status === 'cancelled';
+  const isDelivered = order?.status === 'delivered';
 
   return (
     <div className="min-h-screen bg-gray-900 py-8 sm:py-12">
@@ -112,7 +122,7 @@ export default function AcompanharPage() {
         </div>
 
         {/* Search Form */}
-        <form onSubmit={handleSearch} className="mx-auto mb-10 flex max-w-lg gap-3">
+        <form onSubmit={handleSearch} className="mx-auto mb-4 flex max-w-lg gap-3">
           <input
             type="text"
             value={searchValue}
@@ -128,6 +138,11 @@ export default function AcompanharPage() {
             {loading ? 'Buscando...' : 'Buscar'}
           </button>
         </form>
+
+        {/* Hint text */}
+        <p className="mx-auto mb-10 max-w-lg text-center text-sm text-gray-500">
+          Exemplo: Digite 1 para buscar o pedido #1
+        </p>
 
         {/* Not Found */}
         {notFound && searched && (
@@ -176,6 +191,23 @@ export default function AcompanharPage() {
                   </span>
                 </div>
               </div>
+
+              {/* Estimated time */}
+              {!isCancelled && statusEstimatedTime[order.status] && (
+                <div className="mt-4 rounded-lg bg-gray-700/50 px-4 py-3">
+                  <p className="text-sm font-medium text-yellow-400 flex items-center gap-2">
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    {statusEstimatedTime[order.status]}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Timeline */}
@@ -272,6 +304,27 @@ export default function AcompanharPage() {
                     R$ {order.total.toFixed(2)}
                   </span>
                 </div>
+              </div>
+            )}
+
+            {/* "Fazer Novo Pedido" button when delivered */}
+            {isDelivered && (
+              <div className="rounded-xl bg-gray-800 p-6 text-center">
+                <p className="text-gray-400 mb-4">Gostou? Faca um novo pedido!</p>
+                <Link
+                  href="/pedido"
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 px-6 py-3 font-semibold text-white transition-all duration-300 shadow-lg shadow-red-600/25 hover:shadow-red-500/40 hover:scale-[1.02]"
+                >
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"
+                    />
+                  </svg>
+                  Fazer Novo Pedido
+                </Link>
               </div>
             )}
 

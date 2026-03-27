@@ -66,7 +66,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-30 w-64 transform bg-gray-900 transition-transform duration-200 lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-30 flex w-64 transform flex-col bg-gray-900 transition-transform duration-200 lg:static lg:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -76,25 +76,44 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           </h1>
         </div>
 
-        <nav className="mt-6 px-3">
-          {menuItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setSidebarOpen(false)}
-                className={`mb-1 flex items-center rounded-lg px-4 py-3 text-sm font-medium transition-colors duration-150 ${
-                  isActive
-                    ? 'bg-red-600/20 text-red-400'
-                    : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-                }`}
-              >
-                <span className="mr-3 text-lg">{item.icon}</span>
-                {item.label}
-              </Link>
-            );
-          })}
+        <nav className="mt-6 flex flex-1 flex-col justify-between px-3">
+          <div>
+            {menuItems.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setSidebarOpen(false)}
+                  className={`mb-1 flex items-center rounded-lg px-4 py-3 text-sm font-medium transition-colors duration-150 ${
+                    isActive
+                      ? 'bg-red-600/20 text-red-400'
+                      : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                  }`}
+                >
+                  <span className="mr-3 text-lg">{item.icon}</span>
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className="border-t border-gray-700 px-1 py-4">
+            <button
+              onClick={handleLogout}
+              className="flex w-full items-center rounded-lg px-4 py-3 text-sm font-medium text-gray-400 transition-colors duration-150 hover:bg-red-600/10 hover:text-red-400"
+            >
+              <svg className="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                />
+              </svg>
+              Sair
+            </button>
+          </div>
         </nav>
       </aside>
 

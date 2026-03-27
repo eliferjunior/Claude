@@ -210,6 +210,75 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Promocoes Section */}
+      <section className="py-16 sm:py-24 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-yellow-950/20 via-gray-900 to-red-950/20" />
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-400">
+              Promocoes
+            </h2>
+            <p className="mt-3 text-gray-400 text-lg">Aproveite nossas ofertas especiais</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {/* Terca da Pizza */}
+            <div className="bg-gray-800/50 backdrop-blur-sm border border-yellow-500/30 rounded-2xl shadow-xl p-6 hover:scale-[1.02] transition-all duration-300 group relative overflow-hidden">
+              <div className="absolute top-0 right-0 bg-gradient-to-bl from-yellow-500/20 to-transparent w-32 h-32 rounded-bl-full" />
+              <span className="text-4xl mb-4 block">🍕</span>
+              <h3 className="text-xl font-bold text-yellow-400 mb-2">Terca da Pizza</h3>
+              <p className="text-gray-300 mb-4">
+                Pizzas tradicionais com{' '}
+                <span className="text-yellow-400 font-extrabold text-lg">20% OFF</span>
+              </p>
+              <span className="inline-block text-xs font-semibold text-yellow-200 bg-yellow-500/20 border border-yellow-500/40 px-3 py-1 rounded-lg uppercase tracking-wide">
+                Toda terca-feira
+              </span>
+            </div>
+
+            {/* Combo Familia */}
+            <div className="bg-gray-800/50 backdrop-blur-sm border border-red-500/30 rounded-2xl shadow-xl p-6 hover:scale-[1.02] transition-all duration-300 group relative overflow-hidden">
+              <div className="absolute top-0 right-0 bg-gradient-to-bl from-red-500/20 to-transparent w-32 h-32 rounded-bl-full" />
+              <span className="text-4xl mb-4 block">👨‍👩‍👧‍👦</span>
+              <h3 className="text-xl font-bold text-red-400 mb-2">Combo Familia</h3>
+              <p className="text-gray-300 mb-4">
+                2 pizzas grandes + 1 refrigerante 2L por um preco especial
+              </p>
+              <span className="inline-block text-xs font-semibold text-red-200 bg-red-500/20 border border-red-500/40 px-3 py-1 rounded-lg uppercase tracking-wide">
+                Todos os dias
+              </span>
+            </div>
+
+            {/* Happy Hour */}
+            <div className="bg-gray-800/50 backdrop-blur-sm border border-amber-500/30 rounded-2xl shadow-xl p-6 hover:scale-[1.02] transition-all duration-300 group relative overflow-hidden">
+              <div className="absolute top-0 right-0 bg-gradient-to-bl from-amber-500/20 to-transparent w-32 h-32 rounded-bl-full" />
+              <span className="text-4xl mb-4 block">🍺</span>
+              <h3 className="text-xl font-bold text-amber-400 mb-2">Happy Hour</h3>
+              <p className="text-gray-300 mb-4">Seg a Qui, 18h-19h: Chopp pela metade do preco</p>
+              <span className="inline-block text-xs font-semibold text-amber-200 bg-amber-500/20 border border-amber-500/40 px-3 py-1 rounded-lg uppercase tracking-wide">
+                Seg a Qui
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-8 text-center">
+            <Link
+              href="/pedido"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-600 to-red-500 hover:from-yellow-500 hover:to-red-400 text-white font-semibold py-3 px-8 rounded-xl transition-all duration-300 shadow-lg shadow-red-600/25 hover:shadow-red-500/40 hover:scale-[1.02] text-lg"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"
+                />
+              </svg>
+              Aproveitar Promocoes
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Rodizio Section */}
       <section className="py-16 sm:py-24 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-red-950/30 via-gray-900 to-red-950/30" />

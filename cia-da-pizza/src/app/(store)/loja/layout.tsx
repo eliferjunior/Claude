@@ -81,8 +81,16 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
               <span className="hidden sm:inline text-sm text-gray-400">{storeName}</span>
               <button
                 onClick={handleLogout}
-                className="hidden md:inline-flex rounded-lg bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+                className="hidden md:inline-flex items-center gap-2 rounded-lg bg-gray-800 px-4 py-2 text-sm font-medium text-gray-400 transition-colors hover:bg-red-600/10 hover:text-red-400"
               >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                  />
+                </svg>
                 Sair
               </button>
 
@@ -132,8 +140,16 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
               ))}
               <button
                 onClick={handleLogout}
-                className="w-full text-left rounded-lg px-4 py-2 text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white"
+                className="flex w-full items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-gray-400 hover:bg-red-600/10 hover:text-red-400"
               >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                  />
+                </svg>
                 Sair
               </button>
             </div>

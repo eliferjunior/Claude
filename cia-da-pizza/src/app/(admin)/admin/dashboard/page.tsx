@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 type DashboardStats = {
   totalOrdersToday: number;
@@ -51,6 +51,35 @@ const orderTypeLabels: Record<string, string> = {
   dine_in: 'No local',
 };
 
+function LoadingSkeleton() {
+  return (
+    <div>
+      <div className="mb-6 flex items-center justify-between">
+        <div className="h-8 w-40 animate-pulse rounded-lg bg-gray-700" />
+        <div className="h-9 w-24 animate-pulse rounded-lg bg-gray-700" />
+      </div>
+      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="rounded-xl bg-gray-800/50 p-6">
+            <div className="mb-3 h-4 w-24 animate-pulse rounded bg-gray-700" />
+            <div className="h-9 w-16 animate-pulse rounded bg-gray-700" />
+          </div>
+        ))}
+      </div>
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        {[1, 2].map((i) => (
+          <div key={i} className="rounded-xl bg-gray-800/50 p-6 ring-1 ring-gray-700">
+            <div className="mb-4 h-6 w-36 animate-pulse rounded bg-gray-700" />
+            {[1, 2, 3].map((j) => (
+              <div key={j} className="mb-3 h-10 w-full animate-pulse rounded bg-gray-700/50" />
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats>({
     totalOrdersToday: 0,
@@ -61,12 +90,12 @@ export default function DashboardPage() {
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
   const [recentReservations, setRecentReservations] = useState<RecentReservation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  useEffect(() => {
-    fetchDashboard();
-  }, []);
-
-  async function fetchDashboard() {
+  const fetchDashboard = useCallback(async (isManual = false) => {
+    if (isManual) setRefreshing(true);
     try {
       const res = await fetch('/api/dashboard');
       if (!res.ok) {
@@ -85,12 +114,22 @@ export default function DashboardPage() {
       });
       setRecentOrders(data.recent_orders || []);
       setRecentReservations(data.recent_reservations || []);
+      setLastUpdate(new Date());
     } catch {
       // silently fail
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    fetchDashboard();
+    intervalRef.current = setInterval(() => fetchDashboard(), 30000);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [fetchDashboard]);
 
   const statCards = [
     {
@@ -98,38 +137,119 @@ export default function DashboardPage() {
       value: stats.totalOrdersToday,
       color: 'border-blue-500',
       bg: 'bg-blue-600/10',
+      icon: (
+        <svg
+          className="h-5 w-5 text-blue-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+          />
+        </svg>
+      ),
     },
     {
       title: 'Pedidos pendentes',
       value: stats.pendingOrders,
       color: 'border-yellow-500',
       bg: 'bg-yellow-600/10',
+      icon: (
+        <svg
+          className="h-5 w-5 text-yellow-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+      ),
     },
     {
       title: 'Reservas hoje',
       value: stats.reservationsToday,
       color: 'border-green-500',
       bg: 'bg-green-600/10',
+      icon: (
+        <svg
+          className="h-5 w-5 text-green-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+          />
+        </svg>
+      ),
     },
     {
       title: 'Faturamento do dia',
       value: `R$ ${stats.revenueToday.toFixed(2)}`,
       color: 'border-red-500',
       bg: 'bg-red-600/10',
+      icon: (
+        <svg className="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+      ),
     },
   ];
 
   if (loading) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <p className="text-gray-400">Carregando...</p>
-      </div>
-    );
+    return <LoadingSkeleton />;
   }
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-bold text-white">Dashboard</h1>
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+          <button
+            onClick={() => fetchDashboard(true)}
+            disabled={refreshing}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-gray-700 px-3 py-1.5 text-sm text-gray-300 transition-colors hover:bg-gray-600 hover:text-white disabled:opacity-50"
+          >
+            <svg
+              className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+            Atualizar
+          </button>
+        </div>
+        {lastUpdate && (
+          <span className="text-sm text-gray-500">
+            Ultimo update:{' '}
+            {lastUpdate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+          </span>
+        )}
+      </div>
 
       {/* Stats cards */}
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -138,7 +258,10 @@ export default function DashboardPage() {
             key={card.title}
             className={`rounded-xl border-l-4 ${card.color} ${card.bg} bg-gray-800/50 p-6`}
           >
-            <p className="text-sm text-gray-400">{card.title}</p>
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-400">{card.title}</p>
+              {card.icon}
+            </div>
             <p className="mt-2 text-3xl font-bold text-white">{card.value}</p>
           </div>
         ))}
@@ -239,6 +362,8 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
+
+      <p className="mt-6 text-center text-xs text-gray-600">Atualiza automaticamente a cada 30s</p>
     </div>
   );
 }
