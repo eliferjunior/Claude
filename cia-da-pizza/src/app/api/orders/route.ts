@@ -123,12 +123,12 @@ export async function POST(request: NextRequest) {
       let unitPrice: number | null = null;
       const size = sanitizeString(item.size, 20);
 
-      if (size === 'small') {
+      if (size === 'small' || size === 'P') {
         unitPrice = product.price_small;
-      } else if (size === 'large') {
+      } else if (size === 'large' || size === 'G') {
         unitPrice = product.price_large;
       } else {
-        // Default to medium (also used for products without sizes)
+        // Default to medium (M, medium, or any other value)
         unitPrice = product.price_medium;
       }
 

@@ -69,12 +69,22 @@ export default function DashboardPage() {
   async function fetchDashboard() {
     try {
       const res = await fetch('/api/dashboard');
-      if (res.ok) {
-        const data = await res.json();
-        setStats(data.stats);
-        setRecentOrders(data.recentOrders || []);
-        setRecentReservations(data.recentReservations || []);
+      if (!res.ok) {
+        if (res.status === 401) {
+          window.location.href = '/admin/login';
+          return;
+        }
+        return;
       }
+      const data = await res.json();
+      setStats({
+        totalOrdersToday: data.orders_today ?? 0,
+        pendingOrders: data.pending_orders ?? 0,
+        reservationsToday: data.reservations_today ?? 0,
+        revenueToday: data.revenue_today ?? 0,
+      });
+      setRecentOrders(data.recent_orders || []);
+      setRecentReservations(data.recent_reservations || []);
     } catch {
       // silently fail
     } finally {

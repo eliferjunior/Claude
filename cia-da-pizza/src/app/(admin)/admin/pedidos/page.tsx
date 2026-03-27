@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 
 type OrderItem = {
   id: number;
@@ -104,7 +104,7 @@ export default function PedidosPage() {
 
     // Fetch order details with items
     try {
-      const res = await fetch(`/api/orders?id=${orderId}`);
+      const res = await fetch(`/api/orders/${orderId}`);
       if (res.ok) {
         const data = await res.json();
         setOrders((prev) =>
@@ -119,10 +119,10 @@ export default function PedidosPage() {
 
   async function updateStatus(orderId: number, newStatus: string) {
     try {
-      const res = await fetch('/api/orders', {
+      const res = await fetch(`/api/orders/${orderId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: orderId, status: newStatus }),
+        body: JSON.stringify({ status: newStatus }),
       });
       if (res.ok) {
         setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)));
@@ -171,9 +171,8 @@ export default function PedidosPage() {
             </thead>
             <tbody>
               {orders.map((order, idx) => (
-                <>
+                <Fragment key={order.id}>
                   <tr
-                    key={order.id}
                     onClick={() => toggleExpand(order.id)}
                     className={`cursor-pointer border-b border-gray-700/50 transition-colors hover:bg-gray-700/40 ${
                       idx % 2 === 0 ? 'bg-gray-800/30' : 'bg-gray-700/20'
@@ -252,7 +251,7 @@ export default function PedidosPage() {
                       </td>
                     </tr>
                   )}
-                </>
+                </Fragment>
               ))}
             </tbody>
           </table>

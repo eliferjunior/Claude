@@ -64,10 +64,10 @@ export default function AcompanharPage() {
     setOrder(null);
     setSearched(true);
     try {
-      const res = await fetch(`/api/orders?search=${encodeURIComponent(value.trim())}`);
+      const res = await fetch(`/api/orders/track?search=${encodeURIComponent(value.trim())}`);
       if (res.ok) {
         const data = await res.json();
-        const found = data.orders ? data.orders[0] : Array.isArray(data) ? data[0] : data;
+        const found = data;
         if (found && found.id) {
           setOrder(found);
         } else {
