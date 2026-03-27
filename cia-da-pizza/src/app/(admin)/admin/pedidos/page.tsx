@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Fragment } from 'react';
+import { useState, useEffect, useCallback, useRef, Fragment } from 'react';
 
 type OrderItem = {
   id: number;
@@ -75,26 +75,81 @@ export default function PedidosPage() {
   const [filterStatus, setFilterStatus] = useState('');
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [newOrderBanner, setNewOrderBanner] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(false);
+  const prevOrderCountRef = useRef<number | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const bannerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    fetchOrders();
-  }, [filterStatus]);
-
-  async function fetchOrders() {
-    setLoading(true);
+  const fetchOrders = useCallback(async () => {
     try {
       const query = filterStatus ? `?status=${filterStatus}` : '';
       const res = await fetch(`/api/orders${query}`);
       if (res.ok) {
         const data = await res.json();
-        setOrders(data.orders || data);
+        const newOrders: Order[] = data.orders || data;
+        const newCount = newOrders.length;
+
+        // Check for new orders (only after initial load)
+        if (prevOrderCountRef.current !== null && newCount > prevOrderCountRef.current) {
+          setNewOrderBanner(true);
+          if (bannerTimeoutRef.current) clearTimeout(bannerTimeoutRef.current);
+          bannerTimeoutRef.current = setTimeout(() => setNewOrderBanner(false), 8000);
+
+          if (soundEnabled) {
+            try {
+              const ctx = new AudioContext();
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.connect(gain);
+              gain.connect(ctx.destination);
+              osc.frequency.value = 800;
+              gain.gain.value = 0.3;
+              osc.start();
+              osc.stop(ctx.currentTime + 0.2);
+              setTimeout(() => {
+                const osc2 = ctx.createOscillator();
+                const gain2 = ctx.createGain();
+                osc2.connect(gain2);
+                gain2.connect(ctx.destination);
+                osc2.frequency.value = 1000;
+                gain2.gain.value = 0.3;
+                osc2.start();
+                osc2.stop(ctx.currentTime + 0.2);
+              }, 250);
+            } catch {
+              // audio not available
+            }
+          }
+        }
+        prevOrderCountRef.current = newCount;
+        setOrders(newOrders);
       }
     } catch {
       // silently fail
     } finally {
       setLoading(false);
     }
-  }
+  }, [filterStatus, soundEnabled]);
+
+  useEffect(() => {
+    prevOrderCountRef.current = null;
+    setLoading(true);
+    fetchOrders();
+  }, [filterStatus, fetchOrders]);
+
+  useEffect(() => {
+    intervalRef.current = setInterval(fetchOrders, 15000);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [fetchOrders]);
+
+  useEffect(() => {
+    return () => {
+      if (bannerTimeoutRef.current) clearTimeout(bannerTimeoutRef.current);
+    };
+  }, []);
 
   async function toggleExpand(orderId: number) {
     if (expandedId === orderId) {
@@ -132,10 +187,91 @@ export default function PedidosPage() {
     }
   }
 
+  const pendingCount = orders.filter((o) => o.status === 'pending').length;
+
   return (
     <div>
+      {/* New order notification banner */}
+      {newOrderBanner && (
+        <div className="mb-4 flex items-center justify-between rounded-xl bg-green-600/20 border border-green-500/30 px-4 py-3 animate-pulse">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500/30">
+              <svg
+                className="h-5 w-5 text-green-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                />
+              </svg>
+            </div>
+            <span className="text-sm font-medium text-green-300">Novo pedido recebido!</span>
+          </div>
+          <button
+            onClick={() => setNewOrderBanner(false)}
+            className="text-green-400 hover:text-green-300"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+      )}
+
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-white">Pedidos</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-white">Pedidos</h1>
+          {pendingCount > 0 && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-yellow-600/20 px-3 py-1 text-xs font-medium text-yellow-400">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500" />
+              </span>
+              {pendingCount} pendente{pendingCount !== 1 ? 's' : ''}
+            </span>
+          )}
+          {/* Sound toggle */}
+          <button
+            onClick={() => setSoundEnabled(!soundEnabled)}
+            title={soundEnabled ? 'Desativar som' : 'Ativar som de notificacao'}
+            className={`rounded-lg p-2 transition-colors ${
+              soundEnabled
+                ? 'bg-yellow-600/20 text-yellow-400 hover:bg-yellow-600/30'
+                : 'bg-gray-700 text-gray-500 hover:bg-gray-600 hover:text-gray-300'
+            }`}
+          >
+            {soundEnabled ? (
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                />
+              </svg>
+            ) : (
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                />
+                <line x1="3" y1="3" x2="21" y2="21" strokeWidth={2} strokeLinecap="round" />
+              </svg>
+            )}
+          </button>
+        </div>
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
@@ -151,7 +287,11 @@ export default function PedidosPage() {
       </div>
 
       {loading ? (
-        <p className="text-gray-400">Carregando...</p>
+        <div className="space-y-3">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="h-14 w-full animate-pulse rounded-lg bg-gray-800/50" />
+          ))}
+        </div>
       ) : orders.length === 0 ? (
         <p className="text-gray-400">Nenhum pedido encontrado</p>
       ) : (
@@ -257,6 +397,8 @@ export default function PedidosPage() {
           </table>
         </div>
       )}
+
+      <p className="mt-4 text-center text-xs text-gray-600">Atualiza automaticamente a cada 15s</p>
     </div>
   );
 }
