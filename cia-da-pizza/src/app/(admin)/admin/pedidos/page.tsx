@@ -295,107 +295,206 @@ export default function PedidosPage() {
       ) : orders.length === 0 ? (
         <p className="text-gray-400">Nenhum pedido encontrado</p>
       ) : (
-        <div className="overflow-x-auto rounded-xl ring-1 ring-gray-700">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-700 bg-gray-800 text-left text-gray-400">
-                <th className="px-4 py-3">ID</th>
-                <th className="px-4 py-3">Cliente</th>
-                <th className="px-4 py-3">Telefone</th>
-                <th className="px-4 py-3">Tipo</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 text-right">Total</th>
-                <th className="px-4 py-3">Data</th>
-                <th className="px-4 py-3">Acoes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map((order, idx) => (
-                <Fragment key={order.id}>
-                  <tr
-                    onClick={() => toggleExpand(order.id)}
-                    className={`cursor-pointer border-b border-gray-700/50 transition-colors hover:bg-gray-700/40 ${
-                      idx % 2 === 0 ? 'bg-gray-800/30' : 'bg-gray-700/20'
-                    }`}
-                  >
-                    <td className="px-4 py-3 text-gray-300">#{order.id}</td>
-                    <td className="px-4 py-3 text-white">{order.customer_name}</td>
-                    <td className="px-4 py-3 text-gray-300">{order.customer_phone || '-'}</td>
-                    <td className="px-4 py-3 text-gray-300">
-                      {orderTypeLabels[order.order_type] || order.order_type}
-                    </td>
-                    <td className="px-4 py-3">
+        <>
+          {/* Mobile card view */}
+          <div className="space-y-3 md:hidden">
+            {orders.map((order) => (
+              <div
+                key={order.id}
+                onClick={() => toggleExpand(order.id)}
+                className="cursor-pointer rounded-xl bg-gray-800/50 p-4 ring-1 ring-gray-700"
+              >
+                <div className="mb-2 flex items-start justify-between gap-2">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-white">#{order.id}</span>
                       <span
-                        className={`inline-block rounded-full px-2 py-1 text-xs font-medium ${
+                        className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
                           statusColors[order.status] || ''
                         }`}
                       >
                         {statusLabels[order.status] || order.status}
                       </span>
-                    </td>
-                    <td className="px-4 py-3 text-right text-white">R$ {order.total.toFixed(2)}</td>
-                    <td className="px-4 py-3 text-gray-300">
-                      {new Date(order.created_at).toLocaleString('pt-BR')}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-1" onClick={(e) => e.stopPropagation()}>
-                        {(statusTransitions[order.status] || []).map((action) => (
-                          <button
-                            key={action.next}
-                            onClick={() => updateStatus(order.id, action.next)}
-                            className={`rounded px-2 py-1 text-xs font-medium text-white ${action.color}`}
-                          >
-                            {action.label}
-                          </button>
-                        ))}
+                    </div>
+                    <p className="mt-1 text-sm text-white">{order.customer_name}</p>
+                    {order.customer_phone && (
+                      <p className="text-xs text-gray-400">{order.customer_phone}</p>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-bold text-white">R$ {order.total.toFixed(2)}</p>
+                    <p className="text-xs text-gray-500">
+                      {orderTypeLabels[order.order_type] || order.order_type}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500">
+                  {new Date(order.created_at).toLocaleString('pt-BR')}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-1" onClick={(e) => e.stopPropagation()}>
+                  {(statusTransitions[order.status] || []).map((action) => (
+                    <button
+                      key={action.next}
+                      onClick={() => updateStatus(order.id, action.next)}
+                      className={`rounded px-3 py-1.5 text-xs font-medium text-white ${action.color}`}
+                    >
+                      {action.label}
+                    </button>
+                  ))}
+                </div>
+                {expandedId === order.id && (
+                  <div className="mt-3 border-t border-gray-700 pt-3">
+                    <div className="space-y-3">
+                      <div>
+                        <h4 className="mb-1 text-sm font-semibold text-white">Itens do pedido</h4>
+                        {order.items && order.items.length > 0 ? (
+                          <ul className="space-y-1">
+                            {order.items.map((item) => (
+                              <li
+                                key={item.id}
+                                className="flex justify-between text-xs text-gray-300"
+                              >
+                                <span>
+                                  {item.quantity}x {item.product_name}
+                                  {item.size ? ` (${sizeLabels[item.size] || item.size})` : ''}
+                                </span>
+                                <span>R$ {(item.unit_price * item.quantity).toFixed(2)}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-xs text-gray-500">Carregando itens...</p>
+                        )}
                       </div>
-                    </td>
-                  </tr>
-                  {expandedId === order.id && (
-                    <tr key={`${order.id}-detail`} className="bg-gray-800/60">
-                      <td colSpan={8} className="px-4 py-4">
-                        <div className="grid gap-4 md:grid-cols-2">
-                          <div>
-                            <h4 className="mb-2 font-semibold text-white">Itens do pedido</h4>
-                            {order.items && order.items.length > 0 ? (
-                              <ul className="space-y-1">
-                                {order.items.map((item) => (
-                                  <li key={item.id} className="flex justify-between text-gray-300">
-                                    <span>
-                                      {item.quantity}x {item.product_name}
-                                      {item.size ? ` (${sizeLabels[item.size] || item.size})` : ''}
-                                    </span>
-                                    <span>R$ {(item.unit_price * item.quantity).toFixed(2)}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            ) : (
-                              <p className="text-gray-500">Carregando itens...</p>
-                            )}
-                          </div>
-                          <div>
-                            {order.customer_address && (
-                              <p className="mb-1 text-gray-300">
-                                <span className="font-medium text-gray-400">Endereco:</span>{' '}
-                                {order.customer_address}
-                              </p>
-                            )}
-                            {order.notes && (
-                              <p className="text-gray-300">
-                                <span className="font-medium text-gray-400">Observacoes:</span>{' '}
-                                {order.notes}
-                              </p>
-                            )}
-                          </div>
+                      {order.customer_address && (
+                        <p className="text-xs text-gray-300">
+                          <span className="font-medium text-gray-400">Endereco:</span>{' '}
+                          {order.customer_address}
+                        </p>
+                      )}
+                      {order.notes && (
+                        <p className="text-xs text-gray-300">
+                          <span className="font-medium text-gray-400">Observacoes:</span>{' '}
+                          {order.notes}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop table view */}
+          <div className="hidden md:block overflow-x-auto rounded-xl ring-1 ring-gray-700">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-700 bg-gray-800 text-left text-gray-400">
+                  <th className="px-4 py-3">ID</th>
+                  <th className="px-4 py-3">Cliente</th>
+                  <th className="px-4 py-3">Telefone</th>
+                  <th className="px-4 py-3">Tipo</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3 text-right">Total</th>
+                  <th className="px-4 py-3">Data</th>
+                  <th className="px-4 py-3">Acoes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orders.map((order, idx) => (
+                  <Fragment key={order.id}>
+                    <tr
+                      onClick={() => toggleExpand(order.id)}
+                      className={`cursor-pointer border-b border-gray-700/50 transition-colors hover:bg-gray-700/40 ${
+                        idx % 2 === 0 ? 'bg-gray-800/30' : 'bg-gray-700/20'
+                      }`}
+                    >
+                      <td className="px-4 py-3 text-gray-300">#{order.id}</td>
+                      <td className="px-4 py-3 text-white">{order.customer_name}</td>
+                      <td className="px-4 py-3 text-gray-300">{order.customer_phone || '-'}</td>
+                      <td className="px-4 py-3 text-gray-300">
+                        {orderTypeLabels[order.order_type] || order.order_type}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-block rounded-full px-2 py-1 text-xs font-medium ${
+                            statusColors[order.status] || ''
+                          }`}
+                        >
+                          {statusLabels[order.status] || order.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right text-white">
+                        R$ {order.total.toFixed(2)}
+                      </td>
+                      <td className="px-4 py-3 text-gray-300">
+                        {new Date(order.created_at).toLocaleString('pt-BR')}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-wrap gap-1" onClick={(e) => e.stopPropagation()}>
+                          {(statusTransitions[order.status] || []).map((action) => (
+                            <button
+                              key={action.next}
+                              onClick={() => updateStatus(order.id, action.next)}
+                              className={`rounded px-2 py-1 text-xs font-medium text-white ${action.color}`}
+                            >
+                              {action.label}
+                            </button>
+                          ))}
                         </div>
                       </td>
                     </tr>
-                  )}
-                </Fragment>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                    {expandedId === order.id && (
+                      <tr key={`${order.id}-detail`} className="bg-gray-800/60">
+                        <td colSpan={8} className="px-4 py-4">
+                          <div className="grid gap-4 md:grid-cols-2">
+                            <div>
+                              <h4 className="mb-2 font-semibold text-white">Itens do pedido</h4>
+                              {order.items && order.items.length > 0 ? (
+                                <ul className="space-y-1">
+                                  {order.items.map((item) => (
+                                    <li
+                                      key={item.id}
+                                      className="flex justify-between text-gray-300"
+                                    >
+                                      <span>
+                                        {item.quantity}x {item.product_name}
+                                        {item.size
+                                          ? ` (${sizeLabels[item.size] || item.size})`
+                                          : ''}
+                                      </span>
+                                      <span>R$ {(item.unit_price * item.quantity).toFixed(2)}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <p className="text-gray-500">Carregando itens...</p>
+                              )}
+                            </div>
+                            <div>
+                              {order.customer_address && (
+                                <p className="mb-1 text-gray-300">
+                                  <span className="font-medium text-gray-400">Endereco:</span>{' '}
+                                  {order.customer_address}
+                                </p>
+                              )}
+                              {order.notes && (
+                                <p className="text-gray-300">
+                                  <span className="font-medium text-gray-400">Observacoes:</span>{' '}
+                                  {order.notes}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
 
       <p className="mt-4 text-center text-xs text-gray-600">Atualiza automaticamente a cada 15s</p>

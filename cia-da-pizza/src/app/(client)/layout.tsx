@@ -249,6 +249,27 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
               &copy; {new Date().getFullYear()} Cia da Pizza - Franca/SP. Todos os direitos
               reservados.
             </p>
+            {/* Area restrita - links discretos */}
+            <div className="mt-6 pt-4 border-t border-gray-800/30">
+              <p className="text-[10px] text-gray-700 mb-2 uppercase tracking-widest">
+                Area Restrita
+              </p>
+              <div className="flex items-center justify-center gap-4">
+                <Link
+                  href="/admin/login"
+                  className="text-[11px] text-gray-700 hover:text-gray-500 transition-colors duration-300 min-h-0"
+                >
+                  Administrativo
+                </Link>
+                <span className="text-gray-800 text-[10px]">|</span>
+                <Link
+                  href="/loja/login"
+                  className="text-[11px] text-gray-700 hover:text-gray-500 transition-colors duration-300 min-h-0"
+                >
+                  Acesso Loja
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </footer>

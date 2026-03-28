@@ -240,7 +240,7 @@ export default function UsuariosPage() {
         </div>
       )}
 
-      {/* Table */}
+      {/* Users list */}
       {loading ? (
         <div className="flex h-64 items-center justify-center">
           <p className="text-gray-400">Carregando...</p>
@@ -250,66 +250,109 @@ export default function UsuariosPage() {
           <p className="text-gray-400">Nenhum usuário cadastrado.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl ring-1 ring-gray-700">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-700 bg-gray-800 text-left text-gray-400">
-                <th className="px-4 py-3">Nome</th>
-                <th className="px-4 py-3">Usuário</th>
-                <th className="px-4 py-3">Perfil</th>
-                <th className="px-4 py-3">Criado em</th>
-                <th className="px-4 py-3">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user, idx) => (
-                <tr
-                  key={user.id}
-                  className={`border-b border-gray-700/50 ${
-                    idx % 2 === 0 ? 'bg-gray-800/30' : 'bg-gray-700/20'
-                  }`}
-                >
-                  <td className="px-4 py-3 text-white">{user.name}</td>
-                  <td className="px-4 py-3 text-gray-300">{user.username}</td>
-                  <td className="px-4 py-3">
-                    <span className="inline-block rounded-full bg-gray-700 px-2.5 py-0.5 text-xs font-medium text-gray-300">
-                      {user.role}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-gray-300">{formatDate(user.created_at)}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        onClick={() => openEdit(user)}
-                        className="rounded px-3 py-1 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        onClick={() => openPasswordChange(user)}
-                        className="rounded px-3 py-1 text-xs font-medium text-white bg-yellow-600 hover:bg-yellow-700"
-                      >
-                        Alterar Senha
-                      </button>
-                      <button
-                        onClick={() => handleDelete(user)}
-                        className="rounded px-3 py-1 text-xs font-medium text-white bg-red-600 hover:bg-red-700"
-                      >
-                        Excluir
-                      </button>
-                    </div>
-                  </td>
+        <>
+          {/* Mobile card view */}
+          <div className="space-y-3 md:hidden">
+            {users.map((user) => (
+              <div key={user.id} className="rounded-xl bg-gray-800/50 p-4 ring-1 ring-gray-700">
+                <div className="mb-2 flex items-start justify-between gap-2">
+                  <div>
+                    <p className="text-sm font-semibold text-white">{user.name}</p>
+                    <p className="text-xs text-gray-400">@{user.username}</p>
+                  </div>
+                  <span className="inline-block rounded-full bg-gray-700 px-2.5 py-0.5 text-xs font-medium text-gray-300">
+                    {user.role}
+                  </span>
+                </div>
+                <p className="mb-3 text-xs text-gray-500">
+                  Criado em {formatDate(user.created_at)}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => openEdit(user)}
+                    className="rounded px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => openPasswordChange(user)}
+                    className="rounded px-3 py-1.5 text-xs font-medium text-white bg-yellow-600 hover:bg-yellow-700"
+                  >
+                    Alterar Senha
+                  </button>
+                  <button
+                    onClick={() => handleDelete(user)}
+                    className="rounded px-3 py-1.5 text-xs font-medium text-white bg-red-600 hover:bg-red-700"
+                  >
+                    Excluir
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop table view */}
+          <div className="hidden md:block overflow-x-auto rounded-xl ring-1 ring-gray-700">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-700 bg-gray-800 text-left text-gray-400">
+                  <th className="px-4 py-3">Nome</th>
+                  <th className="px-4 py-3">Usuário</th>
+                  <th className="px-4 py-3">Perfil</th>
+                  <th className="px-4 py-3">Criado em</th>
+                  <th className="px-4 py-3">Ações</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {users.map((user, idx) => (
+                  <tr
+                    key={user.id}
+                    className={`border-b border-gray-700/50 ${
+                      idx % 2 === 0 ? 'bg-gray-800/30' : 'bg-gray-700/20'
+                    }`}
+                  >
+                    <td className="px-4 py-3 text-white">{user.name}</td>
+                    <td className="px-4 py-3 text-gray-300">{user.username}</td>
+                    <td className="px-4 py-3">
+                      <span className="inline-block rounded-full bg-gray-700 px-2.5 py-0.5 text-xs font-medium text-gray-300">
+                        {user.role}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-gray-300">{formatDate(user.created_at)}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => openEdit(user)}
+                          className="rounded px-3 py-1 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => openPasswordChange(user)}
+                          className="rounded px-3 py-1 text-xs font-medium text-white bg-yellow-600 hover:bg-yellow-700"
+                        >
+                          Alterar Senha
+                        </button>
+                        <button
+                          onClick={() => handleDelete(user)}
+                          className="rounded px-3 py-1 text-xs font-medium text-white bg-red-600 hover:bg-red-700"
+                        >
+                          Excluir
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
 
       {/* Modal overlay */}
       {modalType && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="mx-4 w-full max-w-md rounded-xl bg-gray-800 p-6 ring-1 ring-gray-700">
+          <div className="fixed inset-0 flex flex-col bg-gray-800 p-6 overflow-y-auto sm:static sm:inset-auto sm:mx-4 sm:w-full sm:max-w-md sm:rounded-xl sm:ring-1 sm:ring-gray-700">
             {/* Create / Edit modal */}
             {(modalType === 'create' || modalType === 'edit') && (
               <>

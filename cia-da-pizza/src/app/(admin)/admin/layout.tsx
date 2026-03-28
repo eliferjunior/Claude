@@ -120,7 +120,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       {/* Main content */}
       <div className="flex flex-1 flex-col">
         {/* Top bar */}
-        <header className="flex h-16 items-center justify-between border-b border-gray-700 bg-gray-900 px-6">
+        <header className="flex h-16 items-center justify-between border-b border-gray-700 bg-gray-900 px-4 sm:px-6">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="text-gray-400 hover:text-white lg:hidden"
@@ -149,7 +149,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         </header>
 
         {/* Content area */}
-        <main className="flex-1 overflow-auto p-6">{children}</main>
+        <main className="flex-1 overflow-auto p-4 sm:p-6">{children}</main>
       </div>
     </div>
   );

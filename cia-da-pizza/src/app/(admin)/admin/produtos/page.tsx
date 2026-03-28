@@ -194,82 +194,133 @@ export default function ProdutosPage() {
       ) : filteredProducts.length === 0 ? (
         <p className="text-gray-400">Nenhum produto encontrado</p>
       ) : (
-        <div className="overflow-x-auto rounded-xl ring-1 ring-gray-700">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-700 bg-gray-800 text-left text-gray-400">
-                <th className="px-4 py-3">Nome</th>
-                <th className="px-4 py-3">Categoria</th>
-                <th className="px-4 py-3 text-right">Preco P</th>
-                <th className="px-4 py-3 text-right">Preco M</th>
-                <th className="px-4 py-3 text-right">Preco G</th>
-                <th className="px-4 py-3 text-center">Ativo</th>
-                <th className="px-4 py-3">Acoes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredProducts.map((product, idx) => (
-                <tr
-                  key={product.id}
-                  className={`border-b border-gray-700/50 ${
-                    idx % 2 === 0 ? 'bg-gray-800/30' : 'bg-gray-700/20'
-                  }`}
-                >
-                  <td className="px-4 py-3 text-white">{product.name}</td>
-                  <td className="px-4 py-3 text-gray-300">
-                    {product.category_name || getCategoryName(product.category_id)}
-                  </td>
-                  <td className="px-4 py-3 text-right text-gray-300">
-                    {formatPrice(product.price_small)}
-                  </td>
-                  <td className="px-4 py-3 text-right text-gray-300">
-                    {formatPrice(product.price_medium)}
-                  </td>
-                  <td className="px-4 py-3 text-right text-gray-300">
-                    {formatPrice(product.price_large)}
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <span
-                      className={`inline-block rounded-full px-2 py-1 text-xs font-medium ${
-                        product.active
-                          ? 'bg-green-600/20 text-green-400'
-                          : 'bg-red-600/20 text-red-400'
-                      }`}
-                    >
-                      {product.active ? 'Ativo' : 'Inativo'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => openEdit(product)}
-                        className="rounded bg-gray-600 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-gray-500"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        onClick={() => toggleActive(product)}
-                        className={`rounded px-3 py-1 text-xs font-medium text-white transition-colors ${
+        <>
+          {/* Mobile card view */}
+          <div className="space-y-3 md:hidden">
+            {filteredProducts.map((product) => (
+              <div key={product.id} className="rounded-xl bg-gray-800/50 p-4 ring-1 ring-gray-700">
+                <div className="mb-2 flex items-start justify-between gap-2">
+                  <div>
+                    <p className="text-sm font-semibold text-white">{product.name}</p>
+                    <p className="text-xs text-gray-400">
+                      {product.category_name || getCategoryName(product.category_id)}
+                    </p>
+                  </div>
+                  <span
+                    className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+                      product.active
+                        ? 'bg-green-600/20 text-green-400'
+                        : 'bg-red-600/20 text-red-400'
+                    }`}
+                  >
+                    {product.active ? 'Ativo' : 'Inativo'}
+                  </span>
+                </div>
+                <div className="mb-3 flex flex-wrap gap-3 text-xs text-gray-300">
+                  <span>P: {formatPrice(product.price_small)}</span>
+                  <span>M: {formatPrice(product.price_medium)}</span>
+                  <span>G: {formatPrice(product.price_large)}</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => openEdit(product)}
+                    className="rounded bg-gray-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-gray-500"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => toggleActive(product)}
+                    className={`rounded px-3 py-1.5 text-xs font-medium text-white transition-colors ${
+                      product.active
+                        ? 'bg-red-600 hover:bg-red-700'
+                        : 'bg-green-600 hover:bg-green-700'
+                    }`}
+                  >
+                    {product.active ? 'Desativar' : 'Ativar'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop table view */}
+          <div className="hidden md:block overflow-x-auto rounded-xl ring-1 ring-gray-700">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-700 bg-gray-800 text-left text-gray-400">
+                  <th className="px-4 py-3">Nome</th>
+                  <th className="px-4 py-3">Categoria</th>
+                  <th className="px-4 py-3 text-right">Preco P</th>
+                  <th className="px-4 py-3 text-right">Preco M</th>
+                  <th className="px-4 py-3 text-right">Preco G</th>
+                  <th className="px-4 py-3 text-center">Ativo</th>
+                  <th className="px-4 py-3">Acoes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredProducts.map((product, idx) => (
+                  <tr
+                    key={product.id}
+                    className={`border-b border-gray-700/50 ${
+                      idx % 2 === 0 ? 'bg-gray-800/30' : 'bg-gray-700/20'
+                    }`}
+                  >
+                    <td className="px-4 py-3 text-white">{product.name}</td>
+                    <td className="px-4 py-3 text-gray-300">
+                      {product.category_name || getCategoryName(product.category_id)}
+                    </td>
+                    <td className="px-4 py-3 text-right text-gray-300">
+                      {formatPrice(product.price_small)}
+                    </td>
+                    <td className="px-4 py-3 text-right text-gray-300">
+                      {formatPrice(product.price_medium)}
+                    </td>
+                    <td className="px-4 py-3 text-right text-gray-300">
+                      {formatPrice(product.price_large)}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <span
+                        className={`inline-block rounded-full px-2 py-1 text-xs font-medium ${
                           product.active
-                            ? 'bg-red-600 hover:bg-red-700'
-                            : 'bg-green-600 hover:bg-green-700'
+                            ? 'bg-green-600/20 text-green-400'
+                            : 'bg-red-600/20 text-red-400'
                         }`}
                       >
-                        {product.active ? 'Desativar' : 'Ativar'}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                        {product.active ? 'Ativo' : 'Inativo'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => openEdit(product)}
+                          className="rounded bg-gray-600 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-gray-500"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => toggleActive(product)}
+                          className={`rounded px-3 py-1 text-xs font-medium text-white transition-colors ${
+                            product.active
+                              ? 'bg-red-600 hover:bg-red-700'
+                              : 'bg-green-600 hover:bg-green-700'
+                          }`}
+                        >
+                          {product.active ? 'Desativar' : 'Ativar'}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
 
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="mx-4 w-full max-w-lg rounded-xl bg-gray-800 p-6 ring-1 ring-gray-700">
+          <div className="fixed inset-0 flex flex-col bg-gray-800 sm:static sm:inset-auto sm:mx-4 sm:w-full sm:max-w-lg sm:rounded-xl sm:ring-1 sm:ring-gray-700 overflow-y-auto p-6">
             <h2 className="mb-4 text-lg font-bold text-white">
               {editingId ? 'Editar Produto' : 'Novo Produto'}
             </h2>

@@ -262,7 +262,7 @@ export default function DashboardPage() {
               <p className="text-sm text-gray-400">{card.title}</p>
               {card.icon}
             </div>
-            <p className="mt-2 text-3xl font-bold text-white">{card.value}</p>
+            <p className="mt-2 text-xl font-bold text-white sm:text-3xl">{card.value}</p>
           </div>
         ))}
       </div>

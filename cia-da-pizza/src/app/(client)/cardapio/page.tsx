@@ -118,19 +118,19 @@ export default function CardapioPage() {
 
   return (
     <div className="min-h-screen py-8 sm:py-16 pb-32">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-12 animate-slide-up">
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400">
+        <div className="text-center mb-8 sm:mb-12 animate-slide-up">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400">
             Nosso Cardapio
           </h1>
-          <p className="mt-4 text-gray-400 text-lg max-w-xl mx-auto">
+          <p className="mt-3 sm:mt-4 text-gray-400 text-sm sm:text-lg max-w-xl mx-auto px-2 sm:px-0">
             Escolha entre nossas deliciosas opcoes de pizzas, sanduiches e muito mais
           </p>
         </div>
 
         {/* Search */}
-        <div className="mb-8 max-w-md mx-auto animate-slide-up delay-100">
+        <div className="mb-6 sm:mb-8 max-w-md mx-auto animate-slide-up delay-100 px-1 sm:px-0">
           <div className="relative">
             <svg
               className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400"
@@ -150,7 +150,7 @@ export default function CardapioPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar no cardapio..."
-              className="w-full bg-gray-800/80 border border-gray-600/50 rounded-xl pl-12 pr-4 py-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all outline-none"
+              className="w-full bg-gray-800/80 border border-gray-600/50 rounded-xl pl-12 pr-4 py-3 text-base text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all outline-none"
             />
           </div>
         </div>
@@ -194,7 +194,7 @@ export default function CardapioPage() {
             <p className="text-gray-500 text-sm mt-2">Tente buscar por outro termo.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {filtered.map((product) => (
               <div
                 key={product.id}

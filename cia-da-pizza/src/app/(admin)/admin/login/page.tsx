@@ -40,9 +40,7 @@ export default function AdminLoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-gray-900 px-4">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-white">
-            Cia da Pizza
-          </h1>
+          <h1 className="text-3xl font-bold text-white">Cia da Pizza</h1>
           <p className="mt-2 text-gray-400">Painel Administrativo</p>
         </div>
 
@@ -66,7 +64,7 @@ export default function AdminLoginPage() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
-              className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-3 text-white placeholder-gray-400 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+              className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-3 text-[16px] text-white placeholder-gray-400 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
               placeholder="Digite seu usuario"
             />
           </div>
@@ -81,7 +79,7 @@ export default function AdminLoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-3 text-white placeholder-gray-400 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+              className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-3 text-[16px] text-white placeholder-gray-400 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
               placeholder="Digite sua senha"
             />
           </div>

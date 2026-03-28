@@ -249,11 +249,15 @@ export default function PedidoPage() {
 
   return (
     <div className="min-h-screen bg-gray-900 py-8 sm:py-12">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white">Fazer Pedido</h1>
-          <p className="mt-3 text-gray-400 text-lg">Siga os passos abaixo para montar seu pedido</p>
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white">
+            Fazer Pedido
+          </h1>
+          <p className="mt-2 sm:mt-3 text-gray-400 text-sm sm:text-lg">
+            Siga os passos abaixo para montar seu pedido
+          </p>
         </div>
 
         {/* Progress Bar */}
@@ -397,16 +401,16 @@ export default function PedidoPage() {
 
         {/* Step 2 - Monte seu Pedido */}
         {step === 2 && (
-          <div className="flex flex-col lg:flex-row gap-8">
+          <div className="flex flex-col-reverse lg:flex-row gap-4 sm:gap-8">
             {/* Products */}
             <div className="flex-1">
               <h2 className="text-xl font-bold text-white mb-6">Monte seu Pedido</h2>
 
               {/* Category Tabs */}
-              <div className="mb-6 flex flex-wrap gap-2">
+              <div className="mb-6 flex gap-2 overflow-x-auto pb-2 scrollbar-none">
                 <button
                   onClick={() => setSelectedCategory(null)}
-                  className={`rounded-full px-5 py-2 text-sm font-semibold transition ${
+                  className={`shrink-0 rounded-full px-4 sm:px-5 py-2 text-sm font-semibold transition ${
                     selectedCategory === null
                       ? 'bg-red-600 text-white'
                       : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
@@ -418,7 +422,7 @@ export default function PedidoPage() {
                   <button
                     key={cat.id}
                     onClick={() => setSelectedCategory(cat.id)}
-                    className={`rounded-full px-5 py-2 text-sm font-semibold transition ${
+                    className={`shrink-0 rounded-full px-4 sm:px-5 py-2 text-sm font-semibold transition ${
                       selectedCategory === cat.id
                         ? 'bg-red-600 text-white'
                         : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
@@ -444,7 +448,7 @@ export default function PedidoPage() {
                     const currentPrice = getSizePrice(product, currentSize);
 
                     return (
-                      <div key={product.id} className="bg-gray-800 rounded-xl p-5 flex flex-col">
+                      <div key={product.id} className="bg-gray-800 rounded-xl p-4 sm:p-5 flex flex-col">
                         <div className="mb-1">
                           <span className="text-xs font-medium text-red-400 uppercase tracking-wide">
                             {product.category_name}
@@ -458,14 +462,14 @@ export default function PedidoPage() {
                         )}
 
                         {/* Size Selector */}
-                        <div className="flex gap-2 mb-3">
+                        <div className="flex gap-2 mb-3 overflow-x-auto scrollbar-none">
                           {sizes.map((size) => (
                             <button
                               key={size}
                               onClick={() =>
                                 setSelectedSizes((prev) => ({ ...prev, [product.id]: size }))
                               }
-                              className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
+                              className={`shrink-0 rounded-lg px-3 py-1.5 text-xs sm:text-sm font-semibold transition ${
                                 currentSize === size
                                   ? 'bg-red-600 text-white'
                                   : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
@@ -540,8 +544,8 @@ export default function PedidoPage() {
             </div>
 
             {/* Cart Sidebar */}
-            <div className="lg:w-80 shrink-0">
-              <div className="bg-gray-800 rounded-xl p-5 sticky top-24">
+            <div className="w-full lg:w-80 shrink-0">
+              <div className="bg-gray-800 rounded-xl p-4 sm:p-5 lg:sticky lg:top-24">
                 <h3 className="text-lg font-bold text-white mb-4">Carrinho</h3>
 
                 {cart.length === 0 ? (
