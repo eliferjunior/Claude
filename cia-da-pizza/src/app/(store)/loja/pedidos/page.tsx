@@ -115,10 +115,10 @@ export default function StorePedidosPage() {
       <h1 className="text-2xl font-bold text-white mb-6">Pedidos</h1>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-2 mb-6">
+      <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
         <button
           onClick={() => setFilterStatus('')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+          className={`shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             filterStatus === ''
               ? 'bg-red-600 text-white'
               : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white'
@@ -130,7 +130,7 @@ export default function StorePedidosPage() {
           <button
             key={key}
             onClick={() => setFilterStatus(key)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               filterStatus === key
                 ? 'bg-red-600 text-white'
                 : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white'

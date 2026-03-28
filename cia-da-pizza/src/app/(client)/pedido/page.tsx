@@ -261,7 +261,7 @@ export default function PedidoPage() {
         </div>
 
         {/* Progress Bar */}
-        <div className="mb-10 max-w-2xl mx-auto">
+        <div className="mb-8 sm:mb-10 max-w-2xl mx-auto">
           <div className="flex items-center justify-between mb-2">
             {STEP_LABELS.map((label, i) => {
               const stepNum = i + 1;
@@ -448,7 +448,10 @@ export default function PedidoPage() {
                     const currentPrice = getSizePrice(product, currentSize);
 
                     return (
-                      <div key={product.id} className="bg-gray-800 rounded-xl p-4 sm:p-5 flex flex-col">
+                      <div
+                        key={product.id}
+                        className="bg-gray-800 rounded-xl p-4 sm:p-5 flex flex-col"
+                      >
                         <div className="mb-1">
                           <span className="text-xs font-medium text-red-400 uppercase tracking-wide">
                             {product.category_name}
@@ -526,17 +529,17 @@ export default function PedidoPage() {
               )}
 
               {/* Navigation */}
-              <div className="flex justify-between mt-8">
+              <div className="flex justify-between mt-6 sm:mt-8 gap-3">
                 <button
                   onClick={() => setStep(1)}
-                  className="rounded-xl bg-gray-700 px-8 py-3 font-bold text-white hover:bg-gray-600 transition"
+                  className="rounded-xl bg-gray-700 px-5 sm:px-8 py-3 font-bold text-white hover:bg-gray-600 transition text-sm sm:text-base"
                 >
                   Voltar
                 </button>
                 <button
                   onClick={() => setStep(3)}
                   disabled={cart.length === 0}
-                  className="rounded-xl bg-red-600 px-8 py-3 font-bold text-white hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="rounded-xl bg-red-600 px-5 sm:px-8 py-3 font-bold text-white hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                 >
                   Proximo
                 </button>
@@ -693,10 +696,10 @@ export default function PedidoPage() {
             )}
 
             {/* Navigation */}
-            <div className="flex justify-between mt-8">
+            <div className="flex justify-between mt-6 sm:mt-8 gap-3">
               <button
                 onClick={() => setStep(2)}
-                className="rounded-xl bg-gray-700 px-8 py-3 font-bold text-white hover:bg-gray-600 transition"
+                className="rounded-xl bg-gray-700 px-5 sm:px-8 py-3 font-bold text-white hover:bg-gray-600 transition text-sm sm:text-base"
               >
                 Voltar
               </button>
@@ -707,7 +710,7 @@ export default function PedidoPage() {
                   !customerName.trim() ||
                   (orderType === 'delivery' && !customerAddress.trim())
                 }
-                className="rounded-xl bg-red-600 px-8 py-3 font-bold text-white hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="rounded-xl bg-red-600 px-5 sm:px-8 py-3 font-bold text-white hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
               >
                 {submitting ? 'Enviando...' : 'Finalizar Pedido'}
               </button>
