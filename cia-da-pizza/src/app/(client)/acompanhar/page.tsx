@@ -112,28 +112,30 @@ export default function AcompanharPage() {
 
   return (
     <div className="min-h-screen bg-gray-900 py-8 sm:py-12">
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-3xl px-3 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-10 text-center">
-          <h1 className="text-3xl font-extrabold text-white sm:text-4xl">Acompanhar Pedido</h1>
-          <p className="mt-3 text-lg text-gray-400">
+        <div className="mb-8 sm:mb-10 text-center">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white">
+            Acompanhar Pedido
+          </h1>
+          <p className="mt-2 sm:mt-3 text-sm sm:text-lg text-gray-400 px-2 sm:px-0">
             Digite o numero do pedido ou telefone para acompanhar
           </p>
         </div>
 
         {/* Search Form */}
-        <form onSubmit={handleSearch} className="mx-auto mb-4 flex max-w-lg gap-3">
+        <form onSubmit={handleSearch} className="mx-auto mb-4 flex max-w-lg gap-2 sm:gap-3">
           <input
             type="text"
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
             placeholder="Numero do pedido ou telefone"
-            className="flex-1 rounded-xl border border-gray-700 bg-gray-800 px-4 py-3 text-white placeholder-gray-500 transition focus:border-transparent focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="flex-1 min-w-0 rounded-xl border border-gray-700 bg-gray-800 px-3 sm:px-4 py-3 text-base text-white placeholder-gray-500 transition focus:border-transparent focus:outline-none focus:ring-2 focus:ring-red-500"
           />
           <button
             type="submit"
             disabled={loading || !searchValue.trim()}
-            className="rounded-xl bg-red-600 px-6 py-3 font-semibold text-white transition hover:bg-red-700 disabled:opacity-50"
+            className="shrink-0 rounded-xl bg-red-600 px-4 sm:px-6 py-3 text-sm sm:text-base font-semibold text-white transition hover:bg-red-700 disabled:opacity-50"
           >
             {loading ? 'Buscando...' : 'Buscar'}
           </button>
@@ -158,7 +160,7 @@ export default function AcompanharPage() {
         {order && (
           <div className="space-y-6">
             {/* Order Info Card */}
-            <div className="rounded-xl bg-gray-800 p-6">
+            <div className="rounded-xl bg-gray-800 p-4 sm:p-6">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <h2 className="text-xl font-bold text-white">Pedido #{order.id}</h2>
                 {isCancelled ? (
@@ -212,9 +214,11 @@ export default function AcompanharPage() {
 
             {/* Timeline */}
             {!isCancelled && (
-              <div className="rounded-xl bg-gray-800 p-6">
-                <h3 className="mb-6 text-lg font-semibold text-white">Status do Pedido</h3>
-                <div className="flex items-center justify-between">
+              <div className="rounded-xl bg-gray-800 p-4 sm:p-6">
+                <h3 className="mb-4 sm:mb-6 text-base sm:text-lg font-semibold text-white">
+                  Status do Pedido
+                </h3>
+                <div className="flex items-center justify-between overflow-x-auto scrollbar-none pb-2">
                   {timelineSteps.map((step, idx) => {
                     const isCompleted = idx <= currentStepIndex;
                     const isLast = idx === timelineSteps.length - 1;
@@ -275,16 +279,18 @@ export default function AcompanharPage() {
 
             {/* Items List */}
             {order.items && order.items.length > 0 && (
-              <div className="rounded-xl bg-gray-800 p-6">
+              <div className="rounded-xl bg-gray-800 p-4 sm:p-6">
                 <h3 className="mb-4 text-lg font-semibold text-white">Itens do Pedido</h3>
                 <div className="space-y-3">
                   {order.items.map((item) => (
                     <div
                       key={item.id}
-                      className="flex items-center justify-between rounded-lg bg-gray-700/50 px-4 py-3"
+                      className="flex items-start sm:items-center justify-between gap-2 rounded-lg bg-gray-700/50 px-3 sm:px-4 py-3"
                     >
-                      <div>
-                        <span className="font-medium text-white">{item.product_name}</span>
+                      <div className="min-w-0 flex-1">
+                        <span className="font-medium text-white text-sm sm:text-base">
+                          {item.product_name}
+                        </span>
                         {item.size && (
                           <span className="ml-2 text-sm text-gray-400">
                             ({sizeLabels[item.size] || item.size})
@@ -292,7 +298,7 @@ export default function AcompanharPage() {
                         )}
                         <span className="ml-2 text-sm text-gray-400">x{item.quantity}</span>
                       </div>
-                      <span className="font-medium text-white">
+                      <span className="font-medium text-white shrink-0 text-sm sm:text-base">
                         R$ {(item.unit_price * item.quantity).toFixed(2)}
                       </span>
                     </div>

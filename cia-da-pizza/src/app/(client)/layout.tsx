@@ -97,8 +97,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       {/* Footer */}
       <footer className="border-t border-gray-800/50 bg-gray-950">
         <div className="h-px bg-gradient-to-r from-transparent via-red-500/50 to-transparent" />
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 gap-10 md:grid-cols-4">
+        <div className="mx-auto max-w-7xl px-3 py-10 sm:py-16 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 gap-8 sm:gap-10 sm:grid-cols-2 md:grid-cols-4">
             {/* About */}
             <div className="md:col-span-1">
               <div className="flex items-center gap-2 mb-4">

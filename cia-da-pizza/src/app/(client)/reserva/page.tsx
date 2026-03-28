@@ -237,18 +237,20 @@ export default function ReservaPage() {
 
   return (
     <div className="min-h-screen bg-gray-900 py-8 sm:py-12">
-      <div className="mx-auto max-w-2xl px-4 sm:px-6">
+      <div className="mx-auto max-w-2xl px-3 sm:px-6">
         {/* Header */}
-        <div className="text-center mb-10">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white">Fazer Reserva</h1>
-          <p className="mt-3 text-gray-400 text-lg">
+        <div className="text-center mb-8 sm:mb-10">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white">
+            Fazer Reserva
+          </h1>
+          <p className="mt-2 sm:mt-3 text-gray-400 text-sm sm:text-lg px-2 sm:px-0">
             Reserve sua mesa e garanta seu lugar na Cia da Pizza
           </p>
         </div>
 
         {/* Form Card */}
-        <div className="bg-gray-800 rounded-2xl p-6 sm:p-8">
-          <form onSubmit={handleSubmit} noValidate className="space-y-6">
+        <div className="bg-gray-800 rounded-2xl p-4 sm:p-6 lg:p-8">
+          <form onSubmit={handleSubmit} noValidate className="space-y-5 sm:space-y-6">
             {/* Loja */}
             <div>
               <label htmlFor="store_id" className="block text-sm font-medium text-gray-300 mb-2">
