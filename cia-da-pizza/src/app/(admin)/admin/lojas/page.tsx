@@ -55,7 +55,7 @@ export default function LojasPage() {
         setStores(data);
       }
     } catch {
-      // silently fail
+      setMessage({ type: 'error', text: 'Erro ao carregar lojas.' });
     } finally {
       setLoading(false);
     }

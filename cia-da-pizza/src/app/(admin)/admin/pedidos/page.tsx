@@ -81,6 +81,7 @@ export default function PedidosPage() {
   const [loading, setLoading] = useState(true);
   const [newOrderBanner, setNewOrderBanner] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const prevOrderCountRef = useRef<number | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const bannerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -135,7 +136,7 @@ export default function PedidosPage() {
         setOrders(newOrders);
       }
     } catch {
-      // silently fail
+      setMessage({ type: 'error', text: 'Erro ao carregar pedidos. Tentando novamente...' });
     } finally {
       setLoading(false);
     }
@@ -176,7 +177,7 @@ export default function PedidosPage() {
         );
       }
     } catch {
-      // silently fail
+      setMessage({ type: 'error', text: 'Erro ao carregar detalhes do pedido.' });
     }
     setExpandedId(orderId);
   }
@@ -190,6 +191,8 @@ export default function PedidosPage() {
       });
       if (res.ok) {
         setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)));
+        const label = statusLabels[newStatus] || newStatus;
+        setMessage({ type: 'success', text: `Pedido #${orderId} atualizado para "${label}"!` });
 
         // Oferecer notificar cliente via WhatsApp
         const order = orders.find((o) => o.id === orderId);
@@ -205,24 +208,24 @@ export default function PedidosPage() {
               | 'delivered'
               | 'cancelled',
           );
-          const statusLabels: Record<string, string> = {
+          const whatsLabels: Record<string, string> = {
             confirmed: 'Confirmado',
             preparing: 'Em Preparo',
             ready: 'Pronto',
             delivered: 'Entregue',
           };
           if (
-            statusLabels[newStatus] &&
-            confirm(
-              `Notificar cliente via WhatsApp que o pedido esta "${statusLabels[newStatus]}"?`,
-            )
+            whatsLabels[newStatus] &&
+            confirm(`Notificar cliente via WhatsApp que o pedido esta "${whatsLabels[newStatus]}"?`)
           ) {
             window.open(whatsLink, '_blank');
           }
         }
+      } else {
+        setMessage({ type: 'error', text: `Erro ao atualizar pedido #${orderId}.` });
       }
     } catch {
-      // silently fail
+      setMessage({ type: 'error', text: 'Erro de conexão ao atualizar pedido.' });
     }
   }
 
@@ -230,6 +233,29 @@ export default function PedidosPage() {
 
   return (
     <div>
+      {/* Feedback message */}
+      {message && (
+        <div
+          className={`mb-4 flex items-center justify-between rounded-lg px-4 py-3 text-sm ${
+            message.type === 'success'
+              ? 'bg-green-600/20 text-green-400'
+              : 'bg-red-600/20 text-red-400'
+          }`}
+        >
+          <span>{message.text}</span>
+          <button onClick={() => setMessage(null)} className="ml-3 hover:opacity-70">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+      )}
+
       {/* New order notification banner */}
       {newOrderBanner && (
         <div className="mb-4 flex items-center justify-between rounded-xl bg-green-600/20 border border-green-500/30 px-4 py-3 animate-pulse">

@@ -88,7 +88,9 @@ export default function DashboardPage() {
   });
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
   const [recentReservations, setRecentReservations] = useState<RecentReservation[]>([]);
-  const [revenueByStore, setRevenueByStore] = useState<{ store_id: number; store_name: string; revenue: number }[]>([]);
+  const [revenueByStore, setRevenueByStore] = useState<
+    { store_id: number; store_name: string; revenue: number }[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -117,7 +119,10 @@ export default function DashboardPage() {
       setRevenueByStore(data.revenue_by_store || []);
       setLastUpdate(new Date());
     } catch {
-      // silently fail
+      // Network errors on auto-refresh are expected, only show on manual refresh
+      if (isManual) {
+        alert('Erro ao atualizar dados. Verifique sua conexão.');
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);

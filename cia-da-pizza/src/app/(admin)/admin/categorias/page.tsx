@@ -16,6 +16,7 @@ export default function CategoriasPage() {
   const [formName, setFormName] = useState('');
   const [formPosition, setFormPosition] = useState('');
   const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
     fetchCategories();
@@ -30,7 +31,7 @@ export default function CategoriasPage() {
         setCategories(Array.isArray(data) ? data : data.categories || []);
       }
     } catch {
-      // silently fail
+      setMessage({ type: 'error', text: 'Erro ao carregar categorias.' });
     } finally {
       setLoading(false);
     }
@@ -72,6 +73,9 @@ export default function CategoriasPage() {
             ),
           );
           resetForm();
+          setMessage({ type: 'success', text: 'Categoria atualizada com sucesso!' });
+        } else {
+          setMessage({ type: 'error', text: 'Erro ao atualizar categoria.' });
         }
       } else {
         const res = await fetch('/api/categories', {
@@ -84,11 +88,14 @@ export default function CategoriasPage() {
         });
         if (res.ok) {
           resetForm();
+          setMessage({ type: 'success', text: 'Categoria criada com sucesso!' });
           fetchCategories();
+        } else {
+          setMessage({ type: 'error', text: 'Erro ao criar categoria.' });
         }
       }
     } catch {
-      // silently fail
+      setMessage({ type: 'error', text: 'Erro de conexão ao salvar.' });
     } finally {
       setSaving(false);
     }
@@ -100,14 +107,38 @@ export default function CategoriasPage() {
       const res = await fetch(`/api/categories/${id}`, { method: 'DELETE' });
       if (res.ok) {
         setCategories((prev) => prev.filter((c) => c.id !== id));
+        setMessage({ type: 'success', text: 'Categoria excluída com sucesso!' });
+      } else {
+        setMessage({ type: 'error', text: 'Erro ao excluir categoria.' });
       }
     } catch {
-      // silently fail
+      setMessage({ type: 'error', text: 'Erro de conexão ao excluir.' });
     }
   }
 
   return (
     <div>
+      {message && (
+        <div
+          className={`mb-4 flex items-center justify-between rounded-lg px-4 py-3 text-sm ${
+            message.type === 'success'
+              ? 'bg-green-600/20 text-green-400'
+              : 'bg-red-600/20 text-red-400'
+          }`}
+        >
+          <span>{message.text}</span>
+          <button onClick={() => setMessage(null)} className="ml-3 hover:opacity-70">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+      )}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-white">Categorias</h1>
         <button
@@ -175,10 +206,7 @@ export default function CategoriasPage() {
           {/* Mobile card view */}
           <div className="space-y-3 md:hidden">
             {categories.map((cat) => (
-              <div
-                key={cat.id}
-                className="rounded-xl bg-gray-800/50 p-4 ring-1 ring-gray-700"
-              >
+              <div key={cat.id} className="rounded-xl bg-gray-800/50 p-4 ring-1 ring-gray-700">
                 {editingId === cat.id ? (
                   <div className="space-y-3">
                     <div>

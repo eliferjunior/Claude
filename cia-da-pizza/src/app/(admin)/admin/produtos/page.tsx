@@ -49,6 +49,7 @@ export default function ProdutosPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<ProductForm>(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -70,7 +71,7 @@ export default function ProdutosPage() {
         setCategories(data.categories || data);
       }
     } catch {
-      // silently fail
+      setMessage({ type: 'error', text: 'Erro ao carregar produtos. Tente novamente.' });
     } finally {
       setLoading(false);
     }
@@ -118,7 +119,10 @@ export default function ProdutosPage() {
         });
         if (res.ok) {
           setShowModal(false);
+          setMessage({ type: 'success', text: 'Produto atualizado com sucesso!' });
           fetchData();
+        } else {
+          setMessage({ type: 'error', text: 'Erro ao atualizar produto.' });
         }
       } else {
         const res = await fetch('/api/products', {
@@ -128,28 +132,40 @@ export default function ProdutosPage() {
         });
         if (res.ok) {
           setShowModal(false);
+          setMessage({ type: 'success', text: 'Produto criado com sucesso!' });
           fetchData();
+        } else {
+          setMessage({ type: 'error', text: 'Erro ao criar produto.' });
         }
       }
     } catch {
-      // silently fail
+      setMessage({ type: 'error', text: 'Erro de conexão ao salvar.' });
     } finally {
       setSaving(false);
     }
   }
 
   async function toggleActive(product: Product) {
+    const newActive = !product.active;
     try {
       const res = await fetch(`/api/products/${product.id}`, {
-        method: 'DELETE',
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ active: newActive }),
       });
       if (res.ok) {
         setProducts((prev) =>
-          prev.map((p) => (p.id === product.id ? { ...p, active: !p.active } : p)),
+          prev.map((p) => (p.id === product.id ? { ...p, active: newActive } : p)),
         );
+        setMessage({
+          type: 'success',
+          text: `Produto ${newActive ? 'ativado' : 'desativado'} com sucesso!`,
+        });
+      } else {
+        setMessage({ type: 'error', text: 'Erro ao alterar status do produto.' });
       }
     } catch {
-      // silently fail
+      setMessage({ type: 'error', text: 'Erro de conexão.' });
     }
   }
 
@@ -170,6 +186,27 @@ export default function ProdutosPage() {
 
   return (
     <div>
+      {message && (
+        <div
+          className={`mb-4 flex items-center justify-between rounded-lg px-4 py-3 text-sm ${
+            message.type === 'success'
+              ? 'bg-green-600/20 text-green-400'
+              : 'bg-red-600/20 text-red-400'
+          }`}
+        >
+          <span>{message.text}</span>
+          <button onClick={() => setMessage(null)} className="ml-3 hover:opacity-70">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+      )}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-white">Produtos</h1>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">

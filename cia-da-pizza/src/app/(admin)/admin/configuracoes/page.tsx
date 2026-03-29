@@ -64,7 +64,7 @@ export default function ConfiguracoesPage() {
         setSettings({ ...defaultSettings, ...data });
       }
     } catch {
-      // silently fail
+      setMessage({ type: 'error', text: 'Erro ao carregar configurações.' });
     } finally {
       setLoading(false);
     }
