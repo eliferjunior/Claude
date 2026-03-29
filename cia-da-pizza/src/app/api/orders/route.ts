@@ -56,6 +56,7 @@ export async function POST(request: NextRequest) {
     const customerName = sanitizeString(body.customer_name, 200);
     const customerPhone = sanitizeString(body.customer_phone, 30);
     const customerAddress = sanitizeString(body.customer_address, 500);
+    const customerEmail = sanitizeString(body.customer_email, 200);
     const notes = sanitizeString(body.notes, 1000);
 
     if (!store_id || !customerName || !order_type || !Array.isArray(items) || items.length === 0) {
@@ -156,8 +157,8 @@ export async function POST(request: NextRequest) {
     total = Math.round(total * 100) / 100;
 
     const insertOrder = db.prepare(
-      `INSERT INTO orders (store_id, customer_name, customer_phone, customer_address, order_type, notes, total)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO orders (store_id, customer_name, customer_phone, customer_address, customer_email, order_type, notes, total)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     );
 
     const insertItem = db.prepare(
@@ -171,6 +172,7 @@ export async function POST(request: NextRequest) {
         customerName,
         customerPhone,
         customerAddress,
+        customerEmail,
         order_type,
         notes,
         total,

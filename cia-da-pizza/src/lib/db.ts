@@ -147,8 +147,18 @@ function isDatabaseEmpty(): boolean {
   return row.count === 0;
 }
 
+function migrateDatabase(): void {
+  // Add customer_email to orders if not exists
+  try {
+    db.exec(`ALTER TABLE orders ADD COLUMN customer_email TEXT`);
+  } catch {
+    // Column already exists
+  }
+}
+
 function initializeDatabase(): void {
   createTables();
+  migrateDatabase();
 
   try {
     if (isDatabaseEmpty()) {

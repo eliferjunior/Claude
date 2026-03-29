@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, Fragment } from 'react';
+import { generateWhatsAppStatusLink } from '@/lib/notifications';
 
 type OrderItem = {
   id: number;
@@ -181,6 +182,36 @@ export default function PedidosPage() {
       });
       if (res.ok) {
         setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)));
+
+        // Oferecer notificar cliente via WhatsApp
+        const order = orders.find((o) => o.id === orderId);
+        if (order?.customer_phone) {
+          const whatsLink = generateWhatsAppStatusLink(
+            order.customer_phone,
+            orderId,
+            newStatus as
+              | 'pending'
+              | 'confirmed'
+              | 'preparing'
+              | 'ready'
+              | 'delivered'
+              | 'cancelled',
+          );
+          const statusLabels: Record<string, string> = {
+            confirmed: 'Confirmado',
+            preparing: 'Em Preparo',
+            ready: 'Pronto',
+            delivered: 'Entregue',
+          };
+          if (
+            statusLabels[newStatus] &&
+            confirm(
+              `Notificar cliente via WhatsApp que o pedido esta "${statusLabels[newStatus]}"?`,
+            )
+          ) {
+            window.open(whatsLink, '_blank');
+          }
+        }
       }
     } catch {
       // silently fail

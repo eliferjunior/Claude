@@ -58,6 +58,15 @@ const config: Config = {
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
       },
+      animation: {
+        'pulse-ring': 'pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+      },
+      keyframes: {
+        'pulse-ring': {
+          '0%, 100%': { boxShadow: '0 0 0 0 rgba(34, 197, 94, 0.7)' },
+          '50%': { boxShadow: '0 0 0 12px rgba(34, 197, 94, 0)' },
+        },
+      },
     },
   },
   plugins: [],
