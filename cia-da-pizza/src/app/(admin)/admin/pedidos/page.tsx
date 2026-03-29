@@ -74,6 +74,9 @@ const sizeLabels: Record<string, string> = {
 export default function PedidosPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [filterStatus, setFilterStatus] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [newOrderBanner, setNewOrderBanner] = useState(false);
@@ -84,7 +87,12 @@ export default function PedidosPage() {
 
   const fetchOrders = useCallback(async () => {
     try {
-      const query = filterStatus ? `?status=${filterStatus}` : '';
+      const params = new URLSearchParams();
+      if (filterStatus) params.set('status', filterStatus);
+      if (searchTerm) params.set('search', searchTerm);
+      if (dateFrom) params.set('date_from', dateFrom);
+      if (dateTo) params.set('date_to', dateTo);
+      const query = params.toString() ? `?${params.toString()}` : '';
       const res = await fetch(`/api/orders${query}`);
       if (res.ok) {
         const data = await res.json();
@@ -131,13 +139,13 @@ export default function PedidosPage() {
     } finally {
       setLoading(false);
     }
-  }, [filterStatus, soundEnabled]);
+  }, [filterStatus, searchTerm, dateFrom, dateTo, soundEnabled]);
 
   useEffect(() => {
     prevOrderCountRef.current = null;
     setLoading(true);
     fetchOrders();
-  }, [filterStatus, fetchOrders]);
+  }, [filterStatus, searchTerm, dateFrom, dateTo, fetchOrders]);
 
   useEffect(() => {
     intervalRef.current = setInterval(fetchOrders, 15000);
@@ -315,6 +323,31 @@ export default function PedidosPage() {
             </option>
           ))}
         </select>
+      </div>
+
+      {/* Search and date filters */}
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row">
+        <input
+          type="text"
+          placeholder="Buscar por nome ou telefone..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="flex-1 rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 text-sm text-white placeholder-gray-400 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+        />
+        <div className="flex gap-2">
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="rounded-lg border border-gray-600 bg-gray-700 px-3 py-2 text-sm text-white focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+          />
+          <input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            className="rounded-lg border border-gray-600 bg-gray-700 px-3 py-2 text-sm text-white focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+          />
+        </div>
       </div>
 
       {loading ? (

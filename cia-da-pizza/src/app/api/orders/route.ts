@@ -14,6 +14,10 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
     const search = searchParams.get('search');
     const storeId = searchParams.get('store_id');
+    const dateFrom = searchParams.get('date_from');
+    const dateTo = searchParams.get('date_to');
+    const limitParam = searchParams.get('limit');
+    const offsetParam = searchParams.get('offset');
 
     let query = 'SELECT * FROM orders WHERE 1=1';
     const params: (string | number)[] = [];
@@ -38,7 +42,29 @@ export async function GET(request: NextRequest) {
       params.push(`%${sanitizedSearch}%`, `%${sanitizedSearch}%`);
     }
 
+    if (dateFrom) {
+      query += ' AND date(created_at) >= ?';
+      params.push(dateFrom);
+    }
+
+    if (dateTo) {
+      query += ' AND date(created_at) <= ?';
+      params.push(dateTo);
+    }
+
     query += ' ORDER BY created_at DESC';
+
+    if (limitParam) {
+      const limit = Math.max(1, Math.min(parseInt(limitParam, 10) || 100, 1000));
+      query += ' LIMIT ?';
+      params.push(limit);
+
+      if (offsetParam) {
+        const offset = Math.max(0, parseInt(offsetParam, 10) || 0);
+        query += ' OFFSET ?';
+        params.push(offset);
+      }
+    }
 
     const orders = db.prepare(query).all(...params);
     return NextResponse.json(orders);

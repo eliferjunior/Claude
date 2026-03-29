@@ -12,10 +12,12 @@ type DashboardStats = {
 type RecentOrder = {
   id: number;
   customer_name: string;
+  customer_email: string | null;
   order_type: string;
   status: string;
   total: number;
   created_at: string;
+  store_name: string | null;
 };
 
 type RecentReservation = {
@@ -45,11 +47,8 @@ const statusColors: Record<string, string> = {
   cancelled: 'bg-red-600/20 text-red-400',
 };
 
-const orderTypeLabels: Record<string, string> = {
-  delivery: 'Delivery',
-  pickup: 'Retirada',
-  dine_in: 'No local',
-};
+// Used in table column if needed
+// const orderTypeLabels: Record<string, string> = { delivery: 'Delivery', pickup: 'Retirada', dine_in: 'No local' };
 
 function LoadingSkeleton() {
   return (
@@ -89,6 +88,7 @@ export default function DashboardPage() {
   });
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
   const [recentReservations, setRecentReservations] = useState<RecentReservation[]>([]);
+  const [revenueByStore, setRevenueByStore] = useState<{ store_id: number; store_name: string; revenue: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -114,6 +114,7 @@ export default function DashboardPage() {
       });
       setRecentOrders(data.recent_orders || []);
       setRecentReservations(data.recent_reservations || []);
+      setRevenueByStore(data.revenue_by_store || []);
       setLastUpdate(new Date());
     } catch {
       // silently fail
@@ -280,7 +281,7 @@ export default function DashboardPage() {
                   <tr className="border-b border-gray-700 text-left text-gray-400">
                     <th className="pb-3 pr-4">#</th>
                     <th className="pb-3 pr-4">Cliente</th>
-                    <th className="pb-3 pr-4">Tipo</th>
+                    <th className="pb-3 pr-4 hidden lg:table-cell">Loja</th>
                     <th className="pb-3 pr-4">Status</th>
                     <th className="pb-3 text-right">Total</th>
                   </tr>
@@ -294,9 +295,14 @@ export default function DashboardPage() {
                       }`}
                     >
                       <td className="py-3 pr-4 text-gray-300">{order.id}</td>
-                      <td className="py-3 pr-4 text-white">{order.customer_name}</td>
-                      <td className="py-3 pr-4 text-gray-300">
-                        {orderTypeLabels[order.order_type] || order.order_type}
+                      <td className="py-3 pr-4">
+                        <div className="text-white">{order.customer_name}</div>
+                        {order.customer_email && (
+                          <div className="text-xs text-gray-500">{order.customer_email}</div>
+                        )}
+                      </td>
+                      <td className="py-3 pr-4 text-gray-300 hidden lg:table-cell">
+                        {order.store_name || '-'}
                       </td>
                       <td className="py-3 pr-4">
                         <span
@@ -362,6 +368,26 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
+
+      {/* Revenue by store */}
+      {revenueByStore.length > 0 && (
+        <div className="mt-6 rounded-xl bg-gray-800/50 p-6 ring-1 ring-gray-700">
+          <h2 className="mb-4 text-lg font-semibold text-white">Receita por Loja (Hoje)</h2>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {revenueByStore.map((store) => (
+              <div
+                key={store.store_id}
+                className="rounded-xl bg-gray-700/30 border border-gray-700/50 p-4"
+              >
+                <p className="text-sm text-gray-400 truncate">{store.store_name}</p>
+                <p className="text-xl font-bold text-green-400 mt-1">
+                  R$ {Number(store.revenue).toFixed(2)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <p className="mt-6 text-center text-xs text-gray-600">Atualiza automaticamente a cada 30s</p>
     </div>
