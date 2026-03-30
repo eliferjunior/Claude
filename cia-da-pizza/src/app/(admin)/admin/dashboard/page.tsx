@@ -281,24 +281,30 @@ export default function DashboardPage() {
       <div className="mb-8">
         <h2 className="mb-3 text-lg font-semibold text-white">Pedidos por Status (Hoje)</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          {[
-            { key: 'pending', label: 'Pendentes', color: 'yellow' },
-            { key: 'confirmed', label: 'Confirmados', color: 'blue' },
-            { key: 'preparing', label: 'Preparando', color: 'orange' },
-            { key: 'ready', label: 'Prontos', color: 'green' },
-            { key: 'delivered', label: 'Entregues', color: 'gray' },
-            { key: 'cancelled', label: 'Cancelados', color: 'red' },
-          ].map((s) => (
-            <div
-              key={s.key}
-              className={`rounded-xl bg-${s.color}-600/10 border border-${s.color}-600/30 p-4 text-center`}
-            >
-              <p className={`text-3xl font-bold text-${s.color}-400`}>
-                {ordersByStatus[s.key] || 0}
-              </p>
-              <p className={`text-xs font-medium text-${s.color}-400 mt-1`}>{s.label}</p>
-            </div>
-          ))}
+          <div className="rounded-xl bg-yellow-600/10 border border-yellow-600/30 p-4 text-center">
+            <p className="text-3xl font-bold text-yellow-400">{ordersByStatus['pending'] || 0}</p>
+            <p className="text-xs font-medium text-yellow-400 mt-1">Pendentes</p>
+          </div>
+          <div className="rounded-xl bg-blue-600/10 border border-blue-600/30 p-4 text-center">
+            <p className="text-3xl font-bold text-blue-400">{ordersByStatus['confirmed'] || 0}</p>
+            <p className="text-xs font-medium text-blue-400 mt-1">Confirmados</p>
+          </div>
+          <div className="rounded-xl bg-orange-600/10 border border-orange-600/30 p-4 text-center">
+            <p className="text-3xl font-bold text-orange-400">{ordersByStatus['preparing'] || 0}</p>
+            <p className="text-xs font-medium text-orange-400 mt-1">Preparando</p>
+          </div>
+          <div className="rounded-xl bg-green-600/10 border border-green-600/30 p-4 text-center">
+            <p className="text-3xl font-bold text-green-400">{ordersByStatus['ready'] || 0}</p>
+            <p className="text-xs font-medium text-green-400 mt-1">Prontos</p>
+          </div>
+          <div className="rounded-xl bg-gray-600/10 border border-gray-600/30 p-4 text-center">
+            <p className="text-3xl font-bold text-gray-400">{ordersByStatus['delivered'] || 0}</p>
+            <p className="text-xs font-medium text-gray-400 mt-1">Entregues</p>
+          </div>
+          <div className="rounded-xl bg-red-600/10 border border-red-600/30 p-4 text-center">
+            <p className="text-3xl font-bold text-red-400">{ordersByStatus['cancelled'] || 0}</p>
+            <p className="text-xs font-medium text-red-400 mt-1">Cancelados</p>
+          </div>
         </div>
       </div>
 
