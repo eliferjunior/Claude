@@ -2,7 +2,10 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
 
-const DB_PATH = path.join(process.cwd(), 'data', 'pizza.db');
+const IS_VERCEL = process.env.VERCEL === '1';
+const DB_PATH = IS_VERCEL
+  ? path.join('/tmp', 'pizza.db')
+  : path.join(process.cwd(), 'data', 'pizza.db');
 
 // Ensure data directory exists
 const dataDir = path.dirname(DB_PATH);

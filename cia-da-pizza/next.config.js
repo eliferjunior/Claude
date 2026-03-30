@@ -4,6 +4,7 @@ const nextConfig = {
   images: {
     formats: ['image/avif', 'image/webp'],
   },
+  serverExternalPackages: ['better-sqlite3'],
   allowedDevOrigins: ['http://76.13.172.53:3000'],
   async headers() {
     return [
