@@ -112,6 +112,21 @@ function createTables(): void {
       FOREIGN KEY (store_id) REFERENCES stores(id)
     );
 
+    CREATE TABLE IF NOT EXISTS promotions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      description TEXT,
+      image_url TEXT,
+      discount_percent INTEGER,
+      discount_value REAL,
+      promo_code TEXT,
+      start_date TEXT NOT NULL,
+      end_date TEXT NOT NULL,
+      active INTEGER NOT NULL DEFAULT 1,
+      banner_color TEXT DEFAULT '#dc2626',
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
     CREATE TABLE IF NOT EXISTS admin_users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT NOT NULL UNIQUE,
@@ -151,6 +166,20 @@ function migrateDatabase(): void {
   // Add customer_email to orders if not exists
   try {
     db.exec(`ALTER TABLE orders ADD COLUMN customer_email TEXT`);
+  } catch {
+    // Column already exists
+  }
+
+  // Add max_reservations to stores
+  try {
+    db.exec(`ALTER TABLE stores ADD COLUMN max_reservations INTEGER DEFAULT 0`);
+  } catch {
+    // Column already exists
+  }
+
+  // Add max_reservation_guests to stores
+  try {
+    db.exec(`ALTER TABLE stores ADD COLUMN max_reservation_guests INTEGER DEFAULT 20`);
   } catch {
     // Column already exists
   }

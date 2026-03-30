@@ -103,10 +103,59 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify store exists
-    const store = db.prepare('SELECT id FROM stores WHERE id = ? AND active = 1').get(storeId);
+    // Verify store exists and check settings
+    const store = db
+      .prepare(
+        'SELECT id, allows_reservation, max_reservations, max_reservation_guests FROM stores WHERE id = ? AND active = 1',
+      )
+      .get(storeId) as
+      | {
+          id: number;
+          allows_reservation: number;
+          max_reservations: number;
+          max_reservation_guests: number;
+        }
+      | undefined;
+
     if (!store) {
       return NextResponse.json({ error: 'Loja nao encontrada.' }, { status: 404 });
+    }
+
+    // Check if store accepts reservations
+    if (!store.allows_reservation) {
+      return NextResponse.json(
+        { error: 'Esta loja nao aceita reservas no momento.' },
+        { status: 400 },
+      );
+    }
+
+    // Check guest limit per store
+    if (store.max_reservation_guests && guests > store.max_reservation_guests) {
+      return NextResponse.json(
+        {
+          error: `O maximo de pessoas por reserva nesta loja e ${store.max_reservation_guests}. Para grupos maiores, entre em contato com a loja.`,
+        },
+        { status: 400 },
+      );
+    }
+
+    // Check daily reservation limit
+    if (store.max_reservations && store.max_reservations > 0) {
+      const existingCount = db
+        .prepare(
+          "SELECT COUNT(*) AS count FROM reservations WHERE store_id = ? AND date = ? AND status != 'cancelled'",
+        )
+        .get(storeId, date) as { count: number };
+
+      if (existingCount.count >= store.max_reservations) {
+        return NextResponse.json(
+          {
+            error:
+              'Esta loja ja atingiu o limite de reservas para esta data. Tente outro dia ou entre em contato diretamente.',
+          },
+          { status: 400 },
+        );
+      }
     }
 
     const result = db

@@ -91,6 +91,8 @@ export default function DashboardPage() {
   const [revenueByStore, setRevenueByStore] = useState<
     { store_id: number; store_name: string; revenue: number }[]
   >([]);
+  const [ordersByStatus, setOrdersByStatus] = useState<Record<string, number>>({});
+  const [reservationsByStatus, setReservationsByStatus] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -117,6 +119,8 @@ export default function DashboardPage() {
       setRecentOrders(data.recent_orders || []);
       setRecentReservations(data.recent_reservations || []);
       setRevenueByStore(data.revenue_by_store || []);
+      setOrdersByStatus(data.orders_by_status || {});
+      setReservationsByStatus(data.reservations_by_status || {});
       setLastUpdate(new Date());
     } catch {
       // Network errors on auto-refresh are expected, only show on manual refresh
@@ -271,6 +275,56 @@ export default function DashboardPage() {
             <p className="mt-2 text-xl font-bold text-white sm:text-3xl">{card.value}</p>
           </div>
         ))}
+      </div>
+
+      {/* Order Status Quadrants */}
+      <div className="mb-8">
+        <h2 className="mb-3 text-lg font-semibold text-white">Pedidos por Status (Hoje)</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          {[
+            { key: 'pending', label: 'Pendentes', color: 'yellow' },
+            { key: 'confirmed', label: 'Confirmados', color: 'blue' },
+            { key: 'preparing', label: 'Preparando', color: 'orange' },
+            { key: 'ready', label: 'Prontos', color: 'green' },
+            { key: 'delivered', label: 'Entregues', color: 'gray' },
+            { key: 'cancelled', label: 'Cancelados', color: 'red' },
+          ].map((s) => (
+            <div
+              key={s.key}
+              className={`rounded-xl bg-${s.color}-600/10 border border-${s.color}-600/30 p-4 text-center`}
+            >
+              <p className={`text-3xl font-bold text-${s.color}-400`}>
+                {ordersByStatus[s.key] || 0}
+              </p>
+              <p className={`text-xs font-medium text-${s.color}-400 mt-1`}>{s.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Reservation Status */}
+      <div className="mb-8">
+        <h2 className="mb-3 text-lg font-semibold text-white">Reservas por Status (Hoje)</h2>
+        <div className="grid grid-cols-3 gap-3">
+          <div className="rounded-xl bg-yellow-600/10 border border-yellow-600/30 p-4 text-center">
+            <p className="text-3xl font-bold text-yellow-400">
+              {reservationsByStatus['pending'] || 0}
+            </p>
+            <p className="text-xs font-medium text-yellow-400 mt-1">Pendentes</p>
+          </div>
+          <div className="rounded-xl bg-green-600/10 border border-green-600/30 p-4 text-center">
+            <p className="text-3xl font-bold text-green-400">
+              {reservationsByStatus['confirmed'] || 0}
+            </p>
+            <p className="text-xs font-medium text-green-400 mt-1">Confirmadas</p>
+          </div>
+          <div className="rounded-xl bg-red-600/10 border border-red-600/30 p-4 text-center">
+            <p className="text-3xl font-bold text-red-400">
+              {reservationsByStatus['cancelled'] || 0}
+            </p>
+            <p className="text-xs font-medium text-red-400 mt-1">Canceladas</p>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">

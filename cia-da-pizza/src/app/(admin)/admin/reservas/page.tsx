@@ -74,6 +74,24 @@ export default function ReservasPage() {
         setReservations((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
         const label = statusLabels[status] || status;
         setMessage({ type: 'success', text: `Reserva marcada como "${label}"!` });
+
+        // WhatsApp notification
+        const reservation = reservations.find((r) => r.id === id);
+        if (reservation?.customer_phone) {
+          const phone = reservation.customer_phone.replace(/\D/g, '');
+          const dateFormatted = new Date(reservation.date + 'T00:00:00').toLocaleDateString(
+            'pt-BR',
+          );
+          let whatsMsg = '';
+          if (status === 'confirmed') {
+            whatsMsg = `Ola ${reservation.customer_name}! Sua reserva na Cia da Pizza para ${dateFormatted} as ${reservation.time} para ${reservation.party_size} pessoa(s) foi *CONFIRMADA*! Te esperamos!`;
+          } else if (status === 'cancelled') {
+            whatsMsg = `Ola ${reservation.customer_name}, infelizmente sua reserva para ${dateFormatted} as ${reservation.time} nao pode ser confirmada. Entre em contato para mais detalhes.`;
+          }
+          if (whatsMsg && confirm(`Notificar ${reservation.customer_name} via WhatsApp?`)) {
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(whatsMsg)}`, '_blank');
+          }
+        }
       } else {
         setMessage({ type: 'error', text: 'Erro ao atualizar reserva.' });
       }

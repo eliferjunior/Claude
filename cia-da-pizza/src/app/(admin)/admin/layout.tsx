@@ -10,6 +10,7 @@ const menuItems = [
   { label: 'Produtos', href: '/admin/produtos', icon: '🍕' },
   { label: 'Categorias', href: '/admin/categorias', icon: '📁' },
   { label: 'Reservas', href: '/admin/reservas', icon: '📅' },
+  { label: 'Promocoes', href: '/admin/promocoes', icon: '🎯' },
   { label: 'Lojas', href: '/admin/lojas', icon: '🏪' },
   { label: 'Usuários', href: '/admin/usuarios', icon: '👤' },
   { label: 'Configurações', href: '/admin/configuracoes', icon: '⚙️' },

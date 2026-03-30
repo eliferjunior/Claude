@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import WhatsAppButton from '@/components/WhatsAppButton';
+import PromoBanner from '@/components/PromoBanner';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -16,6 +17,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950 text-white">
+      {/* Promotion Banner */}
+      <PromoBanner />
       {/* Navbar */}
       <header className="bg-gray-900/80 backdrop-blur-xl border-b border-gray-800/50 sticky top-0 z-50">
         <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

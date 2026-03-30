@@ -68,6 +68,8 @@ export default function StoreReservasPage() {
     }
   }
 
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
   async function updateStatus(reservationId: number, newStatus: string) {
     try {
       const res = await fetch(`/api/reservations/${reservationId}`, {
@@ -79,9 +81,30 @@ export default function StoreReservasPage() {
         setReservations((prev) =>
           prev.map((r) => (r.id === reservationId ? { ...r, status: newStatus } : r)),
         );
+
+        const statusMsg = newStatus === 'confirmed' ? 'confirmada' : 'cancelada';
+        setMessage({ type: 'success', text: `Reserva #${reservationId} ${statusMsg}!` });
+
+        // WhatsApp notification to customer
+        const reservation = reservations.find((r) => r.id === reservationId);
+        if (reservation?.customer_phone) {
+          const phone = reservation.customer_phone.replace(/\D/g, '');
+          let whatsMsg = '';
+          if (newStatus === 'confirmed') {
+            whatsMsg = `Ola ${reservation.customer_name}! Sua reserva na Cia da Pizza para o dia ${formatDate(reservation.date)} as ${reservation.time} para ${reservation.guests} pessoa(s) foi *CONFIRMADA*! Te esperamos! 🍕`;
+          } else if (newStatus === 'cancelled') {
+            whatsMsg = `Ola ${reservation.customer_name}, infelizmente sua reserva para o dia ${formatDate(reservation.date)} as ${reservation.time} nao pode ser confirmada. Entre em contato conosco para mais detalhes. Obrigado pela compreensao!`;
+          }
+          if (whatsMsg && confirm(`Deseja notificar ${reservation.customer_name} via WhatsApp?`)) {
+            const url = `https://wa.me/${phone}?text=${encodeURIComponent(whatsMsg)}`;
+            window.open(url, '_blank');
+          }
+        }
+      } else {
+        setMessage({ type: 'error', text: 'Erro ao atualizar reserva.' });
       }
-    } catch (err) {
-      console.error('Erro ao atualizar reserva:', err);
+    } catch {
+      setMessage({ type: 'error', text: 'Erro de conexao.' });
     }
   }
 
@@ -93,6 +116,28 @@ export default function StoreReservasPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold text-white mb-6">Reservas</h1>
+
+      {message && (
+        <div
+          className={`mb-4 flex items-center justify-between rounded-lg px-4 py-3 text-sm ${
+            message.type === 'success'
+              ? 'bg-green-600/20 text-green-400'
+              : 'bg-red-600/20 text-red-400'
+          }`}
+        >
+          <span>{message.text}</span>
+          <button onClick={() => setMessage(null)} className="ml-3 hover:opacity-70">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+      )}
 
       {loading ? (
         <div className="text-gray-400 text-center py-12">Carregando...</div>

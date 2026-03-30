@@ -45,6 +45,7 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
     { href: '/loja', label: 'Painel' },
     { href: '/loja/pedidos', label: 'Pedidos' },
     { href: '/loja/reservas', label: 'Reservas' },
+    { href: '/loja/configuracoes', label: 'Config' },
   ];
 
   return (

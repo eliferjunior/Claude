@@ -43,6 +43,36 @@ export async function GET(request: NextRequest) {
       .prepare('SELECT * FROM reservations ORDER BY created_at DESC LIMIT 5')
       .all();
 
+    // Order status breakdown for today
+    const ordersByStatus = db
+      .prepare(
+        `SELECT status, COUNT(*) AS count
+         FROM orders
+         WHERE date(created_at) = ?
+         GROUP BY status`,
+      )
+      .all(brDate) as { status: string; count: number }[];
+
+    const statusBreakdown: Record<string, number> = {};
+    for (const row of ordersByStatus) {
+      statusBreakdown[row.status] = row.count;
+    }
+
+    // Reservation status breakdown for today
+    const reservationsByStatus = db
+      .prepare(
+        `SELECT status, COUNT(*) AS count
+         FROM reservations
+         WHERE date = ?
+         GROUP BY status`,
+      )
+      .all(brDate) as { status: string; count: number }[];
+
+    const reservationBreakdown: Record<string, number> = {};
+    for (const row of reservationsByStatus) {
+      reservationBreakdown[row.status] = row.count;
+    }
+
     const revenueByStore = db
       .prepare(
         `SELECT s.id AS store_id, s.name AS store_name, COALESCE(SUM(o.total), 0) AS revenue
@@ -64,6 +94,8 @@ export async function GET(request: NextRequest) {
       recent_orders: recentOrders,
       recent_reservations: recentReservations,
       revenue_by_store: revenueByStore,
+      orders_by_status: statusBreakdown,
+      reservations_by_status: reservationBreakdown,
     });
   } catch (error) {
     console.error('Error fetching dashboard stats:', error);
