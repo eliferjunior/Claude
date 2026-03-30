@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
 import bcrypt from 'bcryptjs';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 type StoreRow = {
   id: number;
@@ -11,6 +12,18 @@ type StoreRow = {
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    const rateCheck = checkRateLimit(`store-login:${ip}`);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: 'Muitas tentativas. Tente novamente em alguns minutos.' },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(Math.ceil(rateCheck.retryAfterMs / 1000)) },
+        },
+      );
+    }
+
     const { username, password } = await request.json();
 
     if (!username || !password) {
@@ -55,7 +68,6 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('Erro na autenticacao da loja:', error);
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }
 }

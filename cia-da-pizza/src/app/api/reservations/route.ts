@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
 import { requireAnyAuth } from '@/lib/auth-helpers';
-import { sanitizeString } from '@/lib/auth';
+import { sanitizeString, validateEmail, validatePhone } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
@@ -43,7 +43,6 @@ export async function GET(request: NextRequest) {
     const reservations = db.prepare(query).all(...params);
     return NextResponse.json(reservations);
   } catch (error) {
-    console.error('Error fetching reservations:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -62,6 +61,13 @@ export async function POST(request: NextRequest) {
       ? Math.max(1, Math.min(Math.floor(body.guests), 100))
       : 1;
     const notes = sanitizeString(body.notes, 1000);
+
+    if (customerEmail && !validateEmail(customerEmail)) {
+      return NextResponse.json({ error: 'E-mail invalido.' }, { status: 400 });
+    }
+    if (customerPhone && !validatePhone(customerPhone)) {
+      return NextResponse.json({ error: 'Telefone invalido.' }, { status: 400 });
+    }
 
     if (!storeId || !customerName || !date || !time) {
       return NextResponse.json(
@@ -171,7 +177,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(reservation, { status: 201 });
   } catch (error) {
-    console.error('Error creating reservation:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

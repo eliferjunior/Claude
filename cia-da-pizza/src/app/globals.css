@@ -296,3 +296,24 @@ select:focus-visible {
 .animate-bounce-slow {
   animation: bounceSlow 2s ease-in-out infinite;
 }
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-slide-up,
+  .animate-pulse-glow,
+  .animate-float,
+  .animate-page-enter,
+  .animate-gradient-bg,
+  .animate-pizza-spin,
+  .animate-pizza-pulse,
+  .animate-pulse-dot,
+  .animate-bounce-slow {
+    animation: none !important;
+  }
+
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

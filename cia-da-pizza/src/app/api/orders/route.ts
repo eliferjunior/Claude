@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
 import { requireAnyAuth } from '@/lib/auth-helpers';
-import { sanitizeString } from '@/lib/auth';
+import { sanitizeString, validateEmail, validatePhone } from '@/lib/auth';
 
 const VALID_ORDER_TYPES = ['delivery', 'pickup', 'dine_in'];
 
@@ -69,7 +69,6 @@ export async function GET(request: NextRequest) {
     const orders = db.prepare(query).all(...params);
     return NextResponse.json(orders);
   } catch (error) {
-    console.error('Error fetching orders:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -84,6 +83,13 @@ export async function POST(request: NextRequest) {
     const customerAddress = sanitizeString(body.customer_address, 500);
     const customerEmail = sanitizeString(body.customer_email, 200);
     const notes = sanitizeString(body.notes, 1000);
+
+    if (customerEmail && !validateEmail(customerEmail)) {
+      return NextResponse.json({ error: 'E-mail invalido.' }, { status: 400 });
+    }
+    if (customerPhone && !validatePhone(customerPhone)) {
+      return NextResponse.json({ error: 'Telefone invalido.' }, { status: 400 });
+    }
 
     if (!store_id || !customerName || !order_type || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
@@ -225,7 +231,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ id: orderId, total }, { status: 201 });
   } catch (error) {
-    console.error('Error creating order:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

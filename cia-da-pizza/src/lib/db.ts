@@ -152,6 +152,10 @@ function createTables(): void {
     CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
     CREATE INDEX IF NOT EXISTS idx_reservations_store ON reservations(store_id);
     CREATE INDEX IF NOT EXISTS idx_reservations_date ON reservations(date);
+    CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
+    CREATE INDEX IF NOT EXISTS idx_orders_store_status ON orders(store_id, status);
+    CREATE INDEX IF NOT EXISTS idx_reservations_store_date ON reservations(store_id, date);
+    CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);
   `);
 }
 
@@ -183,6 +187,9 @@ function migrateDatabase(): void {
   } catch {
     // Column already exists
   }
+
+  // Cleanup expired sessions
+  db.prepare("DELETE FROM sessions WHERE expires_at < datetime('now')").run();
 }
 
 function initializeDatabase(): void {

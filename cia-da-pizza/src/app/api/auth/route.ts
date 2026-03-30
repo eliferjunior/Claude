@@ -1,9 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
 import bcrypt from 'bcryptjs';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    const rateCheck = checkRateLimit(`admin-login:${ip}`);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: 'Muitas tentativas. Tente novamente em alguns minutos.' },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(Math.ceil(rateCheck.retryAfterMs / 1000)) },
+        },
+      );
+    }
+
     const { username, password } = await request.json();
 
     if (!username || !password) {
@@ -48,7 +61,6 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('Auth error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -83,7 +95,6 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Auth check error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -108,7 +119,6 @@ export async function DELETE(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('Logout error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

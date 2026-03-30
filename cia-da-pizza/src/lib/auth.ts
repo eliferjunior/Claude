@@ -233,6 +233,18 @@ export async function requireAdminAuth(): Promise<
 // Need NextResponse for requireAdminAuth
 import { NextResponse } from 'next/server';
 
+export function validateEmail(email: string | null): boolean {
+  if (!email) return true; // email is optional
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+export function validatePhone(phone: string | null): boolean {
+  if (!phone) return true; // phone is optional
+  // Remove non-digit chars, check length (8-15 digits)
+  const digits = phone.replace(/\D/g, '');
+  return digits.length >= 8 && digits.length <= 15;
+}
+
 /**
  * Sanitize a string input: trim and enforce max length.
  */

@@ -22,7 +22,6 @@ export async function GET(request: NextRequest) {
     const promotions = db.prepare(query).all(...params);
     return NextResponse.json(promotions);
   } catch (error) {
-    console.error('Error fetching promotions:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -37,6 +36,11 @@ export async function POST(request: NextRequest) {
     const title = sanitizeString(body.title, 200);
     if (!title) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 });
+    }
+
+    const bannerColor = sanitizeString(body.banner_color, 20) || '#dc2626';
+    if (!/^#[0-9a-fA-F]{3,8}$/.test(bannerColor)) {
+      return NextResponse.json({ error: 'Invalid banner color format' }, { status: 400 });
     }
 
     const result = db
@@ -54,7 +58,7 @@ export async function POST(request: NextRequest) {
         body.start_date || new Date().toISOString().split('T')[0],
         body.end_date || '2099-12-31',
         body.active !== undefined ? (body.active ? 1 : 0) : 1,
-        sanitizeString(body.banner_color, 20) || '#dc2626',
+        bannerColor,
       );
 
     const promotion = db
@@ -62,7 +66,6 @@ export async function POST(request: NextRequest) {
       .get(result.lastInsertRowid);
     return NextResponse.json(promotion, { status: 201 });
   } catch (error) {
-    console.error('Error creating promotion:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

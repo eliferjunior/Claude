@@ -42,7 +42,7 @@ export default function PromoBanner() {
   const promo = promotions[currentIndex];
 
   return (
-    <div className="relative overflow-hidden" style={{ backgroundColor: promo.banner_color }}>
+    <div role="region" aria-label="Promocoes ativas" className="relative overflow-hidden" style={{ backgroundColor: promo.banner_color }}>
       <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-3">
           <div className="flex flex-1 items-center justify-center gap-3 text-center">
@@ -78,6 +78,7 @@ export default function PromoBanner() {
                   <button
                     key={idx}
                     onClick={() => setCurrentIndex(idx)}
+                    aria-label={`Promocao ${idx + 1} de ${promotions.length}`}
                     className={`h-1.5 w-1.5 rounded-full transition-colors ${
                       idx === currentIndex ? 'bg-white' : 'bg-white/40'
                     }`}
@@ -87,6 +88,7 @@ export default function PromoBanner() {
             )}
             <button
               onClick={() => setDismissed(true)}
+              aria-label="Fechar banner de promocao"
               className="shrink-0 rounded p-1 text-white/70 hover:text-white hover:bg-white/10"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

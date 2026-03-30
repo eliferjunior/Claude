@@ -20,6 +20,13 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     const body = await request.json();
 
+    if (body.banner_color !== undefined) {
+      const bannerColor = sanitizeString(body.banner_color, 20);
+      if (bannerColor && !/^#[0-9a-fA-F]{3,8}$/.test(bannerColor)) {
+        return NextResponse.json({ error: 'Invalid banner color format' }, { status: 400 });
+      }
+    }
+
     db.prepare(
       `UPDATE promotions SET
         title = COALESCE(?, title),

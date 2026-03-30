@@ -157,7 +157,7 @@ export default function ReservaPage() {
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => null);
-        throw new Error(errorData?.message || 'Erro ao realizar reserva.');
+        throw new Error(errorData?.error || 'Erro ao realizar reserva.');
       }
 
       const storeName = stores.find((s) => s.id === Number(form.store_id))?.name || '';

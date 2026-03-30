@@ -154,6 +154,7 @@ export default function StoreDashboardPage() {
             <button
               onClick={() => fetchData(storeId, true)}
               disabled={refreshing}
+              aria-label="Atualizar dashboard da loja"
               className="inline-flex items-center gap-1.5 rounded-lg bg-gray-800 px-3 py-1.5 text-sm text-gray-300 transition-colors hover:bg-gray-700 hover:text-white disabled:opacity-50"
             >
               <svg

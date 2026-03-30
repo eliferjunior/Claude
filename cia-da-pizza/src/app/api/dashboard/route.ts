@@ -98,7 +98,6 @@ export async function GET(request: NextRequest) {
       reservations_by_status: reservationBreakdown,
     });
   } catch (error) {
-    console.error('Error fetching dashboard stats:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

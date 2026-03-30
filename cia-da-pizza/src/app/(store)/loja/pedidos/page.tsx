@@ -167,6 +167,7 @@ export default function StorePedidosPage() {
         <button
           onClick={() => fetchOrders(storeId, true)}
           disabled={refreshing}
+          aria-label="Atualizar lista de pedidos"
           className="inline-flex items-center gap-1.5 rounded-lg bg-gray-800 px-3 py-1.5 text-sm text-gray-300 transition-colors hover:bg-gray-700 hover:text-white disabled:opacity-50"
         >
           <svg className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
