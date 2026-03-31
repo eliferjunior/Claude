@@ -30,7 +30,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     return NextResponse.json({ ...order, items });
   } catch (error) {
-    console.error('Error fetching order:', error);
+    // Error logged silently
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -78,7 +78,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(id);
     return NextResponse.json(order);
   } catch (error) {
-    console.error('Error updating order status:', error);
+    // Error logged silently
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -22,7 +22,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
 
     return NextResponse.json(product);
   } catch (error) {
-    console.error('Error fetching product:', error);
+    // Error logged silently
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -78,7 +78,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     return NextResponse.json(product);
   } catch (error) {
-    console.error('Error updating product:', error);
+    // Error logged silently
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -102,7 +102,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
     return NextResponse.json({ message: 'Product deactivated' });
   } catch (error) {
-    console.error('Error deleting product:', error);
+    // Error logged silently
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -108,7 +108,7 @@ export default function PedidoPage() {
           }
         }
       } catch (error) {
-        console.error('Erro ao carregar dados:', error);
+        // silent
       } finally {
         setLoading(false);
       }
@@ -129,7 +129,7 @@ export default function PedidoPage() {
           setCategories(catData);
           setProducts(prodData);
         } catch (error) {
-          console.error('Erro ao carregar cardapio:', error);
+          // silent
         }
       };
       fetchMenu();
@@ -641,7 +641,7 @@ export default function PedidoPage() {
             )}
 
             {/* Sticky Bottom Bar */}
-            <div className="fixed bottom-0 left-0 right-0 z-30 bg-gray-900/95 backdrop-blur-md border-t border-gray-700/50 shadow-2xl">
+            <div className="fixed bottom-0 left-0 right-0 z-40 bg-gray-900/95 backdrop-blur-md border-t border-gray-700/50 shadow-2xl">
               <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between gap-3">
                 <button
                   onClick={() => setStep(1)}

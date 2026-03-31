@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
+type OrderRow = {
+  id: number;
+  store_name: string;
+  [key: string]: unknown;
+};
+
 // Public endpoint for customers to track their orders by ID or phone
 export async function GET(request: NextRequest) {
   try {
@@ -15,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     // Try to find by order ID first
     const orderId = parseInt(sanitized, 10);
-    let order;
+    let order: OrderRow | undefined;
 
     if (!isNaN(orderId) && orderId > 0) {
       order = db
@@ -27,7 +35,7 @@ export async function GET(request: NextRequest) {
         WHERE o.id = ?
       `,
         )
-        .get(orderId);
+        .get(orderId) as OrderRow | undefined;
     }
 
     // If not found by ID, search by phone
@@ -43,7 +51,7 @@ export async function GET(request: NextRequest) {
         LIMIT 1
       `,
         )
-        .get(`%${sanitized}%`);
+        .get(`%${sanitized}%`) as OrderRow | undefined;
     }
 
     if (!order) {
@@ -51,11 +59,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Get order items
-    const items = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all((order as any).id);
+    const items = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(order.id);
 
     return NextResponse.json({ ...order, items });
-  } catch (error) {
-    console.error('Error tracking order:', error);
+  } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

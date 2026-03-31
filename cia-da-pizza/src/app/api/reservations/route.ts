@@ -3,6 +3,8 @@ import db from '@/lib/db';
 import { requireAnyAuth } from '@/lib/auth-helpers';
 import { sanitizeString, validateEmail, validatePhone } from '@/lib/auth';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const auth = requireAnyAuth(request);

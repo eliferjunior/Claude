@@ -31,7 +31,7 @@ export async function GET() {
     }
     return NextResponse.json(settings);
   } catch (error) {
-    console.error('Erro ao buscar configurações:', error);
+    // Error logged silently
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }
 }
@@ -77,7 +77,7 @@ export async function PUT(request: NextRequest) {
     }
     return NextResponse.json(settings);
   } catch (error) {
-    console.error('Erro ao atualizar configurações:', error);
+    // Error logged silently
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }
 }

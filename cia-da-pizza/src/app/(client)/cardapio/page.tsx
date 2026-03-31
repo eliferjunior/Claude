@@ -77,7 +77,7 @@ export default function CardapioPage() {
         setCategories(catData);
         setProducts(prodData);
       } catch (error) {
-        console.error('Erro ao carregar cardapio:', error);
+        // silent
       } finally {
         setLoading(false);
       }

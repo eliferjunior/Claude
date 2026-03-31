@@ -73,19 +73,23 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const token = request.cookies.get('store_session')?.value;
+  try {
+    const token = request.cookies.get('store_session')?.value;
 
-  if (token) {
-    db.prepare('DELETE FROM sessions WHERE token = ?').run(token);
+    if (token) {
+      db.prepare('DELETE FROM sessions WHERE token = ?').run(token);
+    }
+
+    const response = NextResponse.json({ success: true });
+    response.cookies.set('store_session', '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 0,
+    });
+    return response;
+  } catch {
+    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }
-
-  const response = NextResponse.json({ success: true });
-  response.cookies.set('store_session', '', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 0,
-  });
-  return response;
 }

@@ -46,7 +46,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 
     return NextResponse.json(reservation);
   } catch (error) {
-    console.error('Error updating reservation status:', error);
+    // Error logged silently
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

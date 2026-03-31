@@ -79,7 +79,12 @@ export default function ConfiguracoesPage() {
       const res = await fetch('/api/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings),
+        body: JSON.stringify(
+          Object.entries(settings).map(([key, value]) => ({
+            key,
+            value: String(value),
+          })),
+        ),
       });
       if (res.ok) {
         setMessage({ type: 'success', text: 'Configurações salvas com sucesso!' });

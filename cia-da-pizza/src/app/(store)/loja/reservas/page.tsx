@@ -62,7 +62,7 @@ export default function StoreReservasPage() {
         setReservations(data);
       }
     } catch (err) {
-      console.error('Erro ao buscar reservas:', err);
+      // silent
     } finally {
       setLoading(false);
     }

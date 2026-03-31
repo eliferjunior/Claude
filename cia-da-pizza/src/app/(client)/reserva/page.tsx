@@ -74,7 +74,7 @@ export default function ReservaPage() {
         const data: Store[] = await res.json();
         setStores(data.filter((s) => s.allows_reservation === 1));
       } catch (error) {
-        console.error('Erro ao carregar lojas:', error);
+        // silent
       } finally {
         setLoading(false);
       }

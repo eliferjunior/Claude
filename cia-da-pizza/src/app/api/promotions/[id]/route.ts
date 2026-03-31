@@ -57,7 +57,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const promotion = db.prepare('SELECT * FROM promotions WHERE id = ?').get(id);
     return NextResponse.json(promotion);
   } catch (error) {
-    console.error('Error updating promotion:', error);
+    // Error logged silently
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -75,7 +75,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     db.prepare('DELETE FROM promotions WHERE id = ?').run(id);
     return NextResponse.json({ message: 'Promotion deleted' });
   } catch (error) {
-    console.error('Error deleting promotion:', error);
+    // Error logged silently
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

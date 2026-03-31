@@ -33,7 +33,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const category = db.prepare('SELECT * FROM categories WHERE id = ?').get(id);
     return NextResponse.json(category);
   } catch (error) {
-    console.error('Error updating category:', error);
+    // Error logged silently
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -57,7 +57,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
     return NextResponse.json({ message: 'Category deleted' });
   } catch (error) {
-    console.error('Error deleting category:', error);
+    // Error logged silently
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -3,6 +3,8 @@ import db from '@/lib/db';
 import { requireAdminAuth } from '@/lib/auth-helpers';
 import { sanitizeString } from '@/lib/auth';
 
+export const dynamic = 'force-dynamic';
+
 const STORE_SAFE_COLUMNS = `id, name, address, phone, whatsapp, opening_hours, closing_hours,
   active, is_delivery, lat, lng, allows_delivery, allows_pickup, allows_reservation,
   allows_dine_in, whatsapp_number, whatsapp_message, login_username`;
@@ -25,7 +27,7 @@ export async function GET(request: NextRequest) {
     const stores = db.prepare(query).all(...params);
     return NextResponse.json(stores);
   } catch (error) {
-    console.error('Error fetching stores:', error);
+    // Error logged silently
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -71,7 +73,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(store, { status: 201 });
   } catch (error) {
-    console.error('Error creating store:', error);
+    // Error logged silently
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

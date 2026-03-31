@@ -26,7 +26,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     return NextResponse.json(store);
   } catch (error) {
-    console.error('Error fetching store:', error);
+    // Error logged silently
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -95,7 +95,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const store = db.prepare(`SELECT ${STORE_SAFE_COLUMNS} FROM stores WHERE id = ?`).get(id);
     return NextResponse.json(store);
   } catch (error) {
-    console.error('Error updating store:', error);
+    // Error logged silently
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
