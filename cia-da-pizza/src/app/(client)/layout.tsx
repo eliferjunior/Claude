@@ -252,23 +252,28 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
               &copy; {new Date().getFullYear()} Cia da Pizza - Franca/SP. Todos os direitos
               reservados.
             </p>
-            {/* Area restrita - links discretos */}
+            {/* Area restrita */}
             <div className="mt-6 pt-4 border-t border-gray-800/30">
-              <p className="text-[10px] text-gray-700 mb-2 uppercase tracking-widest">
+              <p className="text-xs text-gray-500 mb-3 uppercase tracking-widest">
                 Area Restrita
               </p>
               <div className="flex items-center justify-center gap-4">
                 <Link
                   href="/admin/login"
-                  className="text-[11px] text-gray-700 hover:text-gray-500 transition-colors duration-300 min-h-0"
+                  className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-red-400 transition-colors duration-300 bg-gray-800/50 hover:bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-800 hover:border-gray-700"
                 >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
                   Administrativo
                 </Link>
-                <span className="text-gray-800 text-[10px]">|</span>
                 <Link
                   href="/loja/login"
-                  className="text-[11px] text-gray-700 hover:text-gray-500 transition-colors duration-300 min-h-0"
+                  className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-red-400 transition-colors duration-300 bg-gray-800/50 hover:bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-800 hover:border-gray-700"
                 >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
                   Acesso Loja
                 </Link>
               </div>

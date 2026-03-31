@@ -7,6 +7,7 @@ type ProductSeed = {
   price_small: number | null;
   price_medium: number | null;
   price_large: number | null;
+  image_url?: string | null;
 };
 
 export function seedDatabase(db: Database.Database): void {
@@ -114,8 +115,8 @@ export function seedDatabase(db: Database.Database): void {
 
     // --- Products ---
     const insertProduct = db.prepare(`
-      INSERT INTO products (category_id, name, description, price_small, price_medium, price_large, active)
-      VALUES (?, ?, ?, ?, ?, ?, 1)
+      INSERT INTO products (category_id, name, description, price_small, price_medium, price_large, image_url, active)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 1)
     `);
 
     // Pizzas Tradicionais
@@ -221,6 +222,7 @@ export function seedDatabase(db: Database.Database): void {
         p.price_small,
         p.price_medium,
         p.price_large,
+        p.image_url || null,
       );
     }
 
@@ -300,6 +302,7 @@ export function seedDatabase(db: Database.Database): void {
         p.price_small,
         p.price_medium,
         p.price_large,
+        p.image_url || null,
       );
     }
 
@@ -364,6 +367,7 @@ export function seedDatabase(db: Database.Database): void {
         p.price_small,
         p.price_medium,
         p.price_large,
+        p.image_url || null,
       );
     }
 
@@ -410,6 +414,7 @@ export function seedDatabase(db: Database.Database): void {
         p.price_small,
         p.price_medium,
         p.price_large,
+        p.image_url || null,
       );
     }
 
@@ -453,6 +458,7 @@ export function seedDatabase(db: Database.Database): void {
         p.price_small,
         p.price_medium,
         p.price_large,
+        p.image_url || null,
       );
     }
 
@@ -503,6 +509,7 @@ export function seedDatabase(db: Database.Database): void {
         p.price_small,
         p.price_medium,
         p.price_large,
+        p.image_url || null,
       );
     }
 
@@ -539,6 +546,7 @@ export function seedDatabase(db: Database.Database): void {
         p.price_small,
         p.price_medium,
         p.price_large,
+        p.image_url || null,
       );
     }
   });

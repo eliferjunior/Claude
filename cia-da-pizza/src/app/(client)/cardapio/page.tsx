@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface Category {
   id: number;
@@ -200,8 +201,23 @@ export default function CardapioPage() {
                 key={product.id}
                 className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl shadow-xl overflow-hidden hover:scale-[1.02] transition-all duration-300 group flex flex-col"
               >
-                {/* Image placeholder with gradient */}
+                {/* Product Image */}
                 <div className="h-44 bg-gradient-to-br from-red-900/30 via-gray-800 to-yellow-900/20 relative">
+                  {product.image_url ? (
+                    <Image
+                      src={product.image_url}
+                      alt={product.name}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-5xl opacity-20">
+                        {getCategoryIcon(product.category_name)}
+                      </span>
+                    </div>
+                  )}
                   <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent" />
                   <div className="absolute top-3 left-3 flex items-center gap-2">
                     <span className="text-xs font-semibold text-red-300 bg-red-500/20 border border-red-500/30 px-2.5 py-1 rounded-lg uppercase tracking-wide">

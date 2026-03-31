@@ -2,7 +2,10 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { generateWhatsAppOrderLink } from '@/lib/notifications';
+import FloatingCart from '@/components/FloatingCart';
+import AddToCartToast, { useCartToast } from '@/components/AddToCartToast';
 
 interface Store {
   id: number;
@@ -67,6 +70,10 @@ export default function PedidoPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedSizes, setSelectedSizes] = useState<Record<number, 'P' | 'M' | 'G'>>({});
   const [quantities, setQuantities] = useState<Record<number, number>>({});
+  const [addedProductId, setAddedProductId] = useState<number | null>(null);
+
+  // Toast
+  const { toasts, showToast } = useCartToast();
 
   // Step 3
   const [customerName, setCustomerName] = useState('');
@@ -138,12 +145,6 @@ export default function PedidoPage() {
     return product.price_large ?? 0;
   }
 
-  function getSizeLabel(size: 'P' | 'M' | 'G'): string {
-    if (size === 'P') return 'Pequena';
-    if (size === 'M') return 'Media';
-    return 'Grande';
-  }
-
   function addToCart(product: Product) {
     const sizes = getAvailableSizes(product);
     if (sizes.length === 0) return;
@@ -174,6 +175,11 @@ export default function PedidoPage() {
     }
 
     setQuantities((prev) => ({ ...prev, [product.id]: 1 }));
+
+    // Visual feedback
+    showToast(product.name);
+    setAddedProductId(product.id);
+    setTimeout(() => setAddedProductId(null), 600);
   }
 
   function removeFromCart(index: number) {
@@ -405,78 +411,125 @@ export default function PedidoPage() {
 
         {/* Step 2 - Monte seu Pedido */}
         {step === 2 && (
-          <div className="flex flex-col-reverse lg:flex-row gap-4 sm:gap-8">
-            {/* Products */}
-            <div className="flex-1">
-              <h2 className="text-xl font-bold text-white mb-6">Monte seu Pedido</h2>
+          <div className="pb-24">
+            {/* Toast notifications */}
+            <AddToCartToast toasts={toasts} />
 
-              {/* Category Tabs */}
-              <div className="mb-6 flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+            {/* Floating Cart */}
+            <FloatingCart
+              items={cart}
+              total={cartTotal}
+              onRemove={removeFromCart}
+              onAdvance={() => setStep(3)}
+              canAdvance={cart.length > 0}
+            />
+
+            <h2 className="text-xl font-bold text-white mb-6">Monte seu Pedido</h2>
+
+            {/* Category Tabs */}
+            <div className="mb-6 flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+              <button
+                onClick={() => setSelectedCategory(null)}
+                className={`shrink-0 rounded-full px-4 sm:px-5 py-2 text-sm font-semibold transition ${
+                  selectedCategory === null
+                    ? 'bg-red-600 text-white'
+                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                }`}
+              >
+                Todos
+              </button>
+              {categories.map((cat) => (
                 <button
-                  onClick={() => setSelectedCategory(null)}
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
                   className={`shrink-0 rounded-full px-4 sm:px-5 py-2 text-sm font-semibold transition ${
-                    selectedCategory === null
+                    selectedCategory === cat.id
                       ? 'bg-red-600 text-white'
                       : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                   }`}
                 >
-                  Todos
+                  {cat.name}
                 </button>
-                {categories.map((cat) => (
-                  <button
-                    key={cat.id}
-                    onClick={() => setSelectedCategory(cat.id)}
-                    className={`shrink-0 rounded-full px-4 sm:px-5 py-2 text-sm font-semibold transition ${
-                      selectedCategory === cat.id
-                        ? 'bg-red-600 text-white'
-                        : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                    }`}
-                  >
-                    {cat.name}
-                  </button>
-                ))}
+              ))}
+            </div>
+
+            {/* Product Cards */}
+            {filteredProducts.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-500 text-lg">Nenhum produto encontrado.</p>
               </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredProducts.map((product) => {
+                  const sizes = getAvailableSizes(product);
+                  if (sizes.length === 0) return null;
+                  const currentSize = selectedSizes[product.id] || sizes[0];
+                  const currentQty = quantities[product.id] || 1;
+                  const currentPrice = getSizePrice(product, currentSize);
+                  const justAdded = addedProductId === product.id;
 
-              {/* Product Cards */}
-              {filteredProducts.length === 0 ? (
-                <div className="text-center py-12">
-                  <p className="text-gray-500 text-lg">Nenhum produto encontrado.</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {filteredProducts.map((product) => {
-                    const sizes = getAvailableSizes(product);
-                    if (sizes.length === 0) return null;
-                    const currentSize = selectedSizes[product.id] || sizes[0];
-                    const currentQty = quantities[product.id] || 1;
-                    const currentPrice = getSizePrice(product, currentSize);
+                  return (
+                    <div
+                      key={product.id}
+                      className={`bg-gray-800 rounded-xl overflow-hidden flex flex-col transition-all duration-300 ${
+                        justAdded ? 'ring-2 ring-green-500 scale-[1.02]' : ''
+                      }`}
+                    >
+                      {/* Product Image */}
+                      <div className="h-36 relative bg-gradient-to-br from-red-900/30 via-gray-800 to-yellow-900/20">
+                        {product.image_url ? (
+                          <Image
+                            src={product.image_url}
+                            alt={product.name}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-5xl opacity-30">
+                              {product.category_name.toLowerCase().includes('pizza') ? '🍕' :
+                               product.category_name.toLowerCase().includes('hamb') ? '🍔' :
+                               product.category_name.toLowerCase().includes('bebida') ? '🥤' :
+                               product.category_name.toLowerCase().includes('sobremesa') ? '🍰' :
+                               product.category_name.toLowerCase().includes('porç') ? '🍟' : '🍽️'}
+                            </span>
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-gray-800 via-transparent to-transparent" />
+                        <span className="absolute top-2 left-2 text-xs font-medium text-red-300 bg-red-500/20 border border-red-500/30 px-2 py-0.5 rounded-lg">
+                          {product.category_name}
+                        </span>
 
-                    return (
-                      <div
-                        key={product.id}
-                        className="bg-gray-800 rounded-xl p-4 sm:p-5 flex flex-col"
-                      >
-                        <div className="mb-1">
-                          <span className="text-xs font-medium text-red-400 uppercase tracking-wide">
-                            {product.category_name}
-                          </span>
-                        </div>
-                        <h3 className="text-lg font-bold text-white mb-1">{product.name}</h3>
+                        {/* Added animation overlay */}
+                        {justAdded && (
+                          <div className="absolute inset-0 bg-green-500/20 flex items-center justify-center">
+                            <div className="bg-green-500 rounded-full p-2">
+                              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="p-4 flex flex-col flex-1">
+                        <h3 className="text-base font-bold text-white mb-0.5">{product.name}</h3>
                         {product.description && (
-                          <p className="text-sm text-gray-400 mb-3 line-clamp-2">
+                          <p className="text-xs text-gray-400 mb-3 line-clamp-2">
                             {product.description}
                           </p>
                         )}
 
                         {/* Size Selector */}
-                        <div className="flex gap-2 mb-3 overflow-x-auto scrollbar-none">
+                        <div className="flex gap-1.5 mb-3 overflow-x-auto scrollbar-none">
                           {sizes.map((size) => (
                             <button
                               key={size}
                               onClick={() =>
                                 setSelectedSizes((prev) => ({ ...prev, [product.id]: size }))
                               }
-                              className={`shrink-0 rounded-lg px-3 py-1.5 text-xs sm:text-sm font-semibold transition ${
+                              className={`shrink-0 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition ${
                                 currentSize === size
                                   ? 'bg-red-600 text-white'
                                   : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
@@ -488,7 +541,7 @@ export default function PedidoPage() {
                         </div>
 
                         {/* Quantity + Add */}
-                        <div className="flex items-center gap-3 mt-auto">
+                        <div className="flex items-center gap-2 mt-auto">
                           <div className="flex items-center bg-gray-700 rounded-lg">
                             <button
                               onClick={() =>
@@ -497,11 +550,11 @@ export default function PedidoPage() {
                                   [product.id]: Math.max(1, (prev[product.id] || 1) - 1),
                                 }))
                               }
-                              className="px-3 py-1.5 text-white font-bold hover:bg-gray-600 rounded-l-lg transition"
+                              className="px-2.5 py-1.5 text-white font-bold hover:bg-gray-600 rounded-l-lg transition text-sm"
                             >
                               -
                             </button>
-                            <span className="px-3 py-1.5 text-white font-semibold min-w-[2rem] text-center">
+                            <span className="px-2.5 py-1.5 text-white font-semibold min-w-[1.75rem] text-center text-sm">
                               {currentQty}
                             </span>
                             <button
@@ -511,102 +564,58 @@ export default function PedidoPage() {
                                   [product.id]: (prev[product.id] || 1) + 1,
                                 }))
                               }
-                              className="px-3 py-1.5 text-white font-bold hover:bg-gray-600 rounded-r-lg transition"
+                              className="px-2.5 py-1.5 text-white font-bold hover:bg-gray-600 rounded-r-lg transition text-sm"
                             >
                               +
                             </button>
                           </div>
                           <button
                             onClick={() => addToCart(product)}
-                            className="flex-1 rounded-lg bg-red-600 py-2 text-sm font-bold text-white hover:bg-red-700 transition"
+                            className="flex-1 rounded-lg bg-red-600 py-2 text-sm font-bold text-white hover:bg-red-700 transition flex items-center justify-center gap-1.5"
                           >
-                            Adicionar ao Carrinho
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                            </svg>
+                            Adicionar
                           </button>
                         </div>
-                        <p className="text-right text-sm text-gray-400 mt-2">
+                        <p className="text-right text-xs text-gray-500 mt-1.5">
                           Subtotal: {formatPrice(currentPrice * currentQty)}
                         </p>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
-              {/* Navigation */}
-              <div className="flex justify-between mt-6 sm:mt-8 gap-3">
+            {/* Sticky Bottom Bar */}
+            <div className="fixed bottom-0 left-0 right-0 z-30 bg-gray-900/95 backdrop-blur-md border-t border-gray-700/50 shadow-2xl">
+              <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between gap-3">
                 <button
                   onClick={() => setStep(1)}
-                  className="rounded-xl bg-gray-700 px-5 sm:px-8 py-3 font-bold text-white hover:bg-gray-600 transition text-sm sm:text-base"
+                  className="rounded-xl bg-gray-700 px-4 sm:px-6 py-2.5 font-bold text-white hover:bg-gray-600 transition text-sm"
                 >
                   Voltar
                 </button>
-                <button
-                  onClick={() => setStep(3)}
-                  disabled={cart.length === 0}
-                  className="rounded-xl bg-red-600 px-5 sm:px-8 py-3 font-bold text-white hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
-                >
-                  Proximo
-                </button>
-              </div>
-            </div>
 
-            {/* Cart Sidebar */}
-            <div className="w-full lg:w-80 shrink-0">
-              <div className="bg-gray-800 rounded-xl p-4 sm:p-5 lg:sticky lg:top-24">
-                <h3 className="text-lg font-bold text-white mb-4">Carrinho</h3>
-
-                {cart.length === 0 ? (
-                  <p className="text-gray-500 text-sm">Seu carrinho esta vazio.</p>
-                ) : (
-                  <>
-                    <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {cart.map((item, index) => (
-                        <div
-                          key={`${item.product_id}-${item.size}-${index}`}
-                          className="flex items-start justify-between bg-gray-700 rounded-lg p-3"
-                        >
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-white truncate">
-                              {item.product_name}
-                            </p>
-                            <p className="text-xs text-gray-400">
-                              {getSizeLabel(item.size)} x{item.quantity}
-                            </p>
-                            <p className="text-sm text-red-400 font-semibold">
-                              {formatPrice(item.unit_price * item.quantity)}
-                            </p>
-                          </div>
-                          <button
-                            onClick={() => removeFromCart(index)}
-                            className="ml-2 text-gray-500 hover:text-red-400 transition"
-                            aria-label="Remover item"
-                          >
-                            <svg
-                              className="w-5 h-5"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M6 18L18 6M6 6l12 12"
-                              />
-                            </svg>
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="mt-4 pt-4 border-t border-gray-700">
-                      <div className="flex justify-between text-white font-bold text-lg">
-                        <span>Total</span>
-                        <span>{formatPrice(cartTotal)}</span>
-                      </div>
-                    </div>
-                  </>
-                )}
+                <div className="flex items-center gap-3">
+                  {cart.length > 0 && (
+                    <span className="text-sm text-gray-400 hidden sm:block">
+                      {cart.reduce((s, i) => s + i.quantity, 0)} itens - {formatPrice(cartTotal)}
+                    </span>
+                  )}
+                  <button
+                    onClick={() => setStep(3)}
+                    disabled={cart.length === 0}
+                    className="rounded-xl bg-gradient-to-r from-red-600 to-red-500 px-5 sm:px-8 py-2.5 font-bold text-white hover:from-red-500 hover:to-red-400 transition-all shadow-lg shadow-red-600/25 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base flex items-center gap-2"
+                  >
+                    <span>Proximo</span>
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
