@@ -83,6 +83,13 @@ export async function POST(request: NextRequest) {
     const customerAddress = sanitizeString(body.customer_address, 500);
     const customerEmail = sanitizeString(body.customer_email, 200);
     const notes = sanitizeString(body.notes, 1000);
+    const paymentMethod = sanitizeString(body.payment_method, 30) || 'pix';
+    const changeFor = typeof body.change_for === 'number' ? Math.max(0, body.change_for) : 0;
+
+    const VALID_PAYMENT_METHODS = ['pix', 'dinheiro', 'cartao_credito', 'cartao_debito'];
+    if (!VALID_PAYMENT_METHODS.includes(paymentMethod)) {
+      return NextResponse.json({ error: 'Forma de pagamento invalida.' }, { status: 400 });
+    }
 
     if (customerEmail && !validateEmail(customerEmail)) {
       return NextResponse.json({ error: 'E-mail invalido.' }, { status: 400 });
@@ -188,9 +195,19 @@ export async function POST(request: NextRequest) {
     // Round total to 2 decimal places
     total = Math.round(total * 100) / 100;
 
+    // Add delivery fee for delivery orders
+    let deliveryFee = 0;
+    if (order_type === 'delivery') {
+      const feeSetting = db
+        .prepare("SELECT value FROM settings WHERE key = 'delivery_fee'")
+        .get() as { value: string } | undefined;
+      deliveryFee = feeSetting ? parseFloat(feeSetting.value) || 10 : 10;
+      total = Math.round((total + deliveryFee) * 100) / 100;
+    }
+
     const insertOrder = db.prepare(
-      `INSERT INTO orders (store_id, customer_name, customer_phone, customer_address, customer_email, order_type, notes, total)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO orders (store_id, customer_name, customer_phone, customer_address, customer_email, order_type, notes, total, delivery_fee, payment_method, change_for)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     );
 
     const insertItem = db.prepare(
@@ -208,6 +225,9 @@ export async function POST(request: NextRequest) {
         order_type,
         notes,
         total,
+        deliveryFee,
+        paymentMethod,
+        changeFor,
       );
 
       const orderId = result.lastInsertRowid;
@@ -229,7 +249,7 @@ export async function POST(request: NextRequest) {
 
     const orderId = createOrder();
 
-    return NextResponse.json({ id: orderId, total }, { status: 201 });
+    return NextResponse.json({ id: orderId, total, delivery_fee: deliveryFee }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

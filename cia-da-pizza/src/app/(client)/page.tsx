@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import WhatsAppButton from '@/components/WhatsAppButton';
 
 const stores = [
   {
@@ -389,6 +392,9 @@ export default function HomePage() {
           </a>
         </div>
       </section>
+
+      {/* WhatsApp - only on home page */}
+      <WhatsAppButton />
 
       {/* Area Restrita */}
       <section className="py-4 sm:py-6">

@@ -61,6 +61,9 @@ export default function PedidoPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Delivery fee
+  const [deliveryFee, setDeliveryFee] = useState(10);
+
   // Step 1
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   const [orderType, setOrderType] = useState<OrderType | null>(null);
@@ -80,6 +83,8 @@ export default function PedidoPage() {
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerAddress, setCustomerAddress] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('pix');
+  const [changeFor, setChangeFor] = useState('');
   const [notes, setNotes] = useState('');
 
   // Step 4
@@ -88,18 +93,27 @@ export default function PedidoPage() {
   const [submitError, setSubmitError] = useState('');
 
   useEffect(() => {
-    async function fetchStores() {
+    async function fetchInitialData() {
       try {
-        const res = await fetch('/api/stores?active=1');
-        const data = await res.json();
-        setStores(data);
+        const [storesRes, settingsRes] = await Promise.all([
+          fetch('/api/stores?active=1'),
+          fetch('/api/settings'),
+        ]);
+        const storesData = await storesRes.json();
+        setStores(storesData);
+        if (settingsRes.ok) {
+          const settings = await settingsRes.json();
+          if (settings.delivery_fee) {
+            setDeliveryFee(parseFloat(settings.delivery_fee) || 10);
+          }
+        }
       } catch (error) {
-        console.error('Erro ao carregar lojas:', error);
+        console.error('Erro ao carregar dados:', error);
       } finally {
         setLoading(false);
       }
     }
-    fetchStores();
+    fetchInitialData();
   }, []);
 
   useEffect(() => {
@@ -127,9 +141,16 @@ export default function PedidoPage() {
     return products.filter((p) => p.category_id === selectedCategory);
   }, [products, selectedCategory]);
 
-  const cartTotal = useMemo(() => {
+  const cartSubtotal = useMemo(() => {
     return cart.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
   }, [cart]);
+
+  const cartTotal = useMemo(() => {
+    if (orderType === 'delivery') {
+      return cartSubtotal + deliveryFee;
+    }
+    return cartSubtotal;
+  }, [cartSubtotal, orderType, deliveryFee]);
 
   function getAvailableSizes(product: Product): ('P' | 'M' | 'G')[] {
     const sizes: ('P' | 'M' | 'G')[] = [];
@@ -203,6 +224,8 @@ export default function PedidoPage() {
           customer_email: customerEmail || null,
           customer_address: orderType === 'delivery' ? customerAddress : null,
           order_type: orderType,
+          payment_method: paymentMethod,
+          change_for: paymentMethod === 'dinheiro' ? parseFloat(changeFor) || 0 : 0,
           notes: notes || null,
           items: cart.map((item) => ({
             product_id: item.product_id,
@@ -241,6 +264,8 @@ export default function PedidoPage() {
     setCustomerPhone('');
     setCustomerEmail('');
     setCustomerAddress('');
+    setPaymentMethod('pix');
+    setChangeFor('');
     setNotes('');
     setOrderId(null);
     setSubmitError('');
@@ -488,11 +513,17 @@ export default function PedidoPage() {
                         ) : (
                           <div className="absolute inset-0 flex items-center justify-center">
                             <span className="text-5xl opacity-30">
-                              {product.category_name.toLowerCase().includes('pizza') ? '🍕' :
-                               product.category_name.toLowerCase().includes('hamb') ? '🍔' :
-                               product.category_name.toLowerCase().includes('bebida') ? '🥤' :
-                               product.category_name.toLowerCase().includes('sobremesa') ? '🍰' :
-                               product.category_name.toLowerCase().includes('porç') ? '🍟' : '🍽️'}
+                              {product.category_name.toLowerCase().includes('pizza')
+                                ? '🍕'
+                                : product.category_name.toLowerCase().includes('hamb')
+                                  ? '🍔'
+                                  : product.category_name.toLowerCase().includes('bebida')
+                                    ? '🥤'
+                                    : product.category_name.toLowerCase().includes('sobremesa')
+                                      ? '🍰'
+                                      : product.category_name.toLowerCase().includes('porç')
+                                        ? '🍟'
+                                        : '🍽️'}
                             </span>
                           </div>
                         )}
@@ -505,8 +536,18 @@ export default function PedidoPage() {
                         {justAdded && (
                           <div className="absolute inset-0 bg-green-500/20 flex items-center justify-center">
                             <div className="bg-green-500 rounded-full p-2">
-                              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                              <svg
+                                className="w-6 h-6 text-white"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={3}
+                                  d="M5 13l4 4L19 7"
+                                />
                               </svg>
                             </div>
                           </div>
@@ -573,8 +614,18 @@ export default function PedidoPage() {
                             onClick={() => addToCart(product)}
                             className="flex-1 rounded-lg bg-red-600 py-2 text-sm font-bold text-white hover:bg-red-700 transition flex items-center justify-center gap-1.5"
                           >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 4v16m8-8H4"
+                              />
                             </svg>
                             Adicionar
                           </button>
@@ -612,7 +663,12 @@ export default function PedidoPage() {
                   >
                     <span>Proximo</span>
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 7l5 5m0 0l-5 5m5-5H6"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -680,6 +736,59 @@ export default function PedidoPage() {
                 </div>
               )}
 
+              {/* Payment Method */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-300 mb-2">
+                  Forma de Pagamento *
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { value: 'pix', label: 'PIX', icon: '📱' },
+                    { value: 'dinheiro', label: 'Dinheiro', icon: '💵' },
+                    { value: 'cartao_credito', label: 'Credito', icon: '💳' },
+                    { value: 'cartao_debito', label: 'Debito', icon: '💳' },
+                  ].map((method) => (
+                    <button
+                      key={method.value}
+                      type="button"
+                      onClick={() => setPaymentMethod(method.value)}
+                      className={`flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-all ${
+                        paymentMethod === method.value
+                          ? 'bg-red-600 text-white ring-2 ring-red-500'
+                          : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700'
+                      }`}
+                    >
+                      <span className="text-lg">{method.icon}</span>
+                      {method.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Change for cash */}
+              {paymentMethod === 'dinheiro' && (
+                <div className="bg-yellow-900/20 border border-yellow-700/30 rounded-xl p-4">
+                  <label className="block text-sm font-semibold text-yellow-300 mb-1">
+                    Precisa de troco? Para quanto?
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-400 font-semibold">R$</span>
+                    <input
+                      type="number"
+                      step="1"
+                      min="0"
+                      value={changeFor}
+                      onChange={(e) => setChangeFor(e.target.value)}
+                      placeholder="Ex: 100"
+                      className="flex-1 rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Deixe em branco ou 0 se nao precisar de troco
+                  </p>
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-semibold text-gray-300 mb-1">
                   Observacoes
@@ -712,9 +821,40 @@ export default function PedidoPage() {
                   </div>
                 ))}
               </div>
+              {orderType === 'delivery' && (
+                <div className="mt-2 flex justify-between text-sm">
+                  <span className="text-gray-400">Subtotal</span>
+                  <span className="text-white">{formatPrice(cartSubtotal)}</span>
+                </div>
+              )}
+              {orderType === 'delivery' && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-400">Taxa de entrega</span>
+                  <span className="text-white">{formatPrice(deliveryFee)}</span>
+                </div>
+              )}
               <div className="mt-3 pt-3 border-t border-gray-700 flex justify-between">
                 <span className="text-white font-bold">Total</span>
                 <span className="text-red-400 font-bold text-lg">{formatPrice(cartTotal)}</span>
+              </div>
+              <div className="mt-3 pt-3 border-t border-gray-700">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-400">Pagamento</span>
+                  <span className="text-white font-semibold">
+                    {paymentMethod === 'pix' && 'PIX'}
+                    {paymentMethod === 'dinheiro' && 'Dinheiro'}
+                    {paymentMethod === 'cartao_credito' && 'Cartao Credito'}
+                    {paymentMethod === 'cartao_debito' && 'Cartao Debito'}
+                  </span>
+                </div>
+                {paymentMethod === 'dinheiro' && parseFloat(changeFor) > 0 && (
+                  <div className="flex justify-between text-sm mt-1">
+                    <span className="text-yellow-400">Troco para</span>
+                    <span className="text-yellow-300 font-semibold">
+                      {formatPrice(parseFloat(changeFor))}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 

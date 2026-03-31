@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import WhatsAppButton from '@/components/WhatsAppButton';
 import PromoBanner from '@/components/PromoBanner';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
@@ -93,9 +92,6 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
       {/* Main content */}
       <main className="flex-1">{children}</main>
-
-      {/* WhatsApp floating button */}
-      <WhatsAppButton />
 
       {/* Footer */}
       <footer className="border-t border-gray-800/50 bg-gray-950">
@@ -254,16 +250,24 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             </p>
             {/* Area restrita */}
             <div className="mt-6 pt-4 border-t border-gray-800/30">
-              <p className="text-xs text-gray-500 mb-3 uppercase tracking-widest">
-                Area Restrita
-              </p>
+              <p className="text-xs text-gray-500 mb-3 uppercase tracking-widest">Area Restrita</p>
               <div className="flex items-center justify-center gap-4">
                 <Link
                   href="/admin/login"
                   className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-red-400 transition-colors duration-300 bg-gray-800/50 hover:bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-800 hover:border-gray-700"
                 >
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    />
                   </svg>
                   Administrativo
                 </Link>
@@ -271,8 +275,18 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                   href="/loja/login"
                   className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-red-400 transition-colors duration-300 bg-gray-800/50 hover:bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-800 hover:border-gray-700"
                 >
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                    />
                   </svg>
                   Acesso Loja
                 </Link>

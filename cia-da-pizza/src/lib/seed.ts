@@ -91,6 +91,7 @@ export function seedDatabase(db: Database.Database): void {
     insertSetting.run('company_facebook', 'https://www.facebook.com/ciadapizz');
     insertSetting.run('primary_color', '#DC2626');
     insertSetting.run('secondary_color', '#EAB308');
+    insertSetting.run('delivery_fee', '10.00');
 
     // --- Categories ---
     const insertCategory = db.prepare(

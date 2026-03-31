@@ -12,6 +12,7 @@ type Settings = {
   whatsapp_enabled: boolean;
   whatsapp_number: string;
   whatsapp_default_message: string;
+  delivery_fee: string;
 };
 
 const defaultSettings: Settings = {
@@ -24,6 +25,7 @@ const defaultSettings: Settings = {
   whatsapp_enabled: false,
   whatsapp_number: '',
   whatsapp_default_message: '',
+  delivery_fee: '10.00',
 };
 
 function Toggle({ checked, onChange }: { checked: boolean; onChange: (val: boolean) => void }) {
@@ -212,6 +214,28 @@ export default function ConfiguracoesPage() {
               placeholder="https://facebook.com/suaempresa"
             />
           </div>
+        </div>
+      </section>
+
+      {/* Delivery */}
+      <section className="mb-8 rounded-xl bg-gray-800/50 p-6 ring-1 ring-gray-700">
+        <h2 className="mb-4 text-lg font-semibold text-white">Entrega</h2>
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-300">
+            Taxa de Entrega (R$)
+          </label>
+          <input
+            type="number"
+            step="0.50"
+            min="0"
+            value={settings.delivery_fee}
+            onChange={(e) => updateField('delivery_fee', e.target.value)}
+            className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 text-white placeholder-gray-400 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+            placeholder="10.00"
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            Valor cobrado em pedidos de entrega (delivery). Minimo sugerido: R$ 10,00
+          </p>
         </div>
       </section>
 

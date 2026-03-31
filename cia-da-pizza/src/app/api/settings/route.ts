@@ -19,6 +19,7 @@ const ALLOWED_SETTING_KEYS = [
   'company_facebook',
   'primary_color',
   'secondary_color',
+  'delivery_fee',
 ];
 
 export async function GET() {

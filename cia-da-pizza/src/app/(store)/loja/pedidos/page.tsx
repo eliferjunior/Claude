@@ -21,6 +21,9 @@ type Order = {
   order_type: string;
   status: string;
   total: number;
+  delivery_fee: number | null;
+  payment_method: string | null;
+  change_for: number | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -49,6 +52,13 @@ const ORDER_TYPE_LABELS: Record<string, string> = {
   delivery: 'Delivery',
   pickup: 'Retirada',
   dine_in: 'No Local',
+};
+
+const PAYMENT_LABELS: Record<string, string> = {
+  pix: 'PIX',
+  dinheiro: 'Dinheiro',
+  cartao_credito: 'Cartao Credito',
+  cartao_debito: 'Cartao Debito',
 };
 
 const STATUS_FLOW = ['pending', 'confirmed', 'preparing', 'ready', 'delivered'];
@@ -123,7 +133,10 @@ export default function StorePedidosPage() {
       });
       if (res.ok) {
         setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)));
-        setMessage({ type: 'success', text: `Pedido #${orderId} atualizado para ${STATUS_LABELS[newStatus]}` });
+        setMessage({
+          type: 'success',
+          text: `Pedido #${orderId} atualizado para ${STATUS_LABELS[newStatus]}`,
+        });
         setTimeout(() => setMessage(null), 3000);
       } else {
         setMessage({ type: 'error', text: 'Erro ao atualizar pedido.' });
@@ -160,6 +173,79 @@ export default function StorePedidosPage() {
     return null;
   }
 
+  function printOrder(order: Order) {
+    const items = order.items || [];
+    const payLabel = PAYMENT_LABELS[order.payment_method || 'pix'] || order.payment_method || 'N/A';
+    const html = `
+      <html>
+      <head>
+        <title>Pedido #${order.id} - Cozinha</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: 'Courier New', monospace; font-size: 14px; padding: 10px; max-width: 300px; }
+          .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
+          .header h1 { font-size: 18px; }
+          .header h2 { font-size: 22px; font-weight: bold; }
+          .info { margin-bottom: 8px; }
+          .info p { margin: 2px 0; }
+          .items { border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 8px 0; margin: 8px 0; }
+          .item { display: flex; justify-content: space-between; margin: 4px 0; }
+          .total { font-size: 18px; font-weight: bold; text-align: right; margin-top: 8px; }
+          .footer { text-align: center; margin-top: 12px; border-top: 2px dashed #000; padding-top: 8px; font-size: 12px; }
+          .obs { background: #f0f0f0; padding: 6px; margin: 6px 0; border-radius: 4px; }
+          .payment { font-weight: bold; margin-top: 6px; }
+          @media print { body { max-width: 100%; } }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>CIA DA PIZZA</h1>
+          <h2>PEDIDO #${order.id}</h2>
+          <p>${new Date(order.created_at).toLocaleString('pt-BR')}</p>
+          <p><strong>${ORDER_TYPE_LABELS[order.order_type] || order.order_type}</strong></p>
+        </div>
+        <div class="info">
+          <p><strong>Cliente:</strong> ${order.customer_name}</p>
+          ${order.customer_phone ? `<p><strong>Tel:</strong> ${order.customer_phone}</p>` : ''}
+          ${order.customer_address ? `<p><strong>End:</strong> ${order.customer_address}</p>` : ''}
+        </div>
+        ${order.notes ? `<div class="obs"><strong>OBS:</strong> ${order.notes}</div>` : ''}
+        <div class="items">
+          <p style="font-weight:bold;margin-bottom:6px;">ITENS:</p>
+          ${items
+            .map(
+              (item) => `
+            <div class="item">
+              <span>${item.quantity}x ${item.product_name}${item.size ? ` (${item.size})` : ''}</span>
+              <span>R$ ${(item.unit_price * item.quantity).toFixed(2).replace('.', ',')}</span>
+            </div>
+            ${item.notes ? `<div style="font-size:12px;color:#666;margin-left:16px;">- ${item.notes}</div>` : ''}
+          `,
+            )
+            .join('')}
+        </div>
+        ${order.delivery_fee && order.delivery_fee > 0 ? `<div class="item"><span>Taxa entrega</span><span>R$ ${order.delivery_fee.toFixed(2).replace('.', ',')}</span></div>` : ''}
+        <div class="total">TOTAL: R$ ${order.total.toFixed(2).replace('.', ',')}</div>
+        <div class="payment">
+          Pagamento: ${payLabel}
+          ${order.payment_method === 'dinheiro' && order.change_for && order.change_for > 0 ? `<br>Troco para: R$ ${order.change_for.toFixed(2).replace('.', ',')}` : ''}
+        </div>
+        <div class="footer">
+          <p>*** CIA DA PIZZA ***</p>
+          <p>Obrigado pela preferencia!</p>
+        </div>
+      </body>
+      </html>
+    `;
+    const printWindow = window.open('', '_blank', 'width=350,height=600');
+    if (printWindow) {
+      printWindow.document.write(html);
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+    }
+  }
+
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
@@ -170,8 +256,18 @@ export default function StorePedidosPage() {
           aria-label="Atualizar lista de pedidos"
           className="inline-flex items-center gap-1.5 rounded-lg bg-gray-800 px-3 py-1.5 text-sm text-gray-300 transition-colors hover:bg-gray-700 hover:text-white disabled:opacity-50"
         >
-          <svg className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          <svg
+            className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
           </svg>
           Atualizar
         </button>
@@ -226,13 +322,18 @@ export default function StorePedidosPage() {
             const nextStatus = getNextStatus(order.status);
             const isExpanded = expandedOrder === order.id;
             return (
-              <div key={order.id} className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+              <div
+                key={order.id}
+                className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden"
+              >
                 <div className="p-5">
                   <div className="flex flex-wrap items-start justify-between gap-4 mb-3">
                     <div>
                       <div className="flex items-center gap-3 flex-wrap">
                         <h3 className="text-lg font-semibold text-white">Pedido #{order.id}</h3>
-                        <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border ${STATUS_COLORS[order.status] || ''}`}>
+                        <span
+                          className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border ${STATUS_COLORS[order.status] || ''}`}
+                        >
                           {STATUS_LABELS[order.status] || order.status}
                         </span>
                         <span className="text-xs text-gray-500 bg-gray-800 px-2 py-0.5 rounded">
@@ -242,7 +343,10 @@ export default function StorePedidosPage() {
                       <p className="text-sm text-gray-400 mt-1">
                         {order.customer_name}
                         {order.customer_phone && (
-                          <a href={`tel:${order.customer_phone}`} className="ml-2 text-red-400 hover:underline">
+                          <a
+                            href={`tel:${order.customer_phone}`}
+                            className="ml-2 text-red-400 hover:underline"
+                          >
                             {order.customer_phone}
                           </a>
                         )}
@@ -252,6 +356,25 @@ export default function StorePedidosPage() {
                       )}
                       {order.notes && (
                         <p className="text-sm text-amber-400 mt-0.5 italic">Obs: {order.notes}</p>
+                      )}
+                      {order.payment_method && (
+                        <p className="text-sm text-green-400 mt-0.5 flex items-center gap-1">
+                          <span className="font-semibold">
+                            {PAYMENT_LABELS[order.payment_method] || order.payment_method}
+                          </span>
+                          {order.payment_method === 'dinheiro' &&
+                            order.change_for &&
+                            order.change_for > 0 && (
+                              <span className="text-yellow-400">
+                                (Troco p/ R$ {order.change_for.toFixed(2).replace('.', ',')})
+                              </span>
+                            )}
+                        </p>
+                      )}
+                      {order.delivery_fee && order.delivery_fee > 0 && (
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          Taxa entrega: R$ {order.delivery_fee.toFixed(2).replace('.', ',')}
+                        </p>
                       )}
                     </div>
                     <div className="text-right">
@@ -287,19 +410,54 @@ export default function StorePedidosPage() {
                     >
                       {isExpanded ? 'Ocultar itens' : 'Ver itens'}
                     </button>
+                    <button
+                      onClick={async () => {
+                        if (!order.items) {
+                          const res = await fetch(`/api/orders/${order.id}`);
+                          if (res.ok) {
+                            const data = await res.json();
+                            const updated = { ...order, items: data.items || [] };
+                            setOrders((prev) => prev.map((o) => (o.id === order.id ? updated : o)));
+                            printOrder(updated);
+                            return;
+                          }
+                        }
+                        printOrder(order);
+                      }}
+                      className="px-4 py-2 rounded-lg bg-gray-800 text-blue-400 text-sm font-medium hover:bg-gray-700 transition-colors flex items-center gap-1.5"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                        />
+                      </svg>
+                      Imprimir
+                    </button>
                   </div>
                 </div>
 
                 {isExpanded && order.items && (
                   <div className="border-t border-gray-800 bg-gray-900/50 px-5 py-3">
-                    <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Itens do pedido</p>
+                    <p className="text-xs font-semibold text-gray-500 uppercase mb-2">
+                      Itens do pedido
+                    </p>
                     <div className="space-y-1.5">
                       {order.items.map((item) => (
                         <div key={item.id} className="flex justify-between text-sm">
                           <span className="text-gray-300">
                             {item.quantity}x {item.product_name}
                             {item.size && <span className="text-gray-500"> ({item.size})</span>}
-                            {item.notes && <span className="text-amber-400 italic"> - {item.notes}</span>}
+                            {item.notes && (
+                              <span className="text-amber-400 italic"> - {item.notes}</span>
+                            )}
                           </span>
                           <span className="text-gray-400 ml-4">
                             R$ {(item.unit_price * item.quantity).toFixed(2).replace('.', ',')}

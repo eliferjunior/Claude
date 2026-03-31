@@ -191,6 +191,27 @@ function migrateDatabase(): void {
     // Column already exists
   }
 
+  // Add delivery_fee to orders
+  try {
+    db.exec(`ALTER TABLE orders ADD COLUMN delivery_fee REAL DEFAULT 0`);
+  } catch {
+    // Column already exists
+  }
+
+  // Add payment_method to orders
+  try {
+    db.exec(`ALTER TABLE orders ADD COLUMN payment_method TEXT DEFAULT 'pix'`);
+  } catch {
+    // Column already exists
+  }
+
+  // Add change_for to orders (troco para)
+  try {
+    db.exec(`ALTER TABLE orders ADD COLUMN change_for REAL DEFAULT 0`);
+  } catch {
+    // Column already exists
+  }
+
   // Cleanup expired sessions
   db.prepare("DELETE FROM sessions WHERE expires_at < datetime('now')").run();
 }
