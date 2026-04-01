@@ -14,8 +14,12 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "eslint": "^8.57.0",
-    "eslint-config-next": "^14.2.35"
+    "eslint-config-next": "^14.2.35",
+    "jsdom": "^29.0.1",
+    "vitest": "^4.1.2"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.2.2",
