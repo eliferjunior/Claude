@@ -355,7 +355,7 @@ export default function PedidoPage() {
 
         {/* Step 1 - Escolha a Loja */}
         {step === 1 && (
-          <div className="max-w-3xl mx-auto">
+          <div className="max-w-3xl mx-auto transition-opacity duration-300">
             <h2 className="text-xl font-bold text-white mb-6">Escolha a Loja</h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
@@ -381,41 +381,59 @@ export default function PedidoPage() {
             {selectedStore && (
               <div className="mb-6">
                 <h3 className="text-lg font-semibold text-white mb-3">Tipo de Pedido</h3>
-                <div className="flex flex-wrap gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {selectedStore.allows_delivery === 1 && (
                     <button
                       onClick={() => setOrderType('delivery')}
-                      className={`rounded-xl px-5 py-3 font-semibold transition-all ${
+                      className={`flex flex-col items-center rounded-xl px-5 py-5 transition-all ${
                         orderType === 'delivery'
-                          ? 'bg-red-600 text-white'
-                          : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                          ? 'bg-red-600 text-white ring-2 ring-red-500'
+                          : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:ring-2 hover:ring-gray-600'
                       }`}
                     >
-                      Entrega
+                      <span className="text-3xl mb-2">{'\uD83D\uDEF5'}</span>
+                      <span className="font-bold text-base">Entrega</span>
+                      <span
+                        className={`text-xs mt-1 ${orderType === 'delivery' ? 'text-red-100' : 'text-gray-500'}`}
+                      >
+                        Receba em casa
+                      </span>
                     </button>
                   )}
                   {selectedStore.allows_pickup === 1 && (
                     <button
                       onClick={() => setOrderType('pickup')}
-                      className={`rounded-xl px-5 py-3 font-semibold transition-all ${
+                      className={`flex flex-col items-center rounded-xl px-5 py-5 transition-all ${
                         orderType === 'pickup'
-                          ? 'bg-red-600 text-white'
-                          : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                          ? 'bg-red-600 text-white ring-2 ring-red-500'
+                          : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:ring-2 hover:ring-gray-600'
                       }`}
                     >
-                      Retirada
+                      <span className="text-3xl mb-2">{'\uD83C\uDFEA'}</span>
+                      <span className="font-bold text-base">Retirada</span>
+                      <span
+                        className={`text-xs mt-1 ${orderType === 'pickup' ? 'text-red-100' : 'text-gray-500'}`}
+                      >
+                        Retire na loja
+                      </span>
                     </button>
                   )}
                   {selectedStore.allows_dine_in === 1 && (
                     <button
                       onClick={() => setOrderType('dine_in')}
-                      className={`rounded-xl px-5 py-3 font-semibold transition-all ${
+                      className={`flex flex-col items-center rounded-xl px-5 py-5 transition-all ${
                         orderType === 'dine_in'
-                          ? 'bg-red-600 text-white'
-                          : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                          ? 'bg-red-600 text-white ring-2 ring-red-500'
+                          : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:ring-2 hover:ring-gray-600'
                       }`}
                     >
-                      Consumo Local
+                      <span className="text-3xl mb-2">{'\uD83C\uDF7D\uFE0F'}</span>
+                      <span className="font-bold text-base">Consumo Local</span>
+                      <span
+                        className={`text-xs mt-1 ${orderType === 'dine_in' ? 'text-red-100' : 'text-gray-500'}`}
+                      >
+                        Coma no local
+                      </span>
                     </button>
                   )}
                 </div>
@@ -436,7 +454,30 @@ export default function PedidoPage() {
 
         {/* Step 2 - Monte seu Pedido */}
         {step === 2 && (
-          <div className="pb-24">
+          <div className="pb-24 transition-opacity duration-300">
+            {/* Sticky header mini summary */}
+            <div className="fixed top-0 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur-md border-b border-gray-700/50 shadow-lg">
+              <div className="mx-auto max-w-7xl px-4 py-2.5 flex items-center gap-3">
+                <span className="text-white font-bold text-sm truncate">
+                  {selectedStore?.name}
+                </span>
+                <span className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${
+                  orderType === 'delivery'
+                    ? 'bg-red-600/20 text-red-400 border border-red-500/30'
+                    : orderType === 'pickup'
+                      ? 'bg-orange-600/20 text-orange-400 border border-orange-500/30'
+                      : 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
+                }`}>
+                  {orderType === 'delivery' ? '\uD83D\uDEF5 Entrega' : orderType === 'pickup' ? '\uD83C\uDFEA Retirada' : '\uD83C\uDF7D\uFE0F Local'}
+                </span>
+                {cart.length > 0 && (
+                  <span className="ml-auto text-xs text-gray-400">
+                    {cart.reduce((s, i) => s + i.quantity, 0)} itens - {formatPrice(cartTotal)}
+                  </span>
+                )}
+              </div>
+            </div>
+
             {/* Toast notifications */}
             <AddToCartToast toasts={toasts} />
 
@@ -479,7 +520,20 @@ export default function PedidoPage() {
             </div>
 
             {/* Product Cards */}
-            {filteredProducts.length === 0 ? (
+            {products.length === 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="bg-gray-800 rounded-xl overflow-hidden animate-pulse">
+                    <div className="h-36 bg-gray-700" />
+                    <div className="p-4 space-y-3">
+                      <div className="h-4 bg-gray-700 rounded w-3/4" />
+                      <div className="h-3 bg-gray-700 rounded w-1/2" />
+                      <div className="h-8 bg-gray-700 rounded w-full mt-4" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : filteredProducts.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-gray-500 text-lg">Nenhum produto encontrado.</p>
               </div>
@@ -679,7 +733,7 @@ export default function PedidoPage() {
 
         {/* Step 3 - Seus Dados */}
         {step === 3 && (
-          <div className="max-w-lg mx-auto">
+          <div className="max-w-lg mx-auto transition-opacity duration-300">
             <h2 className="text-xl font-bold text-white mb-6">Seus Dados</h2>
 
             <div className="space-y-4">
@@ -889,11 +943,11 @@ export default function PedidoPage() {
 
         {/* Step 4 - Pedido Confirmado */}
         {step === 4 && (
-          <div className="max-w-lg mx-auto text-center">
+          <div className="max-w-lg mx-auto text-center transition-opacity duration-300">
             <div className="bg-gray-800 rounded-xl p-8">
-              <div className="flex items-center justify-center w-16 h-16 bg-green-600 rounded-full mx-auto mb-4">
+              <div className="flex items-center justify-center w-20 h-20 bg-green-600 rounded-full mx-auto mb-4 animate-bounce" style={{ animationDuration: '1s', animationIterationCount: '2' }}>
                 <svg
-                  className="w-8 h-8 text-white"
+                  className="w-10 h-10 text-white"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -901,21 +955,39 @@ export default function PedidoPage() {
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    strokeWidth={2}
+                    strokeWidth={3}
                     d="M5 13l4 4L19 7"
                   />
                 </svg>
               </div>
 
               <h2 className="text-2xl font-extrabold text-white mb-2">Pedido Confirmado!</h2>
-              <p className="text-gray-400 mb-4">Seu pedido foi recebido com sucesso.</p>
+              <p className="text-gray-400 mb-2">Seu pedido foi recebido com sucesso.</p>
+
+              {/* Order status badge */}
+              <span className="inline-block bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 text-xs font-bold px-3 py-1 rounded-full mb-4">
+                Pendente
+              </span>
 
               {orderId && (
-                <div className="bg-gray-700 rounded-xl p-4 mb-6 inline-block">
+                <div className="bg-gray-700 rounded-xl p-4 mb-4 inline-block">
                   <p className="text-sm text-gray-400">Numero do Pedido</p>
                   <p className="text-3xl font-extrabold text-red-400">#{orderId}</p>
                 </div>
               )}
+
+              {/* Estimated time */}
+              <div className="bg-gray-700/50 rounded-xl p-4 mb-4 flex items-center justify-center gap-3">
+                <span className="text-2xl">
+                  {orderType === 'delivery' ? '\u23F1\uFE0F' : '\u23F1\uFE0F'}
+                </span>
+                <div className="text-left">
+                  <p className="text-xs text-gray-400">Tempo estimado</p>
+                  <p className="text-lg font-bold text-white">
+                    {orderType === 'delivery' ? '30-45 min' : orderType === 'pickup' ? '15-20 min' : '15-20 min'}
+                  </p>
+                </div>
+              </div>
 
               <div className="bg-gray-700 rounded-xl p-4 mb-4 text-left">
                 <p className="text-sm text-gray-400 mb-2">Resumo</p>
