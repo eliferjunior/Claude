@@ -43,9 +43,18 @@ interface CartItem {
   size: 'P' | 'M' | 'G';
   quantity: number;
   unit_price: number;
+  borda?: string;
+  borda_price?: number;
 }
 
-type OrderType = 'delivery' | 'pickup' | 'dine_in';
+type OrderType = 'delivery' | 'pickup';
+
+const BORDA_OPTIONS = [
+  { value: 'sem', label: 'Sem Borda', price: 0 },
+  { value: 'catupiry', label: 'Catupiry', price: 5 },
+  { value: 'cheddar', label: 'Cheddar', price: 5 },
+  { value: 'chocolate', label: 'Chocolate', price: 6 },
+];
 
 function formatPrice(value: number | null): string {
   if (value === null || value === undefined) return '';
@@ -72,6 +81,7 @@ export default function PedidoPage() {
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedSizes, setSelectedSizes] = useState<Record<number, 'P' | 'M' | 'G'>>({});
+  const [selectedBordas, setSelectedBordas] = useState<Record<number, string>>({});
   const [quantities, setQuantities] = useState<Record<number, number>>({});
   const [addedProductId, setAddedProductId] = useState<number | null>(null);
 
@@ -82,7 +92,10 @@ export default function PedidoPage() {
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
-  const [customerAddress, setCustomerAddress] = useState('');
+  const [addressStreet, setAddressStreet] = useState('');
+  const [addressNumber, setAddressNumber] = useState('');
+  const [addressComplement, setAddressComplement] = useState('');
+  const [addressNeighborhood, setAddressNeighborhood] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('pix');
   const [changeFor, setChangeFor] = useState('');
   const [notes, setNotes] = useState('');
@@ -173,9 +186,12 @@ export default function PedidoPage() {
     const size = selectedSizes[product.id] || sizes[0];
     const qty = quantities[product.id] || 1;
     const price = getSizePrice(product, size);
+    const isPizza = product.category_name.toLowerCase().includes('pizza');
+    const borda = isPizza ? selectedBordas[product.id] || 'sem' : undefined;
+    const bordaPrice = borda ? BORDA_OPTIONS.find((b) => b.value === borda)?.price || 0 : 0;
 
     const existingIndex = cart.findIndex(
-      (item) => item.product_id === product.id && item.size === size,
+      (item) => item.product_id === product.id && item.size === size && item.borda === borda,
     );
 
     if (existingIndex >= 0) {
@@ -190,7 +206,9 @@ export default function PedidoPage() {
           product_name: product.name,
           size,
           quantity: qty,
-          unit_price: price,
+          unit_price: price + bordaPrice,
+          borda,
+          borda_price: bordaPrice,
         },
       ]);
     }
@@ -222,7 +240,10 @@ export default function PedidoPage() {
           customer_name: customerName,
           customer_phone: customerPhone || null,
           customer_email: customerEmail || null,
-          customer_address: orderType === 'delivery' ? customerAddress : null,
+          customer_address:
+            orderType === 'delivery'
+              ? `${addressStreet}, ${addressNumber}${addressComplement ? ' - ' + addressComplement : ''} - ${addressNeighborhood}`
+              : null,
           order_type: orderType,
           payment_method: paymentMethod,
           change_for: paymentMethod === 'dinheiro' ? parseFloat(changeFor) || 0 : 0,
@@ -263,7 +284,11 @@ export default function PedidoPage() {
     setCustomerName('');
     setCustomerPhone('');
     setCustomerEmail('');
-    setCustomerAddress('');
+    setAddressStreet('');
+    setAddressNumber('');
+    setAddressComplement('');
+    setAddressNeighborhood('');
+    setSelectedBordas({});
     setPaymentMethod('pix');
     setChangeFor('');
     setNotes('');
@@ -418,24 +443,6 @@ export default function PedidoPage() {
                       </span>
                     </button>
                   )}
-                  {selectedStore.allows_dine_in === 1 && (
-                    <button
-                      onClick={() => setOrderType('dine_in')}
-                      className={`flex flex-col items-center rounded-xl px-5 py-5 transition-all ${
-                        orderType === 'dine_in'
-                          ? 'bg-red-600 text-white ring-2 ring-red-500'
-                          : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:ring-2 hover:ring-gray-600'
-                      }`}
-                    >
-                      <span className="text-3xl mb-2">{'\uD83C\uDF7D\uFE0F'}</span>
-                      <span className="font-bold text-base">Consumo Local</span>
-                      <span
-                        className={`text-xs mt-1 ${orderType === 'dine_in' ? 'text-red-100' : 'text-gray-500'}`}
-                      >
-                        Coma no local
-                      </span>
-                    </button>
-                  )}
                 </div>
               </div>
             )}
@@ -458,17 +465,21 @@ export default function PedidoPage() {
             {/* Sticky header mini summary */}
             <div className="fixed top-0 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur-md border-b border-gray-700/50 shadow-lg">
               <div className="mx-auto max-w-7xl px-4 py-2.5 flex items-center gap-3">
-                <span className="text-white font-bold text-sm truncate">
-                  {selectedStore?.name}
-                </span>
-                <span className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${
-                  orderType === 'delivery'
-                    ? 'bg-red-600/20 text-red-400 border border-red-500/30'
+                <span className="text-white font-bold text-sm truncate">{selectedStore?.name}</span>
+                <span
+                  className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${
+                    orderType === 'delivery'
+                      ? 'bg-red-600/20 text-red-400 border border-red-500/30'
+                      : orderType === 'pickup'
+                        ? 'bg-orange-600/20 text-orange-400 border border-orange-500/30'
+                        : 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
+                  }`}
+                >
+                  {orderType === 'delivery'
+                    ? '\uD83D\uDEF5 Entrega'
                     : orderType === 'pickup'
-                      ? 'bg-orange-600/20 text-orange-400 border border-orange-500/30'
-                      : 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
-                }`}>
-                  {orderType === 'delivery' ? '\uD83D\uDEF5 Entrega' : orderType === 'pickup' ? '\uD83C\uDFEA Retirada' : '\uD83C\uDF7D\uFE0F Local'}
+                      ? '\uD83C\uDFEA Retirada'
+                      : '\uD83C\uDF7D\uFE0F Local'}
                 </span>
                 {cart.length > 0 && (
                   <span className="ml-auto text-xs text-gray-400">
@@ -635,6 +646,31 @@ export default function PedidoPage() {
                           ))}
                         </div>
 
+                        {/* Borda Selector (pizza only) */}
+                        {product.category_name.toLowerCase().includes('pizza') && (
+                          <div className="flex gap-1.5 mb-3 flex-wrap">
+                            {BORDA_OPTIONS.map((borda) => (
+                              <button
+                                key={borda.value}
+                                onClick={() =>
+                                  setSelectedBordas((prev) => ({
+                                    ...prev,
+                                    [product.id]: borda.value,
+                                  }))
+                                }
+                                className={`shrink-0 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition ${
+                                  (selectedBordas[product.id] || 'sem') === borda.value
+                                    ? 'bg-yellow-600 text-white'
+                                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                }`}
+                              >
+                                {borda.label}
+                                {borda.price > 0 ? ` +R$${borda.price}` : ''}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
                         {/* Quantity + Add */}
                         <div className="flex items-center gap-2 mt-auto">
                           <div className="flex items-center bg-gray-700 rounded-lg">
@@ -777,16 +813,47 @@ export default function PedidoPage() {
 
               {orderType === 'delivery' && (
                 <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-1">
+                  <label className="block text-sm font-semibold text-gray-300 mb-2">
                     Endereco de Entrega *
                   </label>
-                  <input
-                    type="text"
-                    value={customerAddress}
-                    onChange={(e) => setCustomerAddress(e.target.value)}
-                    placeholder="Rua, numero, bairro"
-                    className="w-full rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition"
-                  />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="sm:col-span-2">
+                      <input
+                        type="text"
+                        value={addressStreet}
+                        onChange={(e) => setAddressStreet(e.target.value)}
+                        placeholder="Rua, Avenida..."
+                        className="w-full rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition"
+                      />
+                    </div>
+                    <div>
+                      <input
+                        type="text"
+                        value={addressNumber}
+                        onChange={(e) => setAddressNumber(e.target.value)}
+                        placeholder="Numero"
+                        className="w-full rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition"
+                      />
+                    </div>
+                    <div>
+                      <input
+                        type="text"
+                        value={addressComplement}
+                        onChange={(e) => setAddressComplement(e.target.value)}
+                        placeholder="Complemento (opcional)"
+                        className="w-full rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition"
+                      />
+                    </div>
+                    <div>
+                      <input
+                        type="text"
+                        value={addressNeighborhood}
+                        onChange={(e) => setAddressNeighborhood(e.target.value)}
+                        placeholder="Bairro"
+                        className="w-full rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition"
+                      />
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -867,7 +934,9 @@ export default function PedidoPage() {
                     className="flex justify-between text-sm"
                   >
                     <span className="text-gray-300">
-                      {item.product_name} ({item.size}) x{item.quantity}
+                      {item.product_name} ({item.size})
+                      {item.borda && item.borda !== 'sem' ? ` - Borda ${item.borda}` : ''} x
+                      {item.quantity}
                     </span>
                     <span className="text-white font-semibold">
                       {formatPrice(item.unit_price * item.quantity)}
@@ -931,7 +1000,8 @@ export default function PedidoPage() {
                 disabled={
                   submitting ||
                   !customerName.trim() ||
-                  (orderType === 'delivery' && !customerAddress.trim())
+                  (orderType === 'delivery' &&
+                    (!addressStreet.trim() || !addressNumber.trim() || !addressNeighborhood.trim()))
                 }
                 className="rounded-xl bg-red-600 px-5 sm:px-8 py-3 font-bold text-white hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
               >
@@ -945,7 +1015,10 @@ export default function PedidoPage() {
         {step === 4 && (
           <div className="max-w-lg mx-auto text-center transition-opacity duration-300">
             <div className="bg-gray-800 rounded-xl p-8">
-              <div className="flex items-center justify-center w-20 h-20 bg-green-600 rounded-full mx-auto mb-4 animate-bounce" style={{ animationDuration: '1s', animationIterationCount: '2' }}>
+              <div
+                className="flex items-center justify-center w-20 h-20 bg-green-600 rounded-full mx-auto mb-4 animate-bounce"
+                style={{ animationDuration: '1s', animationIterationCount: '2' }}
+              >
                 <svg
                   className="w-10 h-10 text-white"
                   fill="none"
@@ -984,7 +1057,11 @@ export default function PedidoPage() {
                 <div className="text-left">
                   <p className="text-xs text-gray-400">Tempo estimado</p>
                   <p className="text-lg font-bold text-white">
-                    {orderType === 'delivery' ? '30-45 min' : orderType === 'pickup' ? '15-20 min' : '15-20 min'}
+                    {orderType === 'delivery'
+                      ? '30-45 min'
+                      : orderType === 'pickup'
+                        ? '15-20 min'
+                        : '15-20 min'}
                   </p>
                 </div>
               </div>
@@ -998,7 +1075,9 @@ export default function PedidoPage() {
                       className="flex justify-between text-sm"
                     >
                       <span className="text-gray-300">
-                        {item.product_name} ({item.size}) x{item.quantity}
+                        {item.product_name} ({item.size})
+                        {item.borda && item.borda !== 'sem' ? ` - Borda ${item.borda}` : ''} x
+                        {item.quantity}
                       </span>
                       <span className="text-white">
                         {formatPrice(item.unit_price * item.quantity)}
@@ -1018,7 +1097,10 @@ export default function PedidoPage() {
                   orderId,
                   customerName,
                   customerPhone,
-                  customerAddress: orderType === 'delivery' ? customerAddress : undefined,
+                  customerAddress:
+                    orderType === 'delivery'
+                      ? `${addressStreet}, ${addressNumber}${addressComplement ? ' - ' + addressComplement : ''} - ${addressNeighborhood}`
+                      : undefined,
                   orderType: orderType || 'delivery',
                   items: cart.map((item) => ({
                     product_name: item.product_name,

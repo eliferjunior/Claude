@@ -128,6 +128,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: 29.9,
         price_medium: 39.9,
         price_large: 49.9,
+        image_url:
+          'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400&h=300&fit=crop',
       },
       {
         name: 'Calabresa',
@@ -135,6 +137,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: 29.9,
         price_medium: 39.9,
         price_large: 49.9,
+        image_url:
+          'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&h=300&fit=crop',
       },
       {
         name: 'Portuguesa',
@@ -142,6 +146,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: 31.9,
         price_medium: 42.9,
         price_large: 52.9,
+        image_url:
+          'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&h=300&fit=crop',
       },
       {
         name: 'Mussarela',
@@ -149,6 +155,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: 29.9,
         price_medium: 39.9,
         price_large: 49.9,
+        image_url:
+          'https://images.unsplash.com/photo-1604382355076-af4b0eb60143?w=400&h=300&fit=crop',
       },
       {
         name: 'Frango com Catupiry',
@@ -156,6 +164,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: 32.9,
         price_medium: 43.9,
         price_large: 54.9,
+        image_url:
+          'https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?w=400&h=300&fit=crop',
       },
       {
         name: 'Quatro Queijos',
@@ -163,6 +173,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: 34.9,
         price_medium: 44.9,
         price_large: 54.9,
+        image_url:
+          'https://images.unsplash.com/photo-1628840042765-356cda07504e?w=400&h=300&fit=crop',
       },
       {
         name: 'Napolitana',
@@ -170,6 +182,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: 29.9,
         price_medium: 39.9,
         price_large: 49.9,
+        image_url:
+          'https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=400&h=300&fit=crop',
       },
       {
         name: 'Presunto',
@@ -177,6 +191,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: 29.9,
         price_medium: 39.9,
         price_large: 49.9,
+        image_url:
+          'https://images.unsplash.com/photo-1595854341625-f33ee10dbf94?w=400&h=300&fit=crop',
       },
       {
         name: 'Milho',
@@ -184,6 +200,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: 29.9,
         price_medium: 39.9,
         price_large: 49.9,
+        image_url:
+          'https://images.unsplash.com/photo-1588315029754-2dd089d39a1a?w=400&h=300&fit=crop',
       },
       {
         name: 'Bacon',
@@ -191,6 +209,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: 32.9,
         price_medium: 42.9,
         price_large: 52.9,
+        image_url:
+          'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400&h=300&fit=crop',
       },
       {
         name: 'Lombo Canadense',
@@ -198,6 +218,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: 34.9,
         price_medium: 44.9,
         price_large: 54.9,
+        image_url:
+          'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&h=300&fit=crop',
       },
       {
         name: 'Pepperoni',
@@ -205,6 +227,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: 33.9,
         price_medium: 43.9,
         price_large: 53.9,
+        image_url:
+          'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&h=300&fit=crop',
       },
       {
         name: 'Atum',
@@ -212,6 +236,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: 32.9,
         price_medium: 42.9,
         price_large: 52.9,
+        image_url:
+          'https://images.unsplash.com/photo-1604382355076-af4b0eb60143?w=400&h=300&fit=crop',
       },
     ];
 
@@ -235,6 +261,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: 39.9,
         price_medium: 49.9,
         price_large: 59.9,
+        image_url:
+          'https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?w=400&h=300&fit=crop',
       },
       {
         name: 'Camarão',
@@ -242,6 +270,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: 42.9,
         price_medium: 54.9,
         price_large: 69.9,
+        image_url:
+          'https://images.unsplash.com/photo-1628840042765-356cda07504e?w=400&h=300&fit=crop',
       },
       {
         name: 'Carne Seca',
@@ -249,6 +279,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: 39.9,
         price_medium: 49.9,
         price_large: 62.9,
+        image_url:
+          'https://images.unsplash.com/photo-1595854341625-f33ee10dbf94?w=400&h=300&fit=crop',
       },
       {
         name: 'Filé Mignon',
@@ -256,6 +288,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: 42.9,
         price_medium: 54.9,
         price_large: 67.9,
+        image_url:
+          'https://images.unsplash.com/photo-1588315029754-2dd089d39a1a?w=400&h=300&fit=crop',
       },
       {
         name: 'Costela',
@@ -263,6 +297,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: 42.9,
         price_medium: 54.9,
         price_large: 67.9,
+        image_url:
+          'https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=400&h=300&fit=crop',
       },
       {
         name: 'Alcatra',
@@ -270,6 +306,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: 39.9,
         price_medium: 49.9,
         price_large: 62.9,
+        image_url:
+          'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&h=300&fit=crop',
       },
       {
         name: 'Brócolis com Bacon',
@@ -277,6 +315,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: 37.9,
         price_medium: 47.9,
         price_large: 59.9,
+        image_url:
+          'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400&h=300&fit=crop',
       },
       {
         name: 'Supreme',
@@ -285,6 +325,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: 39.9,
         price_medium: 49.9,
         price_large: 62.9,
+        image_url:
+          'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&h=300&fit=crop',
       },
       {
         name: 'Parma',
@@ -292,6 +334,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: 42.9,
         price_medium: 54.9,
         price_large: 67.9,
+        image_url:
+          'https://images.unsplash.com/photo-1604382355076-af4b0eb60143?w=400&h=300&fit=crop',
       },
     ];
 
@@ -315,6 +359,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: 29.9,
         price_medium: 39.9,
         price_large: 49.9,
+        image_url:
+          'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&h=300&fit=crop',
       },
       {
         name: 'Banana com Canela',
@@ -322,6 +368,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: 29.9,
         price_medium: 39.9,
         price_large: 49.9,
+        image_url:
+          'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&h=300&fit=crop',
       },
       {
         name: 'Romeu e Julieta',
@@ -329,6 +377,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: 29.9,
         price_medium: 39.9,
         price_large: 49.9,
+        image_url:
+          'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&h=300&fit=crop',
       },
       {
         name: 'Prestígio',
@@ -336,6 +386,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: 31.9,
         price_medium: 41.9,
         price_large: 51.9,
+        image_url:
+          'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&h=300&fit=crop',
       },
       {
         name: 'Brigadeiro',
@@ -343,6 +395,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: 31.9,
         price_medium: 41.9,
         price_large: 51.9,
+        image_url:
+          'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&h=300&fit=crop',
       },
       {
         name: 'Doce de Leite',
@@ -350,6 +404,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: 29.9,
         price_medium: 39.9,
         price_large: 49.9,
+        image_url:
+          'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&h=300&fit=crop',
       },
       {
         name: 'Morango com Nutella',
@@ -357,6 +413,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: 34.9,
         price_medium: 44.9,
         price_large: 54.9,
+        image_url:
+          'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&h=300&fit=crop',
       },
     ];
 
@@ -380,6 +438,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: null,
         price_medium: 22.9,
         price_large: null,
+        image_url:
+          'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop',
       },
       {
         name: 'Cheese Burger',
@@ -388,6 +448,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: null,
         price_medium: 26.9,
         price_large: null,
+        image_url:
+          'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop',
       },
       {
         name: 'Bacon Burger',
@@ -396,6 +458,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: null,
         price_medium: 29.9,
         price_large: null,
+        image_url:
+          'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop',
       },
       {
         name: 'Double Burger',
@@ -404,6 +468,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: null,
         price_medium: 34.9,
         price_large: null,
+        image_url:
+          'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop',
       },
     ];
 
@@ -427,6 +493,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: null,
         price_medium: 24.9,
         price_large: null,
+        image_url:
+          'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&h=300&fit=crop',
       },
       {
         name: 'Frango à Passarinho',
@@ -434,6 +502,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: null,
         price_medium: 29.9,
         price_large: null,
+        image_url:
+          'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&h=300&fit=crop',
       },
       {
         name: 'Polenta Frita',
@@ -441,6 +511,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: null,
         price_medium: 19.9,
         price_large: null,
+        image_url:
+          'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&h=300&fit=crop',
       },
       {
         name: 'Mandioca Frita',
@@ -448,6 +520,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: null,
         price_medium: 22.9,
         price_large: null,
+        image_url:
+          'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&h=300&fit=crop',
       },
     ];
 
@@ -471,6 +545,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: null,
         price_medium: 14.9,
         price_large: null,
+        image_url:
+          'https://images.unsplash.com/photo-1581006852262-e4307cf6283a?w=400&h=300&fit=crop',
       },
       {
         name: 'Guaraná 2L',
@@ -478,6 +554,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: null,
         price_medium: 12.9,
         price_large: null,
+        image_url:
+          'https://images.unsplash.com/photo-1581006852262-e4307cf6283a?w=400&h=300&fit=crop',
       },
       {
         name: 'Suco Natural',
@@ -485,6 +563,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: null,
         price_medium: 10.9,
         price_large: null,
+        image_url:
+          'https://images.unsplash.com/photo-1581006852262-e4307cf6283a?w=400&h=300&fit=crop',
       },
       {
         name: 'Água',
@@ -492,6 +572,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: null,
         price_medium: 5.9,
         price_large: null,
+        image_url:
+          'https://images.unsplash.com/photo-1581006852262-e4307cf6283a?w=400&h=300&fit=crop',
       },
       {
         name: 'Cerveja',
@@ -499,6 +581,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: null,
         price_medium: 11.9,
         price_large: null,
+        image_url:
+          'https://images.unsplash.com/photo-1581006852262-e4307cf6283a?w=400&h=300&fit=crop',
       },
     ];
 
@@ -522,6 +606,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: null,
         price_medium: 24.9,
         price_large: null,
+        image_url:
+          'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&h=300&fit=crop',
       },
       {
         name: 'Brownie',
@@ -529,6 +615,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: null,
         price_medium: 19.9,
         price_large: null,
+        image_url:
+          'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&h=300&fit=crop',
       },
       {
         name: 'Açaí',
@@ -536,6 +624,8 @@ export function seedDatabase(db: Database.Database): void {
         price_small: null,
         price_medium: 22.9,
         price_large: null,
+        image_url:
+          'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&h=300&fit=crop',
       },
     ];
 
