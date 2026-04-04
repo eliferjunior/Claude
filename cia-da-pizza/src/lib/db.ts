@@ -212,6 +212,13 @@ function migrateDatabase(): void {
     // Column already exists
   }
 
+  // Add reservation slots per time to stores
+  try {
+    db.exec(`ALTER TABLE stores ADD COLUMN max_reservations_per_slot INTEGER DEFAULT 5`);
+  } catch {
+    // Column already exists
+  }
+
   // Cleanup expired sessions
   db.prepare("DELETE FROM sessions WHERE expires_at < datetime('now')").run();
 }

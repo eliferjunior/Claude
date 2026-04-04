@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 interface Store {
@@ -74,12 +75,18 @@ function formatDateBR(dateStr: string): string {
 const STEP_LABELS = ['Loja', 'Data e Hora', 'Seus Dados'];
 
 export default function ReservaPage() {
+  const searchParams = useSearchParams();
+  const preSelectedStoreId = searchParams.get('store_id');
+
   const [stores, setStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(true);
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [success, setSuccess] = useState<ReservationResult | null>(null);
+  const [availability, setAvailability] = useState<
+    { time: string; available: number; full: boolean }[]
+  >([]);
 
   // Step 1
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
@@ -102,7 +109,15 @@ export default function ReservaPage() {
       try {
         const res = await fetch('/api/stores?active=1');
         const data: Store[] = await res.json();
-        setStores(data.filter((s) => s.allows_reservation === 1));
+        const filtered = data.filter((s) => s.allows_reservation === 1);
+        setStores(filtered);
+        if (preSelectedStoreId) {
+          const store = filtered.find((s) => s.id === Number(preSelectedStoreId));
+          if (store) {
+            setSelectedStore(store);
+            setStep(2);
+          }
+        }
       } catch {
         // silent
       } finally {
@@ -110,7 +125,26 @@ export default function ReservaPage() {
       }
     }
     fetchStores();
-  }, []);
+  }, [preSelectedStoreId]);
+
+  // Fetch availability when date/store changes
+  useEffect(() => {
+    if (!selectedStore || !selectedDate) return;
+    async function fetchAvailability() {
+      try {
+        const res = await fetch(
+          `/api/reservations/availability?store_id=${selectedStore!.id}&date=${selectedDate}`,
+        );
+        if (res.ok) {
+          const data = await res.json();
+          setAvailability(data.availability || []);
+        }
+      } catch {
+        // silent
+      }
+    }
+    fetchAvailability();
+  }, [selectedStore, selectedDate]);
 
   async function handleSubmit() {
     if (!selectedStore || !selectedDate || !selectedTime || !selectedGuests || !customerName.trim())
@@ -168,8 +202,18 @@ export default function ReservaPage() {
       <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
         <div className="w-full max-w-md bg-gray-800 rounded-2xl p-8 text-center">
           <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-green-600 animate-bounce">
-            <svg className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            <svg
+              className="h-10 w-10 text-white"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
             </svg>
           </div>
           <h2 className="text-2xl font-bold text-white mb-2">Reserva Confirmada!</h2>
@@ -219,9 +263,7 @@ export default function ReservaPage() {
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white">
             Reservar Mesa
           </h1>
-          <p className="mt-2 text-gray-400 text-sm sm:text-lg">
-            Garanta sua mesa na Cia da Pizza
-          </p>
+          <p className="mt-2 text-gray-400 text-sm sm:text-lg">Garanta sua mesa na Cia da Pizza</p>
         </div>
 
         {/* Progress */}
@@ -239,7 +281,12 @@ export default function ReservaPage() {
                 >
                   {done ? (
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                   ) : (
                     num
@@ -323,19 +370,32 @@ export default function ReservaPage() {
                 <span className="text-2xl">🕐</span> Escolha o Horario
               </h2>
               <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                {TIME_SLOTS.map((time) => (
-                  <button
-                    key={time}
-                    onClick={() => setSelectedTime(time)}
-                    className={`rounded-xl py-3 text-sm font-semibold transition-all ${
-                      selectedTime === time
-                        ? 'bg-red-600 text-white ring-2 ring-red-500'
-                        : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                    }`}
-                  >
-                    {time}
-                  </button>
-                ))}
+                {TIME_SLOTS.map((time) => {
+                  const slot = availability.find((a) => a.time === time);
+                  const isFull = slot?.full ?? false;
+                  return (
+                    <button
+                      key={time}
+                      onClick={() => !isFull && setSelectedTime(time)}
+                      disabled={isFull}
+                      className={`rounded-xl py-3 text-sm font-semibold transition-all ${
+                        isFull
+                          ? 'bg-gray-800/50 text-gray-600 cursor-not-allowed line-through'
+                          : selectedTime === time
+                            ? 'bg-red-600 text-white ring-2 ring-red-500'
+                            : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                      }`}
+                    >
+                      {time}
+                      {isFull && <span className="block text-xs text-red-400 mt-0.5">Lotado</span>}
+                      {slot && !isFull && (
+                        <span className="block text-xs text-green-400 mt-0.5">
+                          {slot.available} vagas
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

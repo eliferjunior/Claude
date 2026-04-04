@@ -147,6 +147,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check per-slot reservation limit
+    const maxPerSlot = (store as Record<string, number>).max_reservations_per_slot || 5;
+    const slotCount = db
+      .prepare(
+        "SELECT COUNT(*) AS count FROM reservations WHERE store_id = ? AND date = ? AND time = ? AND status != 'cancelled'",
+      )
+      .get(storeId, date, time) as { count: number };
+
+    if (slotCount.count >= maxPerSlot) {
+      return NextResponse.json(
+        { error: `Horario ${time} ja esta lotado para esta data. Escolha outro horario.` },
+        { status: 400 },
+      );
+    }
+
     // Check daily reservation limit
     if (store.max_reservations && store.max_reservations > 0) {
       const existingCount = db
