@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { supabase } from '@/lib/db';
 import { requireAnyAuth } from '@/lib/auth-helpers';
 import { sanitizeString, validateEmail, validatePhone } from '@/lib/auth';
 
@@ -7,7 +7,7 @@ const VALID_ORDER_TYPES = ['delivery', 'pickup', 'dine_in'];
 
 export async function GET(request: NextRequest) {
   try {
-    const auth = requireAnyAuth(request);
+    const auth = await requireAnyAuth(request);
     if (auth.error) return auth.error;
 
     const { searchParams } = new URL(request.url);
@@ -19,56 +19,52 @@ export async function GET(request: NextRequest) {
     const limitParam = searchParams.get('limit');
     const offsetParam = searchParams.get('offset');
 
-    let query = 'SELECT * FROM orders WHERE 1=1';
-    const params: (string | number)[] = [];
+    let query = supabase
+      .from('orders')
+      .select('*')
+      .order('created_at', { ascending: false });
 
     // If store session, force filter by their store_id
     if (auth.session.type === 'store') {
-      query += ' AND store_id = ?';
-      params.push(auth.session.store.storeId);
+      query = query.eq('store_id', auth.session.store.storeId);
     } else if (storeId) {
-      query += ' AND store_id = ?';
-      params.push(parseInt(storeId, 10));
+      query = query.eq('store_id', parseInt(storeId, 10));
     }
 
     if (status) {
-      query += ' AND status = ?';
-      params.push(status);
+      query = query.eq('status', status);
     }
 
     if (search) {
       const sanitizedSearch = sanitizeString(search, 100) ?? '';
-      query += ' AND (customer_name LIKE ? OR customer_phone LIKE ?)';
-      params.push(`%${sanitizedSearch}%`, `%${sanitizedSearch}%`);
+      query = query.or(`customer_name.ilike.%${sanitizedSearch}%,customer_phone.ilike.%${sanitizedSearch}%`);
     }
 
     if (dateFrom) {
-      query += ' AND date(created_at) >= ?';
-      params.push(dateFrom);
+      query = query.gte('created_at', dateFrom);
     }
 
     if (dateTo) {
-      query += ' AND date(created_at) <= ?';
-      params.push(dateTo);
+      query = query.lte('created_at', dateTo + 'T23:59:59');
     }
-
-    query += ' ORDER BY created_at DESC';
 
     if (limitParam) {
       const limit = Math.max(1, Math.min(parseInt(limitParam, 10) || 100, 1000));
-      query += ' LIMIT ?';
-      params.push(limit);
+      query = query.limit(limit);
 
       if (offsetParam) {
         const offset = Math.max(0, parseInt(offsetParam, 10) || 0);
-        query += ' OFFSET ?';
-        params.push(offset);
+        query = query.range(offset, offset + limit - 1);
       }
     }
 
-    const orders = db.prepare(query).all(...params);
+    const { data: orders, error } = await query;
+
+    if (error) throw error;
+
     return NextResponse.json(orders);
   } catch (error) {
+    console.error('[v0] Orders GET error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -113,13 +109,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify store exists
-    const store = db.prepare('SELECT id FROM stores WHERE id = ? AND active = 1').get(store_id);
-    if (!store) {
+    const { data: store, error: storeError } = await supabase
+      .from('stores')
+      .select('id')
+      .eq('id', store_id)
+      .eq('active', true)
+      .single();
+
+    if (storeError || !store) {
       return NextResponse.json({ error: 'Store not found' }, { status: 404 });
     }
 
     // Server-side price calculation: look up actual prices from the database
-    // instead of trusting client-provided unit_price
     let total = 0;
     const validatedItems: {
       product_id: number;
@@ -138,21 +139,14 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const product = db
-        .prepare(
-          'SELECT id, name, price_small, price_medium, price_large FROM products WHERE id = ? AND active = 1',
-        )
-        .get(item.product_id) as
-        | {
-            id: number;
-            name: string;
-            price_small: number | null;
-            price_medium: number | null;
-            price_large: number | null;
-          }
-        | undefined;
+      const { data: product, error: productError } = await supabase
+        .from('products')
+        .select('id, name, price_small, price_medium, price_large')
+        .eq('id', item.product_id)
+        .eq('active', true)
+        .single();
 
-      if (!product) {
+      if (productError || !product) {
         return NextResponse.json(
           { error: `Product with id ${item.product_id} not found or inactive` },
           { status: 400 },
@@ -198,59 +192,57 @@ export async function POST(request: NextRequest) {
     // Add delivery fee for delivery orders
     let deliveryFee = 0;
     if (order_type === 'delivery') {
-      const feeSetting = db
-        .prepare("SELECT value FROM settings WHERE key = 'delivery_fee'")
-        .get() as { value: string } | undefined;
+      const { data: feeSetting } = await supabase
+        .from('settings')
+        .select('value')
+        .eq('key', 'delivery_fee')
+        .single();
+
       deliveryFee = feeSetting ? parseFloat(feeSetting.value) || 10 : 10;
       total = Math.round((total + deliveryFee) * 100) / 100;
     }
 
-    const insertOrder = db.prepare(
-      `INSERT INTO orders (store_id, customer_name, customer_phone, customer_address, customer_email, order_type, notes, total, delivery_fee, payment_method, change_for)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    );
-
-    const insertItem = db.prepare(
-      `INSERT INTO order_items (order_id, product_id, product_name, size, quantity, unit_price, notes)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    );
-
-    const createOrder = db.transaction(() => {
-      const result = insertOrder.run(
+    // Insert order
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .insert({
         store_id,
-        customerName,
-        customerPhone,
-        customerAddress,
-        customerEmail,
+        customer_name: customerName,
+        customer_phone: customerPhone,
+        customer_address: customerAddress,
+        customer_email: customerEmail,
         order_type,
         notes,
         total,
-        deliveryFee,
-        paymentMethod,
-        changeFor,
-      );
+        delivery_fee: deliveryFee,
+        payment_method: paymentMethod,
+        change_for: changeFor,
+      })
+      .select('id')
+      .single();
 
-      const orderId = result.lastInsertRowid;
+    if (orderError) throw orderError;
 
-      for (const vItem of validatedItems) {
-        insertItem.run(
-          orderId,
-          vItem.product_id,
-          vItem.product_name,
-          vItem.size,
-          vItem.quantity,
-          vItem.unit_price,
-          vItem.notes,
-        );
-      }
+    // Insert order items
+    const orderItems = validatedItems.map(vItem => ({
+      order_id: order.id,
+      product_id: vItem.product_id,
+      product_name: vItem.product_name,
+      size: vItem.size,
+      quantity: vItem.quantity,
+      unit_price: vItem.unit_price,
+      notes: vItem.notes,
+    }));
 
-      return orderId;
-    });
+    const { error: itemsError } = await supabase
+      .from('order_items')
+      .insert(orderItems);
 
-    const orderId = createOrder();
+    if (itemsError) throw itemsError;
 
-    return NextResponse.json({ id: orderId, total, delivery_fee: deliveryFee }, { status: 201 });
+    return NextResponse.json({ id: order.id, total, delivery_fee: deliveryFee }, { status: 201 });
   } catch (error) {
+    console.error('[v0] Orders POST error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

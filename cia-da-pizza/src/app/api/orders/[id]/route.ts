@@ -1,23 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { supabase } from '@/lib/db';
 import { requireAnyAuth } from '@/lib/auth-helpers';
 
 const VALID_STATUSES = ['pending', 'confirmed', 'preparing', 'ready', 'delivered', 'cancelled'];
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const auth = requireAnyAuth(request);
+    const auth = await requireAnyAuth(request);
     if (auth.error) return auth.error;
 
-    const id = parseInt(params.id, 10);
+    const { id: idStr } = await params;
+    const id = parseInt(idStr, 10);
     if (isNaN(id)) {
       return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
     }
 
-    const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(id) as
-      | { store_id: number }
-      | undefined;
-    if (!order) {
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (orderError || !order) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
@@ -26,21 +30,27 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
-    const items = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(id);
+    const { data: items, error: itemsError } = await supabase
+      .from('order_items')
+      .select('*')
+      .eq('order_id', id);
+
+    if (itemsError) throw itemsError;
 
     return NextResponse.json({ ...order, items });
   } catch (error) {
-    // Error logged silently
+    console.error('[v0] Orders GET error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const auth = requireAnyAuth(request);
+    const auth = await requireAnyAuth(request);
     if (auth.error) return auth.error;
 
-    const id = parseInt(params.id, 10);
+    const { id: idStr } = await params;
+    const id = parseInt(idStr, 10);
     if (isNaN(id)) {
       return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
     }
@@ -58,10 +68,13 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       );
     }
 
-    const existing = db.prepare('SELECT * FROM orders WHERE id = ?').get(id) as
-      | { store_id: number }
-      | undefined;
-    if (!existing) {
+    const { data: existing, error: existingError } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (existingError || !existing) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
@@ -70,15 +83,18 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
-    db.prepare("UPDATE orders SET status = ?, updated_at = datetime('now') WHERE id = ?").run(
-      status,
-      id,
-    );
+    const { data: order, error } = await supabase
+      .from('orders')
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
 
-    const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(id);
+    if (error) throw error;
+
     return NextResponse.json(order);
   } catch (error) {
-    // Error logged silently
+    console.error('[v0] Orders PATCH error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

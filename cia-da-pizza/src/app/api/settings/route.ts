@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { supabase } from '@/lib/db';
 import { requireAdminAuth } from '@/lib/auth-helpers';
 import { sanitizeString } from '@/lib/auth';
 
@@ -24,45 +24,47 @@ const ALLOWED_SETTING_KEYS = [
 
 export async function GET() {
   try {
-    const rows = db.prepare('SELECT key, value FROM settings').all() as SettingRow[];
+    const { data: rows, error } = await supabase
+      .from('settings')
+      .select('key, value');
+
+    if (error) throw error;
+
     const settings: Record<string, string> = {};
-    for (const row of rows) {
+    for (const row of (rows as SettingRow[]) || []) {
       settings[row.key] = row.value;
     }
     return NextResponse.json(settings);
   } catch (error) {
-    // Error logged silently
+    console.error('[v0] Settings GET error:', error);
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }
 }
 
 export async function PUT(request: NextRequest) {
   try {
-    const auth = requireAdminAuth(request);
+    const auth = await requireAdminAuth(request);
     if (auth.error) return auth.error;
 
     const body = await request.json();
 
-    const upsert = db.prepare(
-      'INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value',
-    );
-
     if (Array.isArray(body)) {
-      const updateMany = db.transaction(() => {
-        for (const item of body) {
-          const key = sanitizeString(item.key, 100);
-          if (key && ALLOWED_SETTING_KEYS.includes(key) && item.value !== undefined) {
-            upsert.run(key, String(item.value).slice(0, 1000));
-          }
+      for (const item of body) {
+        const key = sanitizeString(item.key, 100);
+        if (key && ALLOWED_SETTING_KEYS.includes(key) && item.value !== undefined) {
+          await supabase
+            .from('settings')
+            .upsert({ key, value: String(item.value).slice(0, 1000) }, { onConflict: 'key' });
         }
-      });
-      updateMany();
+      }
     } else if (body.key && body.value !== undefined) {
       const key = sanitizeString(body.key, 100);
       if (!key || !ALLOWED_SETTING_KEYS.includes(key)) {
         return NextResponse.json({ error: 'Invalid or disallowed setting key.' }, { status: 400 });
       }
-      upsert.run(key, String(body.value).slice(0, 1000));
+      await supabase
+        .from('settings')
+        .upsert({ key, value: String(body.value).slice(0, 1000) }, { onConflict: 'key' });
     } else {
       return NextResponse.json(
         { error: 'Formato inválido. Envie { key, value } ou um array de { key, value }.' },
@@ -70,14 +72,19 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const rows = db.prepare('SELECT key, value FROM settings').all() as SettingRow[];
+    const { data: rows, error } = await supabase
+      .from('settings')
+      .select('key, value');
+
+    if (error) throw error;
+
     const settings: Record<string, string> = {};
-    for (const row of rows) {
+    for (const row of (rows as SettingRow[]) || []) {
       settings[row.key] = row.value;
     }
     return NextResponse.json(settings);
   } catch (error) {
-    // Error logged silently
+    console.error('[v0] Settings PUT error:', error);
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }
 }

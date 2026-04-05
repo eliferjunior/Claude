@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { supabase } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,21 +13,31 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'store_id and date are required' }, { status: 400 });
     }
 
-    const store = db
-      .prepare('SELECT max_reservations_per_slot FROM stores WHERE id = ? AND active = 1')
-      .get(parseInt(storeId, 10)) as { max_reservations_per_slot: number } | undefined;
+    const { data: store, error: storeError } = await supabase
+      .from('stores')
+      .select('max_reservations_per_slot')
+      .eq('id', parseInt(storeId, 10))
+      .eq('active', true)
+      .single();
+
+    if (storeError) {
+      return NextResponse.json({ error: 'Store not found' }, { status: 404 });
+    }
 
     const maxPerSlot = store?.max_reservations_per_slot || 5;
 
-    const slots = db
-      .prepare(
-        "SELECT time, COUNT(*) as count FROM reservations WHERE store_id = ? AND date = ? AND status != 'cancelled' GROUP BY time",
-      )
-      .all(parseInt(storeId, 10), date) as { time: string; count: number }[];
+    const { data: slots, error: slotsError } = await supabase
+      .from('reservations')
+      .select('time')
+      .eq('store_id', parseInt(storeId, 10))
+      .eq('date', date)
+      .neq('status', 'cancelled');
+
+    if (slotsError) throw slotsError;
 
     const slotMap: Record<string, number> = {};
-    for (const s of slots) {
-      slotMap[s.time] = s.count;
+    for (const s of slots || []) {
+      slotMap[s.time] = (slotMap[s.time] || 0) + 1;
     }
 
     const times = ['18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00', '21:30', '22:00'];
@@ -39,7 +49,8 @@ export async function GET(request: NextRequest) {
     }));
 
     return NextResponse.json({ maxPerSlot, availability });
-  } catch {
+  } catch (error) {
+    console.error('[v0] Availability GET error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

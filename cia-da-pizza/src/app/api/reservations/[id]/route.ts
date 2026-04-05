@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { supabase } from '@/lib/db';
 import { requireAnyAuth } from '@/lib/auth-helpers';
 
 const VALID_STATUSES = ['pending', 'confirmed', 'cancelled'];
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const auth = requireAnyAuth(request);
+    const auth = await requireAnyAuth(request);
     if (auth.error) return auth.error;
 
-    const id = parseInt(params.id, 10);
+    const { id: idStr } = await params;
+    const id = parseInt(idStr, 10);
     if (isNaN(id)) {
       return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
     }
@@ -27,11 +28,13 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       );
     }
 
-    const existing = db.prepare('SELECT * FROM reservations WHERE id = ?').get(id) as
-      | { store_id: number }
-      | undefined;
+    const { data: existing, error: existingError } = await supabase
+      .from('reservations')
+      .select('*')
+      .eq('id', id)
+      .single();
 
-    if (!existing) {
+    if (existingError || !existing) {
       return NextResponse.json({ error: 'Reservation not found' }, { status: 404 });
     }
 
@@ -40,13 +43,18 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ error: 'Reservation not found' }, { status: 404 });
     }
 
-    db.prepare('UPDATE reservations SET status = ? WHERE id = ?').run(status, id);
+    const { data: reservation, error } = await supabase
+      .from('reservations')
+      .update({ status })
+      .eq('id', id)
+      .select()
+      .single();
 
-    const reservation = db.prepare('SELECT * FROM reservations WHERE id = ?').get(id);
+    if (error) throw error;
 
     return NextResponse.json(reservation);
   } catch (error) {
-    // Error logged silently
+    console.error('[v0] Reservations PATCH error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

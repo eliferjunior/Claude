@@ -1,14 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { supabase } from '@/lib/db';
 import bcrypt from 'bcryptjs';
 import { checkRateLimit } from '@/lib/rate-limit';
-
-type StoreRow = {
-  id: number;
-  name: string;
-  login_username: string;
-  login_password_hash: string;
-};
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,13 +23,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Usuario e senha sao obrigatorios' }, { status: 400 });
     }
 
-    const store = db
-      .prepare(
-        'SELECT id, name, login_username, login_password_hash FROM stores WHERE login_username = ?',
-      )
-      .get(username) as StoreRow | undefined;
+    const { data: store, error: storeError } = await supabase
+      .from('stores')
+      .select('id, name, login_username, login_password_hash')
+      .eq('login_username', username)
+      .single();
 
-    if (!store || !store.login_password_hash) {
+    if (storeError || !store || !store.login_password_hash) {
       return NextResponse.json({ error: 'Credenciais invalidas' }, { status: 401 });
     }
 
@@ -49,9 +42,16 @@ export async function POST(request: NextRequest) {
     const token = crypto.randomUUID();
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
-    db.prepare(
-      'INSERT INTO sessions (token, user_type, user_id, expires_at) VALUES (?, ?, ?, ?)',
-    ).run(token, 'store', store.id, expiresAt);
+    const { error: sessionError } = await supabase
+      .from('sessions')
+      .insert({
+        token,
+        user_type: 'store',
+        user_id: store.id,
+        expires_at: expiresAt,
+      });
+
+    if (sessionError) throw sessionError;
 
     const response = NextResponse.json({
       store_id: store.id,
@@ -68,6 +68,7 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
+    console.error('[v0] Auth store POST error:', error);
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }
 }
@@ -77,7 +78,7 @@ export async function DELETE(request: NextRequest) {
     const token = request.cookies.get('store_session')?.value;
 
     if (token) {
-      db.prepare('DELETE FROM sessions WHERE token = ?').run(token);
+      await supabase.from('sessions').delete().eq('token', token);
     }
 
     const response = NextResponse.json({ success: true });
@@ -89,7 +90,8 @@ export async function DELETE(request: NextRequest) {
       maxAge: 0,
     });
     return response;
-  } catch {
+  } catch (error) {
+    console.error('[v0] Auth store DELETE error:', error);
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }
 }

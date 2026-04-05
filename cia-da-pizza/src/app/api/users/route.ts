@@ -1,27 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { supabase } from '@/lib/db';
 import { requireAdminAuth } from '@/lib/auth-helpers';
 import bcrypt from 'bcryptjs';
 
 export async function GET(request: NextRequest) {
   try {
-    const auth = requireAdminAuth(request);
+    const auth = await requireAdminAuth(request);
     if (auth.error) return auth.error;
 
-    const users = db
-      .prepare('SELECT id, username, name, role, created_at FROM admin_users ORDER BY id ASC')
-      .all();
+    const { data: users, error } = await supabase
+      .from('admin_users')
+      .select('id, username, name, role, created_at')
+      .order('id', { ascending: true });
+
+    if (error) throw error;
 
     return NextResponse.json(users);
   } catch (error) {
-    // Error logged silently
+    console.error('[v0] Users GET error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const auth = requireAdminAuth(request);
+    const auth = await requireAdminAuth(request);
     if (auth.error) return auth.error;
 
     const body = await request.json();
@@ -45,9 +48,11 @@ export async function POST(request: NextRequest) {
     const validRoles = ['admin', 'manager', 'editor'];
     const userRole = role && validRoles.includes(role) ? role : 'admin';
 
-    const existing = db
-      .prepare('SELECT id FROM admin_users WHERE username = ?')
-      .get(username.trim());
+    const { data: existing } = await supabase
+      .from('admin_users')
+      .select('id')
+      .eq('username', username.trim())
+      .single();
 
     if (existing) {
       return NextResponse.json({ error: 'Username already exists' }, { status: 409 });
@@ -55,17 +60,22 @@ export async function POST(request: NextRequest) {
 
     const passwordHash = await bcrypt.hash(password, 10);
 
-    const result = db
-      .prepare('INSERT INTO admin_users (username, password_hash, name, role) VALUES (?, ?, ?, ?)')
-      .run(username.trim(), passwordHash, name.trim(), userRole);
+    const { data: user, error } = await supabase
+      .from('admin_users')
+      .insert({
+        username: username.trim(),
+        password_hash: passwordHash,
+        name: name.trim(),
+        role: userRole,
+      })
+      .select('id, username, name, role, created_at')
+      .single();
 
-    const user = db
-      .prepare('SELECT id, username, name, role, created_at FROM admin_users WHERE id = ?')
-      .get(result.lastInsertRowid);
+    if (error) throw error;
 
     return NextResponse.json(user, { status: 201 });
   } catch (error) {
-    // Error logged silently
+    console.error('[v0] Users POST error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

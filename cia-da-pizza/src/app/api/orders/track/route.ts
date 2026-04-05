@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { supabase } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
-
-type OrderRow = {
-  id: number;
-  store_name: string;
-  [key: string]: unknown;
-};
 
 // Public endpoint for customers to track their orders by ID or phone
 export async function GET(request: NextRequest) {
@@ -23,35 +17,41 @@ export async function GET(request: NextRequest) {
 
     // Try to find by order ID first
     const orderId = parseInt(sanitized, 10);
-    let order: OrderRow | undefined;
+    let order = null;
 
     if (!isNaN(orderId) && orderId > 0) {
-      order = db
-        .prepare(
-          `
-        SELECT o.*, s.name as store_name
-        FROM orders o
-        JOIN stores s ON o.store_id = s.id
-        WHERE o.id = ?
-      `,
-        )
-        .get(orderId) as OrderRow | undefined;
+      const { data } = await supabase
+        .from('orders')
+        .select('*, stores!inner(name)')
+        .eq('id', orderId)
+        .single();
+      
+      if (data) {
+        order = {
+          ...data,
+          store_name: data.stores?.name,
+          stores: undefined,
+        };
+      }
     }
 
     // If not found by ID, search by phone
     if (!order) {
-      order = db
-        .prepare(
-          `
-        SELECT o.*, s.name as store_name
-        FROM orders o
-        JOIN stores s ON o.store_id = s.id
-        WHERE o.customer_phone LIKE ?
-        ORDER BY o.created_at DESC
-        LIMIT 1
-      `,
-        )
-        .get(`%${sanitized}%`) as OrderRow | undefined;
+      const { data } = await supabase
+        .from('orders')
+        .select('*, stores!inner(name)')
+        .ilike('customer_phone', `%${sanitized}%`)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (data) {
+        order = {
+          ...data,
+          store_name: data.stores?.name,
+          stores: undefined,
+        };
+      }
     }
 
     if (!order) {
@@ -59,10 +59,16 @@ export async function GET(request: NextRequest) {
     }
 
     // Get order items
-    const items = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(order.id);
+    const { data: items, error: itemsError } = await supabase
+      .from('order_items')
+      .select('*')
+      .eq('order_id', order.id);
+
+    if (itemsError) throw itemsError;
 
     return NextResponse.json({ ...order, items });
-  } catch {
+  } catch (error) {
+    console.error('[v0] Orders track GET error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

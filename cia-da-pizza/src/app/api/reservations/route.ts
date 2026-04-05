@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { supabase } from '@/lib/db';
 import { requireAnyAuth } from '@/lib/auth-helpers';
 import { sanitizeString, validateEmail, validatePhone } from '@/lib/auth';
 
@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
-    const auth = requireAnyAuth(request);
+    const auth = await requireAnyAuth(request);
     if (auth.error) return auth.error;
 
     const { searchParams } = new URL(request.url);
@@ -15,36 +15,37 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
     const storeId = searchParams.get('store_id');
 
-    let query = 'SELECT * FROM reservations WHERE 1=1';
-    const params: (string | number)[] = [];
+    let query = supabase
+      .from('reservations')
+      .select('*')
+      .order('date', { ascending: false })
+      .order('time', { ascending: true });
 
     // Store users can only see their own reservations
     if (auth.session.type === 'store') {
-      query += ' AND store_id = ?';
-      params.push(auth.session.store.storeId);
+      query = query.eq('store_id', auth.session.store.storeId);
     } else if (storeId) {
-      query += ' AND store_id = ?';
-      params.push(parseInt(storeId, 10));
+      query = query.eq('store_id', parseInt(storeId, 10));
     }
 
     if (date) {
       const sanitizedDate = sanitizeString(date, 10);
       if (sanitizedDate) {
-        query += ' AND date = ?';
-        params.push(sanitizedDate);
+        query = query.eq('date', sanitizedDate);
       }
     }
 
     if (status) {
-      query += ' AND status = ?';
-      params.push(status);
+      query = query.eq('status', status);
     }
 
-    query += ' ORDER BY date DESC, time ASC';
+    const { data: reservations, error } = await query;
 
-    const reservations = db.prepare(query).all(...params);
+    if (error) throw error;
+
     return NextResponse.json(reservations);
   } catch (error) {
+    console.error('[v0] Reservations GET error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -112,20 +113,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify store exists and check settings
-    const store = db
-      .prepare(
-        'SELECT id, allows_reservation, max_reservations, max_reservation_guests FROM stores WHERE id = ? AND active = 1',
-      )
-      .get(storeId) as
-      | {
-          id: number;
-          allows_reservation: number;
-          max_reservations: number;
-          max_reservation_guests: number;
-        }
-      | undefined;
+    const { data: store, error: storeError } = await supabase
+      .from('stores')
+      .select('id, allows_reservation, max_reservations, max_reservation_guests, max_reservations_per_slot')
+      .eq('id', storeId)
+      .eq('active', true)
+      .single();
 
-    if (!store) {
+    if (storeError || !store) {
       return NextResponse.json({ error: 'Loja nao encontrada.' }, { status: 404 });
     }
 
@@ -148,14 +143,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Check per-slot reservation limit
-    const maxPerSlot = (store as Record<string, number>).max_reservations_per_slot || 5;
-    const slotCount = db
-      .prepare(
-        "SELECT COUNT(*) AS count FROM reservations WHERE store_id = ? AND date = ? AND time = ? AND status != 'cancelled'",
-      )
-      .get(storeId, date, time) as { count: number };
+    const maxPerSlot = store.max_reservations_per_slot || 5;
+    const { count: slotCount } = await supabase
+      .from('reservations')
+      .select('*', { count: 'exact', head: true })
+      .eq('store_id', storeId)
+      .eq('date', date)
+      .eq('time', time)
+      .neq('status', 'cancelled');
 
-    if (slotCount.count >= maxPerSlot) {
+    if ((slotCount ?? 0) >= maxPerSlot) {
       return NextResponse.json(
         { error: `Horario ${time} ja esta lotado para esta data. Escolha outro horario.` },
         { status: 400 },
@@ -164,13 +161,14 @@ export async function POST(request: NextRequest) {
 
     // Check daily reservation limit
     if (store.max_reservations && store.max_reservations > 0) {
-      const existingCount = db
-        .prepare(
-          "SELECT COUNT(*) AS count FROM reservations WHERE store_id = ? AND date = ? AND status != 'cancelled'",
-        )
-        .get(storeId, date) as { count: number };
+      const { count: existingCount } = await supabase
+        .from('reservations')
+        .select('*', { count: 'exact', head: true })
+        .eq('store_id', storeId)
+        .eq('date', date)
+        .neq('status', 'cancelled');
 
-      if (existingCount.count >= store.max_reservations) {
+      if ((existingCount ?? 0) >= store.max_reservations) {
         return NextResponse.json(
           {
             error:
@@ -181,19 +179,26 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const result = db
-      .prepare(
-        `INSERT INTO reservations (store_id, customer_name, customer_phone, customer_email, date, time, guests, notes)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      )
-      .run(storeId, customerName, customerPhone, customerEmail, date, time, guests, notes);
+    const { data: reservation, error } = await supabase
+      .from('reservations')
+      .insert({
+        store_id: storeId,
+        customer_name: customerName,
+        customer_phone: customerPhone,
+        customer_email: customerEmail,
+        date,
+        time,
+        guests,
+        notes,
+      })
+      .select()
+      .single();
 
-    const reservation = db
-      .prepare('SELECT * FROM reservations WHERE id = ?')
-      .get(result.lastInsertRowid);
+    if (error) throw error;
 
     return NextResponse.json(reservation, { status: 201 });
   } catch (error) {
+    console.error('[v0] Reservations POST error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

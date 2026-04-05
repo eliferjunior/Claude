@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { supabase } from '@/lib/db';
 import { requireAdminAuth } from '@/lib/auth-helpers';
 import { sanitizeString } from '@/lib/auth';
 
@@ -12,42 +12,44 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search');
     const active = searchParams.get('active');
 
-    let query = `
-      SELECT p.*, c.name AS category_name
-      FROM products p
-      JOIN categories c ON p.category_id = c.id
-      WHERE 1=1
-    `;
-    const params: (string | number)[] = [];
+    let query = supabase
+      .from('products')
+      .select('*, categories!inner(name)')
+      .order('name', { ascending: true });
 
     if (categoryId) {
-      query += ' AND p.category_id = ?';
-      params.push(parseInt(categoryId, 10));
+      query = query.eq('category_id', parseInt(categoryId, 10));
     }
 
     if (search) {
-      query += ' AND (p.name LIKE ? OR p.description LIKE ?)';
-      params.push(`%${search}%`, `%${search}%`);
+      query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
     }
 
     if (active) {
-      query += ' AND p.active = ?';
-      params.push(parseInt(active, 10));
+      query = query.eq('active', active === '1');
     }
 
-    query += ' ORDER BY c.order_position ASC, p.name ASC';
+    const { data: products, error } = await query;
 
-    const products = db.prepare(query).all(...params);
-    return NextResponse.json(products);
+    if (error) throw error;
+
+    // Transform data to match expected format
+    const formattedProducts = products?.map(p => ({
+      ...p,
+      category_name: p.categories?.name,
+      categories: undefined,
+    }));
+
+    return NextResponse.json(formattedProducts);
   } catch (error) {
-    // Error logged silently
+    console.error('[v0] Products GET error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const auth = requireAdminAuth(request);
+    const auth = await requireAdminAuth(request);
     if (auth.error) return auth.error;
 
     const body = await request.json();
@@ -59,33 +61,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'category_id and name are required' }, { status: 400 });
     }
 
-    const result = db
-      .prepare(
-        `INSERT INTO products (category_id, name, description, price_small, price_medium, price_large, image_url)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      )
-      .run(
-        categoryId,
+    const { data: product, error } = await supabase
+      .from('products')
+      .insert({
+        category_id: categoryId,
         name,
-        sanitizeString(body.description, 1000),
-        Number.isFinite(body.price_small) ? body.price_small : null,
-        Number.isFinite(body.price_medium) ? body.price_medium : null,
-        Number.isFinite(body.price_large) ? body.price_large : null,
-        sanitizeString(body.image_url, 500),
-      );
+        description: sanitizeString(body.description, 1000),
+        price_small: Number.isFinite(body.price_small) ? body.price_small : null,
+        price_medium: Number.isFinite(body.price_medium) ? body.price_medium : null,
+        price_large: Number.isFinite(body.price_large) ? body.price_large : null,
+        image_url: sanitizeString(body.image_url, 500),
+      })
+      .select('*, categories!inner(name)')
+      .single();
 
-    const product = db
-      .prepare(
-        `SELECT p.*, c.name AS category_name
-         FROM products p
-         JOIN categories c ON p.category_id = c.id
-         WHERE p.id = ?`,
-      )
-      .get(result.lastInsertRowid);
+    if (error) throw error;
 
-    return NextResponse.json(product, { status: 201 });
+    const formattedProduct = {
+      ...product,
+      category_name: product.categories?.name,
+      categories: undefined,
+    };
+
+    return NextResponse.json(formattedProduct, { status: 201 });
   } catch (error) {
-    // Error logged silently
+    console.error('[v0] Products POST error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

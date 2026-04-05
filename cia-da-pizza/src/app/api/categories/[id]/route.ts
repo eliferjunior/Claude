@@ -1,63 +1,89 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { supabase } from '@/lib/db';
 import { requireAdminAuth } from '@/lib/auth-helpers';
 import { sanitizeString } from '@/lib/auth';
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const auth = requireAdminAuth(request);
+    const auth = await requireAdminAuth(request);
     if (auth.error) return auth.error;
 
-    const id = parseInt(params.id, 10);
+    const { id: idStr } = await params;
+    const id = parseInt(idStr, 10);
     if (isNaN(id)) {
       return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
     }
 
     const body = await request.json();
 
-    const existing = db.prepare('SELECT * FROM categories WHERE id = ?').get(id);
-    if (!existing) {
+    const { data: existing, error: existingError } = await supabase
+      .from('categories')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (existingError || !existing) {
       return NextResponse.json({ error: 'Category not found' }, { status: 404 });
     }
 
-    const name = body.name !== undefined ? sanitizeString(body.name, 200) : null;
-    const orderPosition = Number.isFinite(body.order_position)
-      ? Math.max(0, Math.min(body.order_position, 9999))
-      : null;
-    const active = body.active !== undefined ? (body.active ? 1 : 0) : null;
+    const updateData: Record<string, unknown> = {};
+    if (body.name !== undefined) {
+      updateData.name = sanitizeString(body.name, 200);
+    }
+    if (Number.isFinite(body.order_position)) {
+      updateData.order_position = Math.max(0, Math.min(body.order_position, 9999));
+    }
+    if (body.active !== undefined) {
+      updateData.active = Boolean(body.active);
+    }
 
-    db.prepare(
-      'UPDATE categories SET name = COALESCE(?, name), order_position = COALESCE(?, order_position), active = COALESCE(?, active) WHERE id = ?',
-    ).run(name, orderPosition, active, id);
+    const { data: category, error } = await supabase
+      .from('categories')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single();
 
-    const category = db.prepare('SELECT * FROM categories WHERE id = ?').get(id);
+    if (error) throw error;
+
     return NextResponse.json(category);
   } catch (error) {
-    // Error logged silently
+    console.error('[v0] Categories PUT error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const auth = requireAdminAuth(request);
+    const auth = await requireAdminAuth(request);
     if (auth.error) return auth.error;
 
-    const id = parseInt(params.id, 10);
+    const { id: idStr } = await params;
+    const id = parseInt(idStr, 10);
     if (isNaN(id)) {
       return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
     }
 
-    const existing = db.prepare('SELECT * FROM categories WHERE id = ?').get(id);
-    if (!existing) {
+    const { data: existing, error: existingError } = await supabase
+      .from('categories')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (existingError || !existing) {
       return NextResponse.json({ error: 'Category not found' }, { status: 404 });
     }
 
-    db.prepare('DELETE FROM categories WHERE id = ?').run(id);
+    const { error } = await supabase
+      .from('categories')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
 
     return NextResponse.json({ message: 'Category deleted' });
   } catch (error) {
-    // Error logged silently
+    console.error('[v0] Categories DELETE error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

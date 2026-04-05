@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { supabase } from '@/lib/db';
 import { requireAdminAuth } from '@/lib/auth-helpers';
 import bcrypt from 'bcryptjs';
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const auth = requireAdminAuth(request);
+    const auth = await requireAdminAuth(request);
     if (auth.error) return auth.error;
 
     const { id } = await params;
@@ -15,9 +15,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Invalid store ID' }, { status: 400 });
     }
 
-    const existing = db.prepare('SELECT id FROM stores WHERE id = ?').get(storeId);
+    const { data: existing, error: existingError } = await supabase
+      .from('stores')
+      .select('id')
+      .eq('id', storeId)
+      .single();
 
-    if (!existing) {
+    if (existingError || !existing) {
       return NextResponse.json({ error: 'Store not found' }, { status: 404 });
     }
 
@@ -33,11 +37,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     const passwordHash = await bcrypt.hash(new_password, 10);
 
-    db.prepare('UPDATE stores SET login_password_hash = ? WHERE id = ?').run(passwordHash, storeId);
+    const { error } = await supabase
+      .from('stores')
+      .update({ login_password_hash: passwordHash })
+      .eq('id', storeId);
+
+    if (error) throw error;
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    // Error logged silently
+    console.error('[v0] Stores password PUT error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

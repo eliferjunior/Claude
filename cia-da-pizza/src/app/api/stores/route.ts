@@ -1,40 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { supabase } from '@/lib/db';
 import { requireAdminAuth } from '@/lib/auth-helpers';
 import { sanitizeString } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
-const STORE_SAFE_COLUMNS = `id, name, address, phone, whatsapp, opening_hours, closing_hours,
-  active, is_delivery, lat, lng, allows_delivery, allows_pickup, allows_reservation,
-  allows_dine_in, whatsapp_number, whatsapp_message, login_username`;
+const STORE_SAFE_COLUMNS = 'id, name, address, phone, whatsapp, opening_hours, closing_hours, active, is_delivery, lat, lng, allows_delivery, allows_pickup, allows_reservation, allows_dine_in, whatsapp_number, whatsapp_message, login_username, max_reservations, max_reservation_guests, max_reservations_per_slot';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const active = searchParams.get('active');
 
-    let query = `SELECT ${STORE_SAFE_COLUMNS} FROM stores`;
-    const params: number[] = [];
+    let query = supabase
+      .from('stores')
+      .select(STORE_SAFE_COLUMNS)
+      .order('name', { ascending: true });
 
     if (active) {
-      query += ' WHERE active = ?';
-      params.push(parseInt(active, 10));
+      query = query.eq('active', active === '1');
     }
 
-    query += ' ORDER BY name ASC';
+    const { data: stores, error } = await query;
 
-    const stores = db.prepare(query).all(...params);
+    if (error) throw error;
+
     return NextResponse.json(stores);
   } catch (error) {
-    // Error logged silently
+    console.error('[v0] Stores GET error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const auth = requireAdminAuth(request);
+    const auth = await requireAdminAuth(request);
     if (auth.error) return auth.error;
 
     const body = await request.json();
@@ -44,36 +44,33 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Name is required' }, { status: 400 });
     }
 
-    const result = db
-      .prepare(
-        `INSERT INTO stores (name, address, phone, whatsapp, opening_hours, closing_hours, is_delivery, lat, lng, allows_delivery, allows_pickup, allows_reservation, allows_dine_in, whatsapp_number, whatsapp_message)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      )
-      .run(
+    const { data: store, error } = await supabase
+      .from('stores')
+      .insert({
         name,
-        sanitizeString(body.address, 500),
-        sanitizeString(body.phone, 30),
-        sanitizeString(body.whatsapp, 30),
-        sanitizeString(body.opening_hours, 10),
-        sanitizeString(body.closing_hours, 10),
-        body.is_delivery ? 1 : 0,
-        body.lat ?? null,
-        body.lng ?? null,
-        body.allows_delivery !== undefined ? (body.allows_delivery ? 1 : 0) : 1,
-        body.allows_pickup !== undefined ? (body.allows_pickup ? 1 : 0) : 1,
-        body.allows_reservation !== undefined ? (body.allows_reservation ? 1 : 0) : 1,
-        body.allows_dine_in !== undefined ? (body.allows_dine_in ? 1 : 0) : 1,
-        sanitizeString(body.whatsapp_number, 30) ?? '',
-        sanitizeString(body.whatsapp_message, 500) ?? 'Olá! Gostaria de fazer um pedido.',
-      );
+        address: sanitizeString(body.address, 500),
+        phone: sanitizeString(body.phone, 30),
+        whatsapp: sanitizeString(body.whatsapp, 30),
+        opening_hours: sanitizeString(body.opening_hours, 10),
+        closing_hours: sanitizeString(body.closing_hours, 10),
+        is_delivery: body.is_delivery ?? false,
+        lat: body.lat ?? null,
+        lng: body.lng ?? null,
+        allows_delivery: body.allows_delivery ?? true,
+        allows_pickup: body.allows_pickup ?? true,
+        allows_reservation: body.allows_reservation ?? true,
+        allows_dine_in: body.allows_dine_in ?? true,
+        whatsapp_number: sanitizeString(body.whatsapp_number, 30) ?? '',
+        whatsapp_message: sanitizeString(body.whatsapp_message, 500) ?? 'Olá! Gostaria de fazer um pedido.',
+      })
+      .select(STORE_SAFE_COLUMNS)
+      .single();
 
-    const store = db
-      .prepare(`SELECT ${STORE_SAFE_COLUMNS} FROM stores WHERE id = ?`)
-      .get(result.lastInsertRowid);
+    if (error) throw error;
 
     return NextResponse.json(store, { status: 201 });
   } catch (error) {
-    // Error logged silently
+    console.error('[v0] Stores POST error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

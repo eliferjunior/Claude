@@ -1,103 +1,126 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { supabase } from '@/lib/db';
 import { requireAdminAuth } from '@/lib/auth-helpers';
 
 export async function GET(request: NextRequest) {
   try {
-    const auth = requireAdminAuth(request);
+    const auth = await requireAdminAuth(request);
     if (auth.error) return auth.error;
 
     // Use Sao Paulo timezone for proper Brazilian date calculation
     const now = new Date();
     const brDate = now.toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+    const startOfDay = `${brDate}T00:00:00`;
+    const endOfDay = `${brDate}T23:59:59`;
 
-    const ordersToday = db
-      .prepare('SELECT COUNT(*) AS count FROM orders WHERE date(created_at) = ?')
-      .get(brDate) as { count: number };
+    // Orders today
+    const { count: ordersToday } = await supabase
+      .from('orders')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', startOfDay)
+      .lte('created_at', endOfDay);
 
-    const pendingOrders = db
-      .prepare("SELECT COUNT(*) AS count FROM orders WHERE status = 'pending'")
-      .get() as { count: number };
+    // Pending orders
+    const { count: pendingOrders } = await supabase
+      .from('orders')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'pending');
 
-    const reservationsToday = db
-      .prepare('SELECT COUNT(*) AS count FROM reservations WHERE date = ?')
-      .get(brDate) as { count: number };
+    // Reservations today
+    const { count: reservationsToday } = await supabase
+      .from('reservations')
+      .select('*', { count: 'exact', head: true })
+      .eq('date', brDate);
 
-    const revenueToday = db
-      .prepare(
-        "SELECT COALESCE(SUM(total), 0) AS total FROM orders WHERE date(created_at) = ? AND status != 'cancelled'",
-      )
-      .get(brDate) as { total: number };
+    // Revenue today
+    const { data: revenueData } = await supabase
+      .from('orders')
+      .select('total')
+      .gte('created_at', startOfDay)
+      .lte('created_at', endOfDay)
+      .neq('status', 'cancelled');
 
-    const recentOrders = db
-      .prepare(
-        `SELECT o.*, s.name AS store_name
-         FROM orders o
-         LEFT JOIN stores s ON o.store_id = s.id
-         ORDER BY o.created_at DESC
-         LIMIT 10`,
-      )
-      .all();
+    const revenueToday = revenueData?.reduce((sum, order) => sum + (order.total || 0), 0) || 0;
 
-    const recentReservations = db
-      .prepare('SELECT * FROM reservations ORDER BY created_at DESC LIMIT 5')
-      .all();
+    // Recent orders
+    const { data: recentOrders } = await supabase
+      .from('orders')
+      .select('*, stores!inner(name)')
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    const formattedRecentOrders = recentOrders?.map(order => ({
+      ...order,
+      store_name: order.stores?.name,
+      stores: undefined,
+    }));
+
+    // Recent reservations
+    const { data: recentReservations } = await supabase
+      .from('reservations')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(5);
 
     // Order status breakdown for today
-    const ordersByStatus = db
-      .prepare(
-        `SELECT status, COUNT(*) AS count
-         FROM orders
-         WHERE date(created_at) = ?
-         GROUP BY status`,
-      )
-      .all(brDate) as { status: string; count: number }[];
+    const { data: ordersByStatusData } = await supabase
+      .from('orders')
+      .select('status')
+      .gte('created_at', startOfDay)
+      .lte('created_at', endOfDay);
 
     const statusBreakdown: Record<string, number> = {};
-    for (const row of ordersByStatus) {
-      statusBreakdown[row.status] = row.count;
-    }
+    ordersByStatusData?.forEach(order => {
+      statusBreakdown[order.status] = (statusBreakdown[order.status] || 0) + 1;
+    });
 
     // Reservation status breakdown for today
-    const reservationsByStatus = db
-      .prepare(
-        `SELECT status, COUNT(*) AS count
-         FROM reservations
-         WHERE date = ?
-         GROUP BY status`,
-      )
-      .all(brDate) as { status: string; count: number }[];
+    const { data: reservationsByStatusData } = await supabase
+      .from('reservations')
+      .select('status')
+      .eq('date', brDate);
 
     const reservationBreakdown: Record<string, number> = {};
-    for (const row of reservationsByStatus) {
-      reservationBreakdown[row.status] = row.count;
-    }
+    reservationsByStatusData?.forEach(res => {
+      reservationBreakdown[res.status] = (reservationBreakdown[res.status] || 0) + 1;
+    });
 
-    const revenueByStore = db
-      .prepare(
-        `SELECT s.id AS store_id, s.name AS store_name, COALESCE(SUM(o.total), 0) AS revenue
-         FROM stores s
-         LEFT JOIN orders o ON o.store_id = s.id
-           AND date(o.created_at) = ?
-           AND o.status != 'cancelled'
-         WHERE s.active = 1
-         GROUP BY s.id, s.name
-         ORDER BY revenue DESC`,
-      )
-      .all(brDate);
+    // Revenue by store
+    const { data: stores } = await supabase
+      .from('stores')
+      .select('id, name')
+      .eq('active', true);
+
+    const { data: ordersByStore } = await supabase
+      .from('orders')
+      .select('store_id, total')
+      .gte('created_at', startOfDay)
+      .lte('created_at', endOfDay)
+      .neq('status', 'cancelled');
+
+    const revenueByStore = stores?.map(store => {
+      const storeOrders = ordersByStore?.filter(o => o.store_id === store.id) || [];
+      const revenue = storeOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+      return {
+        store_id: store.id,
+        store_name: store.name,
+        revenue,
+      };
+    }).sort((a, b) => b.revenue - a.revenue);
 
     return NextResponse.json({
-      orders_today: ordersToday.count,
-      pending_orders: pendingOrders.count,
-      reservations_today: reservationsToday.count,
-      revenue_today: revenueToday.total,
-      recent_orders: recentOrders,
-      recent_reservations: recentReservations,
-      revenue_by_store: revenueByStore,
+      orders_today: ordersToday || 0,
+      pending_orders: pendingOrders || 0,
+      reservations_today: reservationsToday || 0,
+      revenue_today: revenueToday,
+      recent_orders: formattedRecentOrders || [],
+      recent_reservations: recentReservations || [],
+      revenue_by_store: revenueByStore || [],
       orders_by_status: statusBreakdown,
       reservations_by_status: reservationBreakdown,
     });
   } catch (error) {
+    console.error('[v0] Dashboard GET error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

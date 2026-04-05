@@ -1,20 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { supabase } from '@/lib/db';
 import { requireAdminAuth } from '@/lib/auth-helpers';
 import { sanitizeString } from '@/lib/auth';
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const auth = requireAdminAuth(request);
+    const auth = await requireAdminAuth(request);
     if (auth.error) return auth.error;
 
-    const id = parseInt(params.id, 10);
+    const { id: idStr } = await params;
+    const id = parseInt(idStr, 10);
     if (isNaN(id)) {
       return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
     }
 
-    const existing = db.prepare('SELECT id FROM promotions WHERE id = ?').get(id);
-    if (!existing) {
+    const { data: existing, error: existingError } = await supabase
+      .from('promotions')
+      .select('id')
+      .eq('id', id)
+      .single();
+
+    if (existingError || !existing) {
       return NextResponse.json({ error: 'Promotion not found' }, { status: 404 });
     }
 
@@ -27,55 +33,55 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       }
     }
 
-    db.prepare(
-      `UPDATE promotions SET
-        title = COALESCE(?, title),
-        description = COALESCE(?, description),
-        image_url = COALESCE(?, image_url),
-        discount_percent = COALESCE(?, discount_percent),
-        discount_value = COALESCE(?, discount_value),
-        promo_code = COALESCE(?, promo_code),
-        start_date = COALESCE(?, start_date),
-        end_date = COALESCE(?, end_date),
-        active = COALESCE(?, active),
-        banner_color = COALESCE(?, banner_color)
-       WHERE id = ?`,
-    ).run(
-      sanitizeString(body.title, 200),
-      body.description !== undefined ? sanitizeString(body.description, 1000) : null,
-      body.image_url !== undefined ? sanitizeString(body.image_url, 500) : null,
-      Number.isFinite(body.discount_percent) ? body.discount_percent : null,
-      Number.isFinite(body.discount_value) ? body.discount_value : null,
-      body.promo_code !== undefined ? sanitizeString(body.promo_code, 50) : null,
-      body.start_date || null,
-      body.end_date || null,
-      body.active !== undefined ? (body.active ? 1 : 0) : null,
-      sanitizeString(body.banner_color, 20),
-      id,
-    );
+    const updateData: Record<string, unknown> = {};
+    if (body.title !== undefined) updateData.title = sanitizeString(body.title, 200);
+    if (body.description !== undefined) updateData.description = sanitizeString(body.description, 1000);
+    if (body.image_url !== undefined) updateData.image_url = sanitizeString(body.image_url, 500);
+    if (Number.isFinite(body.discount_percent)) updateData.discount_percent = body.discount_percent;
+    if (Number.isFinite(body.discount_value)) updateData.discount_value = body.discount_value;
+    if (body.promo_code !== undefined) updateData.promo_code = sanitizeString(body.promo_code, 50);
+    if (body.start_date) updateData.start_date = body.start_date;
+    if (body.end_date) updateData.end_date = body.end_date;
+    if (body.active !== undefined) updateData.active = Boolean(body.active);
+    if (body.banner_color !== undefined) updateData.banner_color = sanitizeString(body.banner_color, 20);
 
-    const promotion = db.prepare('SELECT * FROM promotions WHERE id = ?').get(id);
+    const { data: promotion, error } = await supabase
+      .from('promotions')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
     return NextResponse.json(promotion);
   } catch (error) {
-    // Error logged silently
+    console.error('[v0] Promotions PUT error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const auth = requireAdminAuth(request);
+    const auth = await requireAdminAuth(request);
     if (auth.error) return auth.error;
 
-    const id = parseInt(params.id, 10);
+    const { id: idStr } = await params;
+    const id = parseInt(idStr, 10);
     if (isNaN(id)) {
       return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
     }
 
-    db.prepare('DELETE FROM promotions WHERE id = ?').run(id);
+    const { error } = await supabase
+      .from('promotions')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+
     return NextResponse.json({ message: 'Promotion deleted' });
   } catch (error) {
-    // Error logged silently
+    console.error('[v0] Promotions DELETE error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
