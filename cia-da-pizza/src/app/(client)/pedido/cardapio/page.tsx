@@ -201,14 +201,17 @@ export default function CardapioPage() {
   }
 
   function handleDoisSaboresConfirm() {
-    if (doisSaboresSelections.length !== 2) return;
+    if (doisSaboresSelections.length < 1 || doisSaboresSelections.length > 2) return;
 
     const p1 = products.find((p) => p.id === doisSaboresSelections[0]);
-    const p2 = products.find((p) => p.id === doisSaboresSelections[1]);
-    if (!p1 || !p2) return;
+    if (!p1) return;
+    const p2 =
+      doisSaboresSelections.length === 2
+        ? products.find((p) => p.id === doisSaboresSelections[1])
+        : null;
 
     const price1 = p1.price_large ?? 0;
-    const price2 = p2.price_large ?? 0;
+    const price2 = p2 ? (p2.price_large ?? 0) : 0;
     const unitPrice = Math.max(price1, price2);
 
     const bordaPrice =
@@ -218,9 +221,11 @@ export default function CardapioPage() {
           : getBordaPrice(doisSaboresBorda, 'G')
         : 0;
 
+    const productName = p2 ? `${p1.name} / ${p2.name}` : p1.name;
+
     const item: CartItem = {
       product_id: p1.id,
-      product_name: `${p1.name} / ${p2.name}`,
+      product_name: productName,
       size: 'G',
       quantity: doisSaboresQuantity,
       unit_price: unitPrice,
@@ -228,7 +233,7 @@ export default function CardapioPage() {
     };
 
     addToCart(item);
-    showToast(`${p1.name} / ${p2.name}`);
+    showToast(productName);
     setShowDoisSabores(false);
     setDoisSaboresSelections([]);
     setDoisSaboresBorda('sem');
@@ -573,9 +578,9 @@ export default function CardapioPage() {
             {/* Modal Header */}
             <div className="p-4 border-b border-gray-700 flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-bold text-white">Pizza Grande - 2 Sabores</h3>
+                <h3 className="text-lg font-bold text-white">Pizza Grande</h3>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  Selecione 2 sabores. O preco sera o do sabor mais caro.
+                  Escolha 1 ou 2 sabores. Com 2, o preco sera o do mais caro.
                 </p>
               </div>
               <button
@@ -707,13 +712,16 @@ export default function CardapioPage() {
                 </div>
                 <button
                   onClick={handleDoisSaboresConfirm}
-                  disabled={doisSaboresSelections.length !== 2}
+                  disabled={doisSaboresSelections.length === 0}
                   className="flex-1 py-2.5 rounded-xl bg-red-600 text-white font-bold text-sm hover:bg-red-500 transition disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  {doisSaboresSelections.length === 2
+                  {doisSaboresSelections.length >= 1
                     ? (() => {
                         const p1 = products.find((p) => p.id === doisSaboresSelections[0]);
-                        const p2 = products.find((p) => p.id === doisSaboresSelections[1]);
+                        const p2 =
+                          doisSaboresSelections.length === 2
+                            ? products.find((p) => p.id === doisSaboresSelections[1])
+                            : null;
                         const price = Math.max(p1?.price_large ?? 0, p2?.price_large ?? 0);
                         const borda =
                           doisSaboresBorda !== 'sem'
@@ -721,9 +729,10 @@ export default function CardapioPage() {
                               ? 0
                               : getBordaPrice(doisSaboresBorda, 'G')
                             : 0;
-                        return `Adicionar ${formatPrice((price + borda) * doisSaboresQuantity)}`;
+                        const label = doisSaboresSelections.length === 1 ? '1 sabor' : '2 sabores';
+                        return `Adicionar (${label}) ${formatPrice((price + borda) * doisSaboresQuantity)}`;
                       })()
-                    : `Selecione ${2 - doisSaboresSelections.length} sabor(es)`}
+                    : 'Selecione ao menos 1 sabor'}
                 </button>
               </div>
             </div>

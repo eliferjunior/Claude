@@ -101,13 +101,17 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_60%,rgba(234,179,8,0.1),transparent_50%)]" />
 
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-          <span className="inline-block text-5xl sm:text-6xl lg:text-7xl mb-4 sm:mb-6">🍕</span>
-          <h1 className="text-3xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight mb-2">
+          <span className="inline-block text-5xl sm:text-6xl lg:text-7xl mb-4 sm:mb-6 animate-float">
+            🍕
+          </span>
+          <h1 className="text-4xl sm:text-6xl lg:text-8xl font-extrabold tracking-tighter mb-2">
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-red-500 to-yellow-400">
               Cia da Pizza
             </span>
           </h1>
-          <p className="text-lg sm:text-xl text-gray-400 mb-6 sm:mb-8">Franca/SP</p>
+          <p className="text-base sm:text-lg text-gray-400 mb-6 sm:mb-8 tracking-widest uppercase font-medium">
+            Franca / SP
+          </p>
 
           {/* Rotating text */}
           <div className="relative h-24 sm:h-28 flex items-center justify-center mb-8">
@@ -118,10 +122,12 @@ export default function HomePage() {
                   index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                 }`}
               >
-                <p className="text-xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight px-4">
+                <p className="text-xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight px-4 tracking-tight">
                   {slide.text}
                 </p>
-                <p className="text-sm sm:text-lg text-gray-300 mt-2">{slide.subtitle}</p>
+                <p className="text-sm sm:text-lg text-gray-300/80 mt-2 font-light tracking-wide">
+                  {slide.subtitle}
+                </p>
               </div>
             ))}
           </div>
@@ -194,10 +200,12 @@ export default function HomePage() {
       <section className="py-12 sm:py-16 lg:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 sm:mb-12">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400">
               Nosso Cardapio
             </h2>
-            <p className="mt-2 text-gray-400 text-sm sm:text-lg">Escolha sua categoria favorita</p>
+            <p className="mt-2 text-gray-400 text-sm sm:text-lg font-light tracking-wide">
+              Escolha sua categoria favorita
+            </p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
             {categories.map((cat) => (
@@ -231,10 +239,12 @@ export default function HomePage() {
                 className="bg-gray-900/80 border border-gray-800/60 rounded-xl p-5 sm:p-8 text-center hover:border-red-500/30 transition-all duration-300"
               >
                 <span className="text-2xl sm:text-3xl mb-2 sm:mb-3 block">{stat.icon}</span>
-                <div className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400">
+                <div className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400">
                   {stat.value}
                 </div>
-                <p className="text-xs sm:text-sm text-gray-400 mt-1">{stat.label}</p>
+                <p className="text-xs sm:text-sm text-gray-400 mt-1 font-medium tracking-wide uppercase">
+                  {stat.label}
+                </p>
               </div>
             ))}
           </div>
@@ -245,10 +255,10 @@ export default function HomePage() {
       <section className="py-12 sm:py-16 lg:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 sm:mb-12">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400">
               Nossas Unidades
             </h2>
-            <p className="mt-2 sm:mt-3 text-gray-400 text-sm sm:text-lg">
+            <p className="mt-2 sm:mt-3 text-gray-400 text-sm sm:text-lg font-light tracking-wide">
               4 lojas para melhor atender voce
             </p>
           </div>
@@ -344,10 +354,10 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-r from-yellow-950/20 via-gray-950 to-red-950/20" />
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 sm:mb-12">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-400">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-400">
               Promocoes
             </h2>
-            <p className="mt-2 sm:mt-3 text-gray-400 text-sm sm:text-lg">
+            <p className="mt-2 sm:mt-3 text-gray-400 text-sm sm:text-lg font-light tracking-wide">
               Aproveite nossas ofertas especiais
             </p>
           </div>
@@ -415,10 +425,10 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-r from-red-950/30 via-gray-950 to-red-950/30" />
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 sm:mb-12">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400">
               Rodizio de Pizza
             </h2>
-            <p className="mt-2 sm:mt-3 text-gray-400 text-sm sm:text-lg">
+            <p className="mt-2 sm:mt-3 text-gray-400 text-sm sm:text-lg font-light tracking-wide">
               Nas unidades Helio Palermo e Pulicano
             </p>
           </div>
@@ -429,10 +439,10 @@ export default function HomePage() {
                   A partir de
                 </span>
               </div>
-              <div className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400 mb-2">
+              <div className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400 mb-2">
                 R$ 39,99
               </div>
-              <p className="text-lg sm:text-xl text-gray-300 mb-6 sm:mb-8">por pessoa</p>
+              <p className="text-lg sm:text-xl text-gray-300 mb-6 sm:mb-8 font-light">por pessoa</p>
 
               <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-sm mx-auto mb-6 sm:mb-8">
                 <div className="bg-gray-950/60 border border-green-500/20 rounded-xl p-3 sm:p-4">
@@ -473,10 +483,10 @@ export default function HomePage() {
       <section className="py-12 sm:py-16 lg:py-20 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-purple-950/20 via-gray-950 to-pink-950/20" />
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400 mb-3 sm:mb-4">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400 mb-3 sm:mb-4">
             Siga-nos no Instagram
           </h2>
-          <p className="text-gray-400 text-sm sm:text-lg mb-6 sm:mb-8 max-w-xl mx-auto px-2 sm:px-0">
+          <p className="text-gray-400 text-sm sm:text-lg font-light tracking-wide mb-6 sm:mb-8 max-w-xl mx-auto px-2 sm:px-0">
             Acompanhe nossas novidades, promocoes e bastidores
           </p>
           <a
