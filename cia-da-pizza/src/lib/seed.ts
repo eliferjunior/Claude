@@ -1,13 +1,40 @@
 import type Database from 'better-sqlite3';
 import bcrypt from 'bcryptjs';
 
-type ProductSeed = {
-  name: string;
-  description: string;
-  price_small: number | null;
-  price_medium: number | null;
-  price_large: number | null;
-  image_url?: string | null;
+// Tuple: [name, description, priceSmall, priceMedium, priceLarge, imageUrl]
+type P = [string, string, number | null, number | null, number | null, string | null];
+
+const IMG = {
+  mussarela:
+    'https://image.qwenlm.ai/public_source/48b094f8-ab24-4e89-ac8c-c5dee8c6304f/64ae1862f-f96b-49ff-af9d-369c100522912483.png',
+  calabresa:
+    'https://image.qwenlm.ai/public_source/48b094f8-ab24-4e89-ac8c-c5dee8c6304f/04ae1862f-f96b-49ff-af9d-369c100522911783.png',
+  quatro_queijos:
+    'https://image.qwenlm.ai/public_source/48b094f8-ab24-4e89-ac8c-c5dee8c6304f/24ae1862f-f96b-49ff-af9d-369c100522917801.png',
+  margherita:
+    'https://image.qwenlm.ai/public_source/48b094f8-ab24-4e89-ac8c-c5dee8c6304f/34ae1862f-f96b-49ff-af9d-369c100522912369.png',
+  pepperoni:
+    'https://image.qwenlm.ai/public_source/48b094f8-ab24-4e89-ac8c-c5dee8c6304f/14ae1862f-f96b-49ff-af9d-369c100522916445.png',
+  portuguesa:
+    'https://image.qwenlm.ai/public_source/48b094f8-ab24-4e89-ac8c-c5dee8c6304f/04ae1862f-f96b-49ff-af9d-369c100522911783.png',
+  frango_requeijao:
+    'https://image.qwenlm.ai/public_source/48b094f8-ab24-4e89-ac8c-c5dee8c6304f/24ae1862f-f96b-49ff-af9d-369c100522917801.png',
+  bacon:
+    'https://image.qwenlm.ai/public_source/48b094f8-ab24-4e89-ac8c-c5dee8c6304f/04ae1862f-f96b-49ff-af9d-369c100522911783.png',
+  chocolate_morango:
+    'https://image.qwenlm.ai/public_source/48b094f8-ab24-4e89-ac8c-c5dee8c6304f/24ae1862f-f96b-49ff-af9d-369c100522917801.png',
+  chocolate_mms:
+    'https://image.qwenlm.ai/public_source/48b094f8-ab24-4e89-ac8c-c5dee8c6304f/34ae1862f-f96b-49ff-af9d-369c100522918978.png',
+  chocolate_branco:
+    'https://image.qwenlm.ai/public_source/48b094f8-ab24-4e89-ac8c-c5dee8c6304f/14ae1862f-f96b-49ff-af9d-369c100522916062.png',
+  doce_tradicional:
+    'https://image.qwenlm.ai/public_source/48b094f8-ab24-4e89-ac8c-c5dee8c6304f/44ae1862f-f96b-49ff-af9d-369c100522913868.png',
+  brigadeiro:
+    'https://image.qwenlm.ai/public_source/48b094f8-ab24-4e89-ac8c-c5dee8c6304f/24ae1862f-f96b-49ff-af9d-369c100522917801.png',
+  beirute:
+    'https://image.qwenlm.ai/public_source/48b094f8-ab24-4e89-ac8c-c5dee8c6304f/04ae1862f-f96b-49ff-af9d-369c100522919199.png',
+  pastel:
+    'https://image.qwenlm.ai/public_source/48b094f8-ab24-4e89-ac8c-c5dee8c6304f/34ae1862f-f96b-49ff-af9d-369c100522916777.png',
 };
 
 export function seedDatabase(db: Database.Database): void {
@@ -101,11 +128,15 @@ export function seedDatabase(db: Database.Database): void {
     const categories: { name: string; order: number }[] = [
       { name: 'Pizzas Tradicionais', order: 1 },
       { name: 'Pizzas Especiais', order: 2 },
-      { name: 'Pizzas Doces', order: 3 },
-      { name: 'Hambúrgueres', order: 4 },
-      { name: 'Porções', order: 5 },
-      { name: 'Bebidas', order: 6 },
-      { name: 'Sobremesas', order: 7 },
+      { name: 'Pizzas Premium', order: 3 },
+      { name: 'Pizzas Doces', order: 4 },
+      { name: 'Pastéis', order: 5 },
+      { name: 'Beirutes', order: 6 },
+      { name: 'Porções', order: 7 },
+      { name: 'Refrigerantes', order: 8 },
+      { name: 'Águas e Sucos', order: 9 },
+      { name: 'Cervejas e Drinks', order: 10 },
+      { name: 'Outros', order: 11 },
     ];
 
     const categoryIds: Record<string, number> = {};
@@ -120,526 +151,443 @@ export function seedDatabase(db: Database.Database): void {
       VALUES (?, ?, ?, ?, ?, ?, ?, 1)
     `);
 
-    // Pizzas Tradicionais
-    const tradicionais: ProductSeed[] = [
-      {
-        name: 'Margherita',
-        description: 'Molho de tomate, mussarela, tomate fatiado e manjericão fresco',
-        price_small: 29.9,
-        price_medium: 39.9,
-        price_large: 49.9,
-        image_url:
-          'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Calabresa',
-        description: 'Molho de tomate, mussarela, calabresa fatiada e cebola',
-        price_small: 29.9,
-        price_medium: 39.9,
-        price_large: 49.9,
-        image_url:
-          'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Portuguesa',
-        description: 'Molho de tomate, mussarela, presunto, ovo, cebola, ervilha e azeitona',
-        price_small: 31.9,
-        price_medium: 42.9,
-        price_large: 52.9,
-        image_url:
-          'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Mussarela',
-        description: 'Molho de tomate, mussarela e orégano',
-        price_small: 29.9,
-        price_medium: 39.9,
-        price_large: 49.9,
-        image_url:
-          'https://images.unsplash.com/photo-1604382355076-af4b0eb60143?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Frango com Catupiry',
-        description: 'Molho de tomate, mussarela, frango desfiado e catupiry',
-        price_small: 32.9,
-        price_medium: 43.9,
-        price_large: 54.9,
-        image_url:
-          'https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Quatro Queijos',
-        description: 'Molho de tomate, mussarela, provolone, gorgonzola e parmesão',
-        price_small: 34.9,
-        price_medium: 44.9,
-        price_large: 54.9,
-        image_url:
-          'https://images.unsplash.com/photo-1628840042765-356cda07504e?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Napolitana',
-        description: 'Molho de tomate, mussarela, tomate, parmesão e manjericão',
-        price_small: 29.9,
-        price_medium: 39.9,
-        price_large: 49.9,
-        image_url:
-          'https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Presunto',
-        description: 'Molho de tomate, mussarela e presunto',
-        price_small: 29.9,
-        price_medium: 39.9,
-        price_large: 49.9,
-        image_url:
-          'https://images.unsplash.com/photo-1595854341625-f33ee10dbf94?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Milho',
-        description: 'Molho de tomate, mussarela e milho verde',
-        price_small: 29.9,
-        price_medium: 39.9,
-        price_large: 49.9,
-        image_url:
-          'https://images.unsplash.com/photo-1588315029754-2dd089d39a1a?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Bacon',
-        description: 'Molho de tomate, mussarela e bacon crocante',
-        price_small: 32.9,
-        price_medium: 42.9,
-        price_large: 52.9,
-        image_url:
-          'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Lombo Canadense',
-        description: 'Molho de tomate, mussarela, lombo canadense e catupiry',
-        price_small: 34.9,
-        price_medium: 44.9,
-        price_large: 54.9,
-        image_url:
-          'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Pepperoni',
-        description: 'Molho de tomate, mussarela e pepperoni',
-        price_small: 33.9,
-        price_medium: 43.9,
-        price_large: 53.9,
-        image_url:
-          'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Atum',
-        description: 'Molho de tomate, mussarela, atum e cebola',
-        price_small: 32.9,
-        price_medium: 42.9,
-        price_large: 52.9,
-        image_url:
-          'https://images.unsplash.com/photo-1604382355076-af4b0eb60143?w=400&h=300&fit=crop',
-      },
-    ];
+    const addProducts = (categoryName: string, items: P[]) => {
+      const catId = categoryIds[categoryName];
+      for (const [name, desc, ps, pm, pl, img] of items) {
+        insertProduct.run(catId, name, desc, ps, pm, pl, img);
+      }
+    };
 
-    for (const p of tradicionais) {
-      insertProduct.run(
-        categoryIds['Pizzas Tradicionais'],
-        p.name,
-        p.description,
-        p.price_small,
-        p.price_medium,
-        p.price_large,
-        p.image_url || null,
-      );
-    }
+    // --- Pizzas Tradicionais ---
+    addProducts('Pizzas Tradicionais', [
+      ['Mussarela', 'Muçarela fatiada, orégano, azeitonas pretas', 42, 52, 66.3, IMG.mussarela],
+      ['Napolitana', 'Muçarela, tomate fresco gratinado, orégano, parmesão', 47, 57, 71, null],
+      [
+        'Margherita',
+        'Muçarela, tomate fresco, manjericão fresco, orégano',
+        45,
+        55,
+        69.4,
+        IMG.margherita,
+      ],
+      [
+        'Portuguesa',
+        'Presunto, ovo cozido, cebola, muçarela, azeitonas',
+        48,
+        58,
+        72.7,
+        IMG.portuguesa,
+      ],
+      [
+        'Calabresa',
+        'Calabresa defumada fatiada, cebola, azeitonas, orégano',
+        41,
+        51,
+        64.6,
+        IMG.calabresa,
+      ],
+      ['Toscana', 'Muçarela, calabresa moída temperada, cebolinha, parmesão', 45, 55, 69.4, null],
+      [
+        'Baiana',
+        'Calabresa moída, ovo cozido, pimenta biquinho, azeitonas, cebola',
+        45,
+        55,
+        69.4,
+        null,
+      ],
+      ['Atum', 'Atum sólido, cebola, azeitonas pretas', 45, 55, 69.5, null],
+      ['Bacon', 'Muçarela, bacon crocante em cubos, azeitonas, orégano', 45, 55, 69.5, IMG.bacon],
+      [
+        'Alho e Óleo',
+        'Muçarela, alho frito laminado, azeitonas, azeite, orégano',
+        44,
+        54,
+        67.7,
+        null,
+      ],
+    ]);
 
-    // Pizzas Especiais
-    const especiais: ProductSeed[] = [
-      {
-        name: 'Strogonoff',
-        description: 'Molho de tomate, mussarela, strogonoff de carne e batata palha',
-        price_small: 39.9,
-        price_medium: 49.9,
-        price_large: 59.9,
-        image_url:
-          'https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Camarão',
-        description: 'Molho de tomate, mussarela, camarão refogado e catupiry',
-        price_small: 42.9,
-        price_medium: 54.9,
-        price_large: 69.9,
-        image_url:
-          'https://images.unsplash.com/photo-1628840042765-356cda07504e?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Carne Seca',
-        description: 'Molho de tomate, mussarela, carne seca desfiada, cebola e catupiry',
-        price_small: 39.9,
-        price_medium: 49.9,
-        price_large: 62.9,
-        image_url:
-          'https://images.unsplash.com/photo-1595854341625-f33ee10dbf94?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Filé Mignon',
-        description: 'Molho de tomate, mussarela, filé mignon em tiras e catupiry',
-        price_small: 42.9,
-        price_medium: 54.9,
-        price_large: 67.9,
-        image_url:
-          'https://images.unsplash.com/photo-1588315029754-2dd089d39a1a?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Costela',
-        description: 'Molho de tomate, mussarela, costela desfiada e barbecue',
-        price_small: 42.9,
-        price_medium: 54.9,
-        price_large: 67.9,
-        image_url:
-          'https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Alcatra',
-        description: 'Molho de tomate, mussarela, alcatra em tiras, cebola e pimentão',
-        price_small: 39.9,
-        price_medium: 49.9,
-        price_large: 62.9,
-        image_url:
-          'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Brócolis com Bacon',
-        description: 'Molho de tomate, mussarela, brócolis, bacon e catupiry',
-        price_small: 37.9,
-        price_medium: 47.9,
-        price_large: 59.9,
-        image_url:
-          'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Supreme',
-        description:
-          'Molho de tomate, mussarela, pepperoni, pimentão, cebola, azeitona e champignon',
-        price_small: 39.9,
-        price_medium: 49.9,
-        price_large: 62.9,
-        image_url:
-          'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Parma',
-        description: 'Molho de tomate, mussarela, presunto parma, rúcula e parmesão',
-        price_small: 42.9,
-        price_medium: 54.9,
-        price_large: 67.9,
-        image_url:
-          'https://images.unsplash.com/photo-1604382355076-af4b0eb60143?w=400&h=300&fit=crop',
-      },
-    ];
+    // --- Pizzas Especiais ---
+    addProducts('Pizzas Especiais', [
+      [
+        'Margherita Especial',
+        'Muçarela de búfala, tomate seco, manjericão, azeite extra virgem',
+        49,
+        59,
+        73.5,
+        IMG.margherita,
+      ],
+      [
+        'Quatro Queijos',
+        'Muçarela, requeijão, gorgonzola, parmesão',
+        51,
+        61,
+        76.6,
+        IMG.quatro_queijos,
+      ],
+      ['Cinco Queijos', 'Muçarela, provolone, gorgonzola, parmesão, requeijão', 53, 63, 78.4, null],
+      ['Bersaglieri', 'Muçarela, aliche, alcaparras, azeitonas, parmesão', 48, 58, 72.7, null],
+      [
+        'Provoleta',
+        'Provolone fatiado, anchova, alcaparras, azeitonas, orégano',
+        51,
+        61,
+        76.8,
+        null,
+      ],
+      ['Gorgonzola', 'Cebola dourada refogada, gorgonzola cremoso, azeitonas', 48, 58, 72.7, null],
+      ['Salerno', 'Presunto, gorgonzola, parmesão, tomate fresco, azeitonas', 51, 61, 76.6, null],
+      ['Conceta', 'Calabresa moída, requeijão cremoso, azeitonas, orégano', 46, 56, 70.8, null],
+      ['Macerata', 'Muçarela, copa italiana, cebola, azeitonas', 47, 57, 71.4, null],
+      ['Atum Especial', 'Atum sólido, milho verde, azeitonas, orégano', 48, 58, 73.3, null],
+      ['Peruana', 'Atum, ovo cozido, cebola, muçarela, azeitonas', 51, 61, 76.8, null],
+      ['Aliche', 'Aliche (anchova), cebola, parmesão, azeitonas', 51, 61, 76.8, null],
+      ['Romana', 'Muçarela, aliche, tomate fresco, azeitonas pretas', 51, 61, 77.2, null],
+      [
+        'Frango c/ Requeijão',
+        'Frango desfiado, requeijão Scala, azeitonas, orégano',
+        48,
+        58,
+        73.2,
+        IMG.frango_requeijao,
+      ],
+      ['Escarola I', 'Escarola refogada, bacon, muçarela, azeitonas, alho', 44, 54, 67.7, null],
+      ['Escarola II', 'Escarola refogada, bacon, aliche, muçarela, azeitonas', 48, 58, 73.2, null],
+      ['Siciliana', 'Cogumelos champignon, bacon, muçarela, azeitonas', 45, 55, 69.5, null],
+      ['Alcachofra', 'Muçarela, coração de alcachofra, parmesão, azeite', 51, 61, 76.7, null],
+      ['Palmito', 'Palmito pupunha, cebola, muçarela, parmesão, azeitonas', 51, 61, 76.7, null],
+      [
+        'Rúcula',
+        'Rúcula fresca, tomate seco, muçarela de búfala, parmesão, azeite balsâmico',
+        48,
+        58,
+        73.2,
+        null,
+      ],
+      ['Verano', 'Palmito, milho verde, alcaparras, requeijão, azeitonas', 51, 61, 76.7, null],
+      ['Requeijão Scala', 'Requeijão cremoso Scala, azeitonas, orégano', 48, 58, 73.2, null],
+      ['Brócolis', 'Brócolis refogado alho, bacon, muçarela, azeitonas', 45, 55, 69.5, null],
+      ['Lombo Canadense', 'Lombo canadense, cebola, queijo cremoso, azeitonas', 48, 58, 73.2, null],
+      ['Peito de Peru', 'Peito de peru, cebola, requeijão, azeitonas', 48, 58, 73.2, null],
+      [
+        'Abobrinha',
+        'Abobrinha italiana grelhada, muçarela, alho frito, parmesão',
+        45,
+        55,
+        69.5,
+        null,
+      ],
+      [
+        'Carne Seca',
+        'Carne seca desfiada, cebola, requeijão, pimenta biquinho',
+        45,
+        55,
+        69.5,
+        null,
+      ],
+      ['Dois Queijos', 'Muçarela + requeijão Scala, orégano, azeitonas', 45, 55, 69.5, null],
+      ['Três Queijos', 'Muçarela + requeijão + parmesão, orégano, azeitonas', 48, 58, 73.2, null],
+      ['Bauru', 'Presunto moído, tomate fresco, muçarela, orégano', 51, 61, 76.7, null],
+      ['Vegetariana', 'Brócolis, palmito, milho, azeitonas, cebola, orégano', 48, 58, 73.2, null],
+      [
+        'Alho Poró',
+        'Muçarela, alho-poró refogado na manteiga, parmesão, azeitonas',
+        48,
+        58,
+        73.2,
+        null,
+      ],
+      ['Cabral', 'Calabresa moída, ovo cozido, palmito, muçarela', 48, 58, 73.2, null],
+      [
+        'Calabresa Especial',
+        'Molho barbecue, muçarela, calabresa, cebola caramelizada',
+        51,
+        61,
+        76.7,
+        null,
+      ],
+      ['Portuguesa II', 'Presunto, ovo, palmito, muçarela, bacon, azeitonas', 51, 61, 76.7, null],
+      ['Lombo Especial', 'Lombo canadense, cebola, muçarela, molho barbecue', 51, 61, 77.2, null],
+      ['Frango Especial', 'Frango desfiado, cebola, parmesão, azeitonas', 52, 62, 78.1, null],
+    ]);
 
-    for (const p of especiais) {
-      insertProduct.run(
-        categoryIds['Pizzas Especiais'],
-        p.name,
-        p.description,
-        p.price_small,
-        p.price_medium,
-        p.price_large,
-        p.image_url || null,
-      );
-    }
+    // --- Pizzas Premium ---
+    addProducts('Pizzas Premium', [
+      ['Camarão', 'Camarões refogados alho e óleo, muçarela, azeitonas', 61, 73, 91.1, null],
+      ['Pepperoni', 'Muçarela, pepperoni Sadia, orégano, azeitonas', 54, 64, 80.2, IMG.pepperoni],
+      ['Provolombo', 'Lombo canadense, provolone fatiado, orégano, azeitonas', 56, 66, 82.1, null],
+    ]);
 
-    // Pizzas Doces
-    const doces: ProductSeed[] = [
-      {
-        name: 'Chocolate',
-        description: 'Chocolate ao leite derretido, granulado e leite condensado',
-        price_small: 29.9,
-        price_medium: 39.9,
-        price_large: 49.9,
-        image_url:
-          'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Banana com Canela',
-        description: 'Banana fatiada, canela, açúcar e leite condensado',
-        price_small: 29.9,
-        price_medium: 39.9,
-        price_large: 49.9,
-        image_url:
-          'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Romeu e Julieta',
-        description: 'Goiabada derretida e queijo mussarela',
-        price_small: 29.9,
-        price_medium: 39.9,
-        price_large: 49.9,
-        image_url:
-          'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Prestígio',
-        description: 'Chocolate ao leite e coco ralado',
-        price_small: 31.9,
-        price_medium: 41.9,
-        price_large: 51.9,
-        image_url:
-          'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Brigadeiro',
-        description: 'Brigadeiro, granulado de chocolate e leite condensado',
-        price_small: 31.9,
-        price_medium: 41.9,
-        price_large: 51.9,
-        image_url:
-          'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Doce de Leite',
-        description: 'Doce de leite, coco ralado e canela',
-        price_small: 29.9,
-        price_medium: 39.9,
-        price_large: 49.9,
-        image_url:
-          'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Morango com Nutella',
-        description: 'Nutella, morangos frescos fatiados e leite condensado',
-        price_small: 34.9,
-        price_medium: 44.9,
-        price_large: 54.9,
-        image_url:
-          'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&h=300&fit=crop',
-      },
-    ];
+    // --- Pizzas Doces ---
+    addProducts('Pizzas Doces', [
+      [
+        'Romeu e Julieta',
+        'Muçarela + goiabada cremosa, parmesão',
+        24.99,
+        56,
+        69.5,
+        IMG.doce_tradicional,
+      ],
+      [
+        'Banana Flambada',
+        'Banana, chocolate branco derretido, gratinada, canela',
+        24.99,
+        56,
+        69.5,
+        null,
+      ],
+      ['Banana e Canela', 'Banana, açúcar, canela, leite condensado', 22.99, 51, 63.8, null],
+      [
+        'Chocolate Avelã',
+        'Chocolate avelã (tipo Nutella), avelãs, leite condensado',
+        24.99,
+        56,
+        69.5,
+        IMG.chocolate_morango,
+      ],
+      [
+        'Chocolate c/ Morango',
+        'Chocolate ao leite, morangos frescos, leite condensado',
+        22.99,
+        51,
+        64.1,
+        IMG.chocolate_morango,
+      ],
+      [
+        "Chocolate c/ M&M's",
+        "Chocolate ao leite, M&M's, granulado crocante",
+        22.99,
+        51,
+        64.1,
+        IMG.chocolate_mms,
+      ],
+      [
+        'Prestígio',
+        'Chocolate ao leite, coco ralado, leite condensado, chocolate branco',
+        23.99,
+        52,
+        65.4,
+        null,
+      ],
+      [
+        'Brigadeiro',
+        'Chocolate ao leite, granulado crocante, leite condensado',
+        21.99,
+        49,
+        61.5,
+        IMG.brigadeiro,
+      ],
+      [
+        'Chocolate Branco Flambado',
+        'Chocolate branco gratinado, morangos frescos, hortelã',
+        24.99,
+        55,
+        69,
+        IMG.chocolate_branco,
+      ],
+      [
+        'Pistache c/ Chocolate Branco',
+        'Creme de pistache italiano, chocolate branco, pistache triturado',
+        24.99,
+        56,
+        69.5,
+        null,
+      ],
+      [
+        'Chocolate c/ Creme Pistache',
+        'Chocolate ao leite, creme pistache, morangos, nozes',
+        23.99,
+        54,
+        67.5,
+        null,
+      ],
+    ]);
 
-    for (const p of doces) {
-      insertProduct.run(
-        categoryIds['Pizzas Doces'],
-        p.name,
-        p.description,
-        p.price_small,
-        p.price_medium,
-        p.price_large,
-        p.image_url || null,
-      );
-    }
+    // --- Pastéis ---
+    addProducts('Pastéis', [
+      [
+        'Pastel Carne, Queijo e Bacon',
+        'Carne moída, queijo muçarela, bacon crocante',
+        null,
+        14.99,
+        null,
+        IMG.pastel,
+      ],
+      [
+        'Pastel Frango c/ Catupiry',
+        'Frango desfiado, Catupiry original, azeitonas',
+        null,
+        13.99,
+        null,
+        IMG.pastel,
+      ],
+      [
+        'Monte seu Pastel (4 sabores)',
+        'Escolha até 4 recheios diferentes',
+        null,
+        15.99,
+        null,
+        IMG.pastel,
+      ],
+      [
+        'Monte seu Pastel (3 sabores)',
+        'Escolha até 3 recheios diferentes',
+        null,
+        14.99,
+        null,
+        IMG.pastel,
+      ],
+      [
+        'Pastel 1 Sabor',
+        'Escolha 1 recheio: Carne, Frango, Queijo, Bacon, Palmito, Pizza, Calabresa',
+        null,
+        12.99,
+        null,
+        IMG.pastel,
+      ],
+    ]);
 
-    // Hambúrgueres (single price, no sizes)
-    const burgers: ProductSeed[] = [
-      {
-        name: 'Classic Burger',
-        description: 'Pão brioche, hambúrguer 180g, alface, tomate, cebola roxa e molho especial',
-        price_small: null,
-        price_medium: 22.9,
-        price_large: null,
-        image_url:
-          'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Cheese Burger',
-        description:
-          'Pão brioche, hambúrguer 180g, queijo cheddar duplo, alface, tomate e molho especial',
-        price_small: null,
-        price_medium: 26.9,
-        price_large: null,
-        image_url:
-          'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Bacon Burger',
-        description:
-          'Pão brioche, hambúrguer 180g, bacon crocante, queijo cheddar, alface e molho barbecue',
-        price_small: null,
-        price_medium: 29.9,
-        price_large: null,
-        image_url:
-          'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Double Burger',
-        description:
-          'Pão brioche, dois hambúrgueres 180g, queijo cheddar duplo, bacon, cebola caramelizada e molho especial',
-        price_small: null,
-        price_medium: 34.9,
-        price_large: null,
-        image_url:
-          'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop',
-      },
-    ];
+    // --- Beirutes ---
+    addProducts('Beirutes', [
+      [
+        'Beirute Calabresa',
+        'Pão sírio, calabresa, cebola roxa, muçarela, cheddar, catupiry, ovo, barbecue, alface, tomate',
+        null,
+        45,
+        null,
+        IMG.beirute,
+      ],
+      [
+        'Beirute Carne Seca',
+        'Pão sírio, carne seca desfiada, cebola roxa, bacon, pimenta biquinho, maionese, requeijão, alface, tomate',
+        null,
+        45,
+        null,
+        IMG.beirute,
+      ],
+      [
+        'Beirute Peito de Peru',
+        'Pão sírio, rúcula, peito de peru, muçarela, molho picles, tomate, alface',
+        null,
+        46,
+        null,
+        IMG.beirute,
+      ],
+      [
+        'Beirute Atum',
+        'Pão sírio, atum, milho, cebola roxa, maionese, requeijão, alface, tomate',
+        null,
+        46,
+        null,
+        IMG.beirute,
+      ],
+      [
+        'Beirute Frango',
+        'Pão sírio, frango desfiado, palmito, milho, requeijão, muçarela, ovo, maionese, alface, tomate',
+        null,
+        46,
+        null,
+        IMG.beirute,
+      ],
+      [
+        'Beirute Presunto',
+        'Pão sírio, molho tomate, presunto, muçarela, bacon, ovo, maionese, alface',
+        null,
+        45,
+        null,
+        IMG.beirute,
+      ],
+    ]);
 
-    for (const p of burgers) {
-      insertProduct.run(
-        categoryIds['Hambúrgueres'],
-        p.name,
-        p.description,
-        p.price_small,
-        p.price_medium,
-        p.price_large,
-        p.image_url || null,
-      );
-    }
+    // --- Porções ---
+    addProducts('Porções', [
+      [
+        'Batata c/ Cheddar e Bacon',
+        'Batata frita, cheddar, catupiry, bacon, cebolinha ~500g',
+        null,
+        30,
+        null,
+        null,
+      ],
+      ['Batata Frita', 'Batata frita crocante, sal e ervas ~400g', null, 20, null, null],
+      ['Batata c/ Páprica', 'Batata frita com páprica defumada ~400g', null, 20, null, null],
+      [
+        'Calabresa Acebolada',
+        'Calabresa fatiada, cebola refogada, azeite ~500g',
+        null,
+        27,
+        null,
+        null,
+      ],
+      ['Onion Rings', 'Anéis de cebola empanados, molho ranch ~300g', null, 20, null, null],
+    ]);
 
-    // Porções
-    const porcoes: ProductSeed[] = [
-      {
-        name: 'Batata Frita',
-        description: 'Porção generosa de batata frita crocante com sal e orégano',
-        price_small: null,
-        price_medium: 24.9,
-        price_large: null,
-        image_url:
-          'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Frango à Passarinho',
-        description: 'Coxinhas de frango temperadas e fritas, acompanha limão',
-        price_small: null,
-        price_medium: 29.9,
-        price_large: null,
-        image_url:
-          'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Polenta Frita',
-        description: 'Palitos de polenta fritos e crocantes',
-        price_small: null,
-        price_medium: 19.9,
-        price_large: null,
-        image_url:
-          'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Mandioca Frita',
-        description: 'Mandioca cozida e frita, crocante por fora e macia por dentro',
-        price_small: null,
-        price_medium: 22.9,
-        price_large: null,
-        image_url:
-          'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&h=300&fit=crop',
-      },
-    ];
+    // --- Refrigerantes ---
+    addProducts('Refrigerantes', [
+      ['Coca-Cola 350ml Lata', '', null, 7, null, null],
+      ['Coca-Cola 600ml', '', null, 10, null, null],
+      ['Coca-Cola 1L', '', null, 12, null, null],
+      ['Coca-Cola 2L', '', null, 16, null, null],
+      ['Guaraná Antarctica 350ml Lata', '', null, 7, null, null],
+      ['Guaraná Antarctica 600ml', '', null, 10, null, null],
+      ['Guaraná Antarctica 2L', '', null, 16, null, null],
+      ['Guaraná Mineiro 269ml', '', null, 3, null, null],
+      ['Guaraná Mineiro 350ml', '', null, 4, null, null],
+      ['Guaraná Mineiro 600ml', '', null, 5, null, null],
+      ['Guaraná Mineiro 1,5L', '', null, 7, null, null],
+      ['Guaraná Mineiro 2L', '', null, 9, null, null],
+      ['Fanta Laranja 350ml Lata', '', null, 6, null, null],
+      ['Fanta Laranja 2L', '', null, 12, null, null],
+      ['Sukita 350ml', '', null, 5, null, null],
+      ['Sukita 600ml', '', null, 6, null, null],
+      ['Sukita 2L', '', null, 9, null, null],
+      ['Dolly Guaraná 2L', '', null, 10, null, null],
+      ['Itubaína Original 600ml', '', null, 12, null, null],
+      ['Itubaína Retro 355ml', '', null, 8, null, null],
+    ]);
 
-    for (const p of porcoes) {
-      insertProduct.run(
-        categoryIds['Porções'],
-        p.name,
-        p.description,
-        p.price_small,
-        p.price_medium,
-        p.price_large,
-        p.image_url || null,
-      );
-    }
+    // --- Águas e Sucos ---
+    addProducts('Águas e Sucos', [
+      ['Água Mineral s/ Gás 500ml', '', null, 6, null, null],
+      ['Água Mineral c/ Gás 500ml', '', null, 8, null, null],
+      ['Água Mineral s/ Gás 1,5L', '', null, 10, null, null],
+      ['Suco La Fruit Uva 1L', '', null, 9, null, null],
+      ['Suco La Fruit Maracujá 1L', '', null, 9, null, null],
+      ['Suco Laranja Natural 300ml', '', null, 12, null, null],
+      ['Suco Laranja Natural 500ml', '', null, 15, null, null],
+      ['Jarra Suco Natural 750ml', '', null, 30, null, null],
+      ['Suco de Polpa 300ml', '', null, 15.9, null, null],
+      ['Suco Del Valle 1L', '', null, 13, null, null],
+    ]);
 
-    // Bebidas
-    const bebidas: ProductSeed[] = [
-      {
-        name: 'Coca-Cola 2L',
-        description: 'Refrigerante Coca-Cola garrafa 2 litros',
-        price_small: null,
-        price_medium: 14.9,
-        price_large: null,
-        image_url:
-          'https://images.unsplash.com/photo-1581006852262-e4307cf6283a?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Guaraná 2L',
-        description: 'Refrigerante Guaraná Antarctica garrafa 2 litros',
-        price_small: null,
-        price_medium: 12.9,
-        price_large: null,
-        image_url:
-          'https://images.unsplash.com/photo-1581006852262-e4307cf6283a?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Suco Natural',
-        description: 'Suco natural da fruta (laranja, limão, maracujá ou abacaxi) - 500ml',
-        price_small: null,
-        price_medium: 10.9,
-        price_large: null,
-        image_url:
-          'https://images.unsplash.com/photo-1581006852262-e4307cf6283a?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Água',
-        description: 'Água mineral sem gás 500ml',
-        price_small: null,
-        price_medium: 5.9,
-        price_large: null,
-        image_url:
-          'https://images.unsplash.com/photo-1581006852262-e4307cf6283a?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Cerveja',
-        description: 'Cerveja long neck 355ml (Original, Heineken ou Brahma)',
-        price_small: null,
-        price_medium: 11.9,
-        price_large: null,
-        image_url:
-          'https://images.unsplash.com/photo-1581006852262-e4307cf6283a?w=400&h=300&fit=crop',
-      },
-    ];
+    // --- Cervejas e Drinks ---
+    addProducts('Cervejas e Drinks', [
+      ['Cerveja Amstel 269ml', '', null, 4, null, null],
+      ['Cerveja Skol 350ml Lata', '', null, 6, null, null],
+      ['Cerveja Itaipava 350ml Lata', '', null, 6, null, null],
+      ['Cerveja Heineken 330ml', '', null, 12, null, null],
+      ['Cerveja Heineken 600ml', '', null, 18, null, null],
+      ['Stella Artois 330ml', '', null, 12, null, null],
+      ['Antarctica Original 600ml', '', null, 18, null, null],
+      ['Smirnoff Ice 275ml', '', null, 12, null, null],
+      ['Chopp de Vinho 600ml', '', null, 16, null, null],
+      ['Caipirinha Limão/Morango', 'Caipirinha 300ml', null, 25, null, null],
+      ['Taça de Vinho', '150ml', null, 25, null, null],
+      ['Garrafa Vinho Santa Rita', '750ml', null, 100, null, null],
+      ['Cachaça 50ml', '', null, 10, null, null],
+      ['Campari 100ml', '', null, 20, null, null],
+      ['Red Bull 250ml', '', null, 15, null, null],
+      ['H2OH! Limão/Limoneto 500ml', '', null, 8, null, null],
+      ['Água Tônica Antarctica 350ml Lata', '', null, 7, null, null],
+      ['Schweppes Citrus 350ml Lata', '', null, 7, null, null],
+    ]);
 
-    for (const p of bebidas) {
-      insertProduct.run(
-        categoryIds['Bebidas'],
-        p.name,
-        p.description,
-        p.price_small,
-        p.price_medium,
-        p.price_large,
-        p.image_url || null,
-      );
-    }
-
-    // Sobremesas
-    const sobremesas: ProductSeed[] = [
-      {
-        name: 'Petit Gateau',
-        description: 'Bolo quente de chocolate com sorvete de creme e calda de chocolate',
-        price_small: null,
-        price_medium: 24.9,
-        price_large: null,
-        image_url:
-          'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Brownie',
-        description: 'Brownie de chocolate com sorvete de creme e calda',
-        price_small: null,
-        price_medium: 19.9,
-        price_large: null,
-        image_url:
-          'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&h=300&fit=crop',
-      },
-      {
-        name: 'Açaí',
-        description: 'Tigela de açaí 500ml com granola, banana e leite condensado',
-        price_small: null,
-        price_medium: 22.9,
-        price_large: null,
-        image_url:
-          'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&h=300&fit=crop',
-      },
-    ];
-
-    for (const p of sobremesas) {
-      insertProduct.run(
-        categoryIds['Sobremesas'],
-        p.name,
-        p.description,
-        p.price_small,
-        p.price_medium,
-        p.price_large,
-        p.image_url || null,
-      );
-    }
+    // --- Outros ---
+    addProducts('Outros', [
+      ['Crostine', 'Massa fina crocante com azeite, parmesão e orégano', null, 22, null, null],
+      ['Calzone', 'Monte o seu (escolha o sabor) + molho tomate + azeitonas', null, 35, null, null],
+      ['Massa Pré-assada', 'Para preparo em casa (disco 35cm)', null, 12, null, null],
+    ]);
   });
 
   seed();
