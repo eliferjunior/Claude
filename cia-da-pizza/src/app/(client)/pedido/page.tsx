@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { generateWhatsAppOrderLink } from '@/lib/notifications';
 import FloatingCart from '@/components/FloatingCart';
 import AddToCartToast, { useCartToast } from '@/components/AddToCartToast';
@@ -15,6 +16,7 @@ interface Store {
   allows_delivery: number;
   allows_pickup: number;
   allows_dine_in: number;
+  allows_reservation: number;
   active: number;
 }
 
@@ -50,11 +52,25 @@ interface CartItem {
 type OrderType = 'delivery' | 'pickup';
 
 const BORDA_OPTIONS = [
-  { value: 'sem', label: 'Sem Borda', price: 0 },
-  { value: 'catupiry', label: 'Catupiry', price: 5 },
-  { value: 'cheddar', label: 'Cheddar', price: 5 },
-  { value: 'chocolate', label: 'Chocolate', price: 6 },
+  { value: 'sem', label: 'Sem Borda' },
+  { value: 'catupiry', label: 'Catupiry' },
+  { value: 'cheddar', label: 'Cheddar' },
+  { value: 'chocolate', label: 'Chocolate' },
 ];
+
+function getBordaPrice(borda: string, size: 'P' | 'M' | 'G'): number {
+  if (borda === 'sem') return 0;
+  if (size === 'P') return 8;
+  if (size === 'M') return 10;
+  return 12; // G
+}
+
+// Gratis seg-qui para pizza G
+function isBordaFree(size: 'P' | 'M' | 'G'): boolean {
+  if (size !== 'G') return false;
+  const day = new Date().getDay(); // 0=dom, 1=seg, ... 4=qui
+  return day >= 1 && day <= 4;
+}
 
 function formatPrice(value: number | null): string {
   if (value === null || value === undefined) return '';
@@ -63,7 +79,15 @@ function formatPrice(value: number | null): string {
 
 const STEP_LABELS = ['Escolha a Loja', 'Monte seu Pedido', 'Seus Dados', 'Confirmado'];
 
+interface DoisSaboresModal {
+  open: boolean;
+  product: Product | null;
+  sabor1: Product | null;
+  sabor2: Product | null;
+}
+
 export default function PedidoPage() {
+  const router = useRouter();
   const [step, setStep] = useState(1);
   const [stores, setStores] = useState<Store[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -72,6 +96,14 @@ export default function PedidoPage() {
 
   // Delivery fee
   const [deliveryFee, setDeliveryFee] = useState(10);
+
+  // 2 sabores modal (pizza G)
+  const [doisSabores, setDoisSabores] = useState<DoisSaboresModal>({
+    open: false,
+    product: null,
+    sabor1: null,
+    sabor2: null,
+  });
 
   // Step 1
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
@@ -179,6 +211,11 @@ export default function PedidoPage() {
     return product.price_large ?? 0;
   }
 
+  const pizzaProducts = useMemo(
+    () => products.filter((p) => p.category_name.toLowerCase().includes('pizza')),
+    [products],
+  );
+
   function addToCart(product: Product) {
     const sizes = getAvailableSizes(product);
     if (sizes.length === 0) return;
@@ -187,8 +224,16 @@ export default function PedidoPage() {
     const qty = quantities[product.id] || 1;
     const price = getSizePrice(product, size);
     const isPizza = product.category_name.toLowerCase().includes('pizza');
+
+    // Pizza G = abrir modal 2 sabores
+    if (isPizza && size === 'G') {
+      setDoisSabores({ open: true, product, sabor1: product, sabor2: null });
+      return;
+    }
+
     const borda = isPizza ? selectedBordas[product.id] || 'sem' : undefined;
-    const bordaPrice = borda ? BORDA_OPTIONS.find((b) => b.value === borda)?.price || 0 : 0;
+    const bordaFree = isPizza && borda && borda !== 'sem' && isBordaFree(size);
+    const bordaPrice = borda && !bordaFree ? getBordaPrice(borda, size) : 0;
 
     const existingIndex = cart.findIndex(
       (item) => item.product_id === product.id && item.size === size && item.borda === borda,
@@ -214,12 +259,39 @@ export default function PedidoPage() {
     }
 
     setQuantities((prev) => ({ ...prev, [product.id]: 1 }));
-
-    // Visual feedback
     showToast(product.name);
     setAddedProductId(product.id);
     setTimeout(() => setAddedProductId(null), 600);
   }
+
+  const addDoisSaboresToCart = useCallback(() => {
+    const { sabor1, sabor2 } = doisSabores;
+    if (!sabor1 || !sabor2) return;
+
+    const price1 = sabor1.price_large ?? 0;
+    const price2 = sabor2.price_large ?? 0;
+    const higherPrice = Math.max(price1, price2);
+
+    const borda = selectedBordas[sabor1.id] || 'sem';
+    const bordaFree = borda !== 'sem' && isBordaFree('G');
+    const bordaPrice = !bordaFree ? getBordaPrice(borda, 'G') : 0;
+
+    setCart((prev) => [
+      ...prev,
+      {
+        product_id: sabor1.id,
+        product_name: `${sabor1.name} + ${sabor2.name}`,
+        size: 'G' as const,
+        quantity: 1,
+        unit_price: higherPrice + bordaPrice,
+        borda,
+        borda_price: bordaPrice,
+      },
+    ]);
+
+    showToast(`${sabor1.name} + ${sabor2.name}`);
+    setDoisSabores({ open: false, product: null, sabor1: null, sabor2: null });
+  }, [doisSabores, selectedBordas, showToast]);
 
   function removeFromCart(index: number) {
     setCart(cart.filter((_, i) => i !== index));
@@ -443,6 +515,20 @@ export default function PedidoPage() {
                       </span>
                     </button>
                   )}
+                  {selectedStore.allows_reservation === 1 && (
+                    <button
+                      onClick={() =>
+                        router.push(`/reserva?store_id=${selectedStore.id}`)
+                      }
+                      className="flex flex-col items-center rounded-xl px-5 py-5 transition-all bg-gray-800 text-gray-300 hover:bg-gray-700 hover:ring-2 hover:ring-gray-600"
+                    >
+                      <span className="text-3xl mb-2">{'\uD83D\uDCC5'}</span>
+                      <span className="font-bold text-base">Reserva</span>
+                      <span className="text-xs mt-1 text-gray-500">
+                        Reserve uma mesa
+                      </span>
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -649,25 +735,30 @@ export default function PedidoPage() {
                         {/* Borda Selector (pizza only) */}
                         {product.category_name.toLowerCase().includes('pizza') && (
                           <div className="flex gap-1.5 mb-3 flex-wrap">
-                            {BORDA_OPTIONS.map((borda) => (
-                              <button
-                                key={borda.value}
-                                onClick={() =>
-                                  setSelectedBordas((prev) => ({
-                                    ...prev,
-                                    [product.id]: borda.value,
-                                  }))
-                                }
-                                className={`shrink-0 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition ${
-                                  (selectedBordas[product.id] || 'sem') === borda.value
-                                    ? 'bg-yellow-600 text-white'
-                                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                                }`}
-                              >
-                                {borda.label}
-                                {borda.price > 0 ? ` +R$${borda.price}` : ''}
-                              </button>
-                            ))}
+                            {BORDA_OPTIONS.map((borda) => {
+                              const bp = getBordaPrice(borda.value, currentSize);
+                              const free = borda.value !== 'sem' && isBordaFree(currentSize);
+                              return (
+                                <button
+                                  key={borda.value}
+                                  onClick={() =>
+                                    setSelectedBordas((prev) => ({
+                                      ...prev,
+                                      [product.id]: borda.value,
+                                    }))
+                                  }
+                                  className={`shrink-0 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition ${
+                                    (selectedBordas[product.id] || 'sem') === borda.value
+                                      ? 'bg-yellow-600 text-white'
+                                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                  }`}
+                                >
+                                  {borda.label}
+                                  {bp > 0 && !free ? ` +R$${bp}` : ''}
+                                  {free ? ' GRATIS' : ''}
+                                </button>
+                              );
+                            })}
                           </div>
                         )}
 
@@ -1134,6 +1225,166 @@ export default function PedidoPage() {
                   className="rounded-xl bg-gray-700 px-8 py-3 font-bold text-white hover:bg-gray-600 transition"
                 >
                   Novo Pedido
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Modal 2 Sabores (Pizza G) */}
+        {doisSabores.open && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+            <div className="bg-gray-800 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+              <div className="p-5 border-b border-gray-700">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-bold text-white">Pizza Grande - 2 Sabores</h3>
+                  <button
+                    onClick={() =>
+                      setDoisSabores({ open: false, product: null, sabor1: null, sabor2: null })
+                    }
+                    className="text-gray-400 hover:text-white text-2xl leading-none"
+                  >
+                    &times;
+                  </button>
+                </div>
+                <p className="text-sm text-gray-400 mt-1">
+                  Escolha 2 sabores. O valor sera o do sabor mais caro.
+                </p>
+              </div>
+
+              {/* Selected flavors */}
+              <div className="p-4 bg-gray-900/50 border-b border-gray-700">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-gray-800 rounded-xl p-3 border border-gray-700">
+                    <p className="text-xs text-gray-500 mb-1">1o Sabor</p>
+                    {doisSabores.sabor1 ? (
+                      <p className="text-sm font-bold text-red-400">{doisSabores.sabor1.name}</p>
+                    ) : (
+                      <p className="text-sm text-gray-500">Selecione...</p>
+                    )}
+                  </div>
+                  <div className="bg-gray-800 rounded-xl p-3 border border-gray-700">
+                    <p className="text-xs text-gray-500 mb-1">2o Sabor</p>
+                    {doisSabores.sabor2 ? (
+                      <p className="text-sm font-bold text-red-400">{doisSabores.sabor2.name}</p>
+                    ) : (
+                      <p className="text-sm text-gray-500">Selecione...</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Borda selector in modal */}
+                {doisSabores.sabor1 && (
+                  <div className="mt-3">
+                    <p className="text-xs text-gray-400 mb-1.5">Borda:</p>
+                    <div className="flex gap-1.5 flex-wrap">
+                      {BORDA_OPTIONS.map((borda) => {
+                        const bp = getBordaPrice(borda.value, 'G');
+                        const free = borda.value !== 'sem' && isBordaFree('G');
+                        return (
+                          <button
+                            key={borda.value}
+                            onClick={() =>
+                              setSelectedBordas((prev) => ({
+                                ...prev,
+                                [doisSabores.sabor1!.id]: borda.value,
+                              }))
+                            }
+                            className={`rounded-lg px-2.5 py-1.5 text-xs font-semibold transition ${
+                              (selectedBordas[doisSabores.sabor1!.id] || 'sem') === borda.value
+                                ? 'bg-yellow-600 text-white'
+                                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                            }`}
+                          >
+                            {borda.label}
+                            {bp > 0 && !free ? ` +R$${bp}` : ''}
+                            {free ? ' GRATIS' : ''}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Price preview */}
+                {doisSabores.sabor1 && doisSabores.sabor2 && (
+                  <div className="mt-3 flex justify-between items-center">
+                    <span className="text-sm text-gray-400">Valor:</span>
+                    <span className="text-lg font-bold text-red-400">
+                      {formatPrice(
+                        Math.max(
+                          doisSabores.sabor1.price_large ?? 0,
+                          doisSabores.sabor2.price_large ?? 0,
+                        ) +
+                          (() => {
+                            const b = selectedBordas[doisSabores.sabor1!.id] || 'sem';
+                            return !isBordaFree('G') ? getBordaPrice(b, 'G') : 0;
+                          })(),
+                      )}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Pizza list to pick from */}
+              <div className="p-4 space-y-2 max-h-[40vh] overflow-y-auto">
+                <p className="text-xs text-gray-500 mb-2">
+                  {!doisSabores.sabor2
+                    ? 'Toque para selecionar o 2o sabor:'
+                    : 'Toque para trocar um sabor:'}
+                </p>
+                {pizzaProducts
+                  .filter((p) => p.price_large !== null)
+                  .map((p) => {
+                    const isSelected =
+                      doisSabores.sabor1?.id === p.id || doisSabores.sabor2?.id === p.id;
+                    return (
+                      <button
+                        key={p.id}
+                        onClick={() => {
+                          if (!doisSabores.sabor1) {
+                            setDoisSabores((prev) => ({ ...prev, sabor1: p }));
+                          } else if (!doisSabores.sabor2) {
+                            setDoisSabores((prev) => ({ ...prev, sabor2: p }));
+                          } else {
+                            setDoisSabores((prev) => ({ ...prev, sabor2: p }));
+                          }
+                        }}
+                        className={`w-full text-left rounded-xl p-3 flex justify-between items-center transition ${
+                          isSelected
+                            ? 'bg-red-600/20 border border-red-500/50'
+                            : 'bg-gray-700/50 hover:bg-gray-700'
+                        }`}
+                      >
+                        <div>
+                          <p className="text-sm font-semibold text-white">{p.name}</p>
+                          {p.description && (
+                            <p className="text-xs text-gray-400 line-clamp-1">{p.description}</p>
+                          )}
+                        </div>
+                        <span className="text-sm font-bold text-red-400 shrink-0 ml-3">
+                          {formatPrice(p.price_large)}
+                        </span>
+                      </button>
+                    );
+                  })}
+              </div>
+
+              {/* Actions */}
+              <div className="p-4 border-t border-gray-700 flex gap-3">
+                <button
+                  onClick={() =>
+                    setDoisSabores({ open: false, product: null, sabor1: null, sabor2: null })
+                  }
+                  className="flex-1 rounded-xl bg-gray-700 py-3 font-bold text-white hover:bg-gray-600 transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={addDoisSaboresToCart}
+                  disabled={!doisSabores.sabor1 || !doisSabores.sabor2}
+                  className="flex-1 rounded-xl bg-red-600 py-3 font-bold text-white hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Adicionar ao Carrinho
                 </button>
               </div>
             </div>
