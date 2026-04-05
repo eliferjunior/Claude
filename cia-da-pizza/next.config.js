@@ -8,6 +8,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'images.unsplash.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'image.qwenlm.ai',
+      },
     ],
   },
   serverExternalPackages: ['better-sqlite3'],
