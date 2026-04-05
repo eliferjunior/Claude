@@ -14,7 +14,9 @@ const nextConfig = {
       },
     ],
   },
-  serverExternalPackages: ['better-sqlite3'],
+  experimental: {
+    serverComponentsExternalPackages: ['better-sqlite3'],
+  },
   allowedDevOrigins: ['http://76.13.172.53:3000'],
   async headers() {
     return [

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
@@ -74,7 +74,7 @@ function formatDateBR(dateStr: string): string {
 
 const STEP_LABELS = ['Loja', 'Data e Hora', 'Seus Dados'];
 
-export default function ReservaPage() {
+function ReservaContent() {
   const searchParams = useSearchParams();
   const preSelectedStoreId = searchParams.get('store_id');
 
@@ -535,5 +535,13 @@ export default function ReservaPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function ReservaPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-900 flex items-center justify-center"><div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-red-600 border-t-transparent" /></div>}>
+      <ReservaContent />
+    </Suspense>
   );
 }
