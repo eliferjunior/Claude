@@ -8,7 +8,7 @@ const steps = ['Loja', 'Tipo', 'Cardapio', 'Finalizar'];
 
 export default function TipoPage() {
   const router = useRouter();
-  const { selectedStore, setOrderType } = useCart();
+  const { selectedStore, setOrderType, setPaymentData } = useCart();
 
   useEffect(() => {
     if (!selectedStore) {
@@ -20,8 +20,26 @@ export default function TipoPage() {
     return null;
   }
 
-  const handleSelect = (type: 'delivery' | 'pickup') => {
+  const handleSelect = async (type: 'delivery' | 'pickup') => {
     setOrderType(type);
+    if (type === 'delivery') {
+      try {
+        const res = await fetch('/api/settings');
+        if (res.ok) {
+          const settings = await res.json();
+          const fee = settings.find(
+            (s: { key: string; value: string }) => s.key === 'delivery_fee',
+          );
+          setPaymentData({ deliveryFee: fee ? parseFloat(fee.value) || 10 : 10 });
+        } else {
+          setPaymentData({ deliveryFee: 10 });
+        }
+      } catch {
+        setPaymentData({ deliveryFee: 10 });
+      }
+    } else {
+      setPaymentData({ deliveryFee: 0 });
+    }
     router.push('/pedido/cardapio');
   };
 

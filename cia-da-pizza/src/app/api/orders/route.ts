@@ -128,6 +128,8 @@ export async function POST(request: NextRequest) {
       quantity: number;
       unit_price: number;
       notes: string | null;
+      borda: string | null;
+      borda_price: number;
     }[] = [];
 
     for (const item of items) {
@@ -182,6 +184,10 @@ export async function POST(request: NextRequest) {
       const quantity = Math.max(1, Math.min(Math.floor(item.quantity), 99));
       total += quantity * unitPrice;
 
+      const bordaName = sanitizeString(item.borda, 50);
+      const bordaPrice = typeof item.borda_price === 'number' ? Math.max(0, item.borda_price) : 0;
+      total += bordaPrice * quantity;
+
       validatedItems.push({
         product_id: product.id,
         product_name: product.name,
@@ -189,6 +195,8 @@ export async function POST(request: NextRequest) {
         quantity: quantity,
         unit_price: unitPrice,
         notes: sanitizeString(item.notes, 500),
+        borda: bordaName,
+        borda_price: bordaPrice,
       });
     }
 
@@ -211,8 +219,8 @@ export async function POST(request: NextRequest) {
     );
 
     const insertItem = db.prepare(
-      `INSERT INTO order_items (order_id, product_id, product_name, size, quantity, unit_price, notes)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO order_items (order_id, product_id, product_name, size, quantity, unit_price, notes, borda, borda_price)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     );
 
     const createOrder = db.transaction(() => {
@@ -241,6 +249,8 @@ export async function POST(request: NextRequest) {
           vItem.quantity,
           vItem.unit_price,
           vItem.notes,
+          vItem.borda,
+          vItem.borda_price,
         );
       }
 

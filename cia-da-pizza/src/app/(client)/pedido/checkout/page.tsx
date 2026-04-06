@@ -7,10 +7,10 @@ import { useCart } from '@/contexts/CartContext';
 const steps = ['Loja', 'Tipo', 'Cardapio', 'Finalizar'];
 
 const paymentMethods = [
-  { value: 'pix', label: 'PIX', icon: '\u{1F4F1}' },
-  { value: 'dinheiro', label: 'Dinheiro', icon: '\u{1F4B5}' },
-  { value: 'credito', label: 'Credito', icon: '\u{1F4B3}' },
-  { value: 'debito', label: 'Debito', icon: '\u{1F4B3}' },
+  { value: 'pix', label: 'PIX', icon: '📱' },
+  { value: 'dinheiro', label: 'Dinheiro', icon: '💵' },
+  { value: 'cartao_credito', label: 'Cartao Credito', icon: '💳' },
+  { value: 'cartao_debito', label: 'Cartao Debito', icon: '💳' },
 ];
 
 function formatPrice(value: number): string {
@@ -43,6 +43,29 @@ export default function CheckoutPage() {
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  // Load saved customer data from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('cia_pizza_customer');
+      if (saved) {
+        const data = JSON.parse(saved);
+        const updates: Record<string, string> = {};
+        if (data.customerName && !customerName) updates.customerName = data.customerName;
+        if (data.customerPhone && !customerPhone) updates.customerPhone = data.customerPhone;
+        if (data.customerEmail && !customerEmail) updates.customerEmail = data.customerEmail;
+        if (data.addressStreet && !addressStreet) updates.addressStreet = data.addressStreet;
+        if (data.addressNumber && !addressNumber) updates.addressNumber = data.addressNumber;
+        if (data.addressComplement && !addressComplement)
+          updates.addressComplement = data.addressComplement;
+        if (data.addressNeighborhood && !addressNeighborhood)
+          updates.addressNeighborhood = data.addressNeighborhood;
+        if (Object.keys(updates).length > 0) setCustomerData(updates);
+      }
+    } catch {
+      // ignore
+    }
+  }, []); // Run once on mount
 
   useEffect(() => {
     if (!selectedStore || !orderType || cart.length === 0) {
@@ -110,6 +133,25 @@ export default function CheckoutPage() {
 
       const data = await res.json();
       setOrderId(data.id ?? data.orderId ?? data.order_id);
+
+      // Save customer data for next order
+      try {
+        localStorage.setItem(
+          'cia_pizza_customer',
+          JSON.stringify({
+            customerName,
+            customerPhone,
+            customerEmail,
+            addressStreet,
+            addressNumber,
+            addressComplement,
+            addressNeighborhood,
+          }),
+        );
+      } catch {
+        // ignore
+      }
+
       router.push('/pedido/confirmacao');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Erro ao enviar pedido';

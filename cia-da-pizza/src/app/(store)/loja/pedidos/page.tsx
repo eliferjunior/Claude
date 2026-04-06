@@ -10,6 +10,8 @@ type OrderItem = {
   quantity: number;
   unit_price: number;
   notes: string | null;
+  borda: string | null;
+  borda_price: number | null;
 };
 
 type Order = {
@@ -173,16 +175,73 @@ export default function StorePedidosPage() {
     return null;
   }
 
-  function printOrder(order: Order) {
+  function buildReceiptHtml(order: Order, via: 'cozinha' | 'entrega') {
     const items = order.items || [];
     const payLabel = PAYMENT_LABELS[order.payment_method || 'pix'] || order.payment_method || 'N/A';
+    const viaLabel = via === 'cozinha' ? 'VIA COZINHA' : 'VIA ENTREGADOR';
+    const isDelivery = order.order_type === 'delivery';
+
+    const itemsHtml = items
+      .map(
+        (item) => `
+        <div class="item">
+          <span>${item.quantity}x ${item.product_name}${item.size ? ` (${item.size})` : ''}</span>
+          <span>R$ ${(item.unit_price * item.quantity).toFixed(2).replace('.', ',')}</span>
+        </div>
+        ${item.borda ? `<div style="font-size:12px;color:#333;margin-left:16px;">Borda: ${item.borda}${item.borda_price && item.borda_price > 0 ? ` (+R$ ${(item.borda_price * item.quantity).toFixed(2).replace('.', ',')})` : ' (gratis)'}</div>` : ''}
+        ${item.notes ? `<div style="font-size:12px;color:#666;margin-left:16px;">- ${item.notes}</div>` : ''}
+      `,
+      )
+      .join('');
+
+    return `
+      <div class="via">
+        <div class="via-label">${viaLabel}</div>
+        <div class="header">
+          <h1>CIA DA PIZZA</h1>
+          <h2>PEDIDO #${order.id}</h2>
+          <p>${new Date(order.created_at).toLocaleString('pt-BR')}</p>
+          <p><strong>${ORDER_TYPE_LABELS[order.order_type] || order.order_type}</strong></p>
+        </div>
+        <div class="info">
+          <p><strong>Cliente:</strong> ${order.customer_name}</p>
+          ${order.customer_phone ? `<p><strong>Tel:</strong> ${order.customer_phone}</p>` : ''}
+          ${isDelivery && order.customer_address ? `<p><strong>End:</strong> ${order.customer_address}</p>` : ''}
+        </div>
+        ${order.notes ? `<div class="obs"><strong>OBS:</strong> ${order.notes}</div>` : ''}
+        <div class="items">
+          <p style="font-weight:bold;margin-bottom:6px;">ITENS:</p>
+          ${itemsHtml}
+        </div>
+        ${order.delivery_fee && order.delivery_fee > 0 ? `<div class="item"><span>Taxa entrega</span><span>R$ ${order.delivery_fee.toFixed(2).replace('.', ',')}</span></div>` : ''}
+        <div class="total">TOTAL: R$ ${order.total.toFixed(2).replace('.', ',')}</div>
+        <div class="payment">
+          Pagamento: ${payLabel}
+          ${order.payment_method === 'dinheiro' && order.change_for && order.change_for > 0 ? `<br>Troco para: R$ ${order.change_for.toFixed(2).replace('.', ',')}` : ''}
+        </div>
+        <div class="footer">
+          <p>*** CIA DA PIZZA ***</p>
+          <p>${via === 'cozinha' ? 'Via Cozinha' : 'Via Entregador'}</p>
+        </div>
+      </div>
+    `;
+  }
+
+  function printOrder(order: Order) {
+    const isDelivery = order.order_type === 'delivery';
+    const cozinhaHtml = buildReceiptHtml(order, 'cozinha');
+    const entregaHtml = isDelivery ? buildReceiptHtml(order, 'entrega') : '';
+
     const html = `
       <html>
       <head>
-        <title>Pedido #${order.id} - Cozinha</title>
+        <title>Pedido #${order.id} - ${isDelivery ? '2 Vias' : 'Cozinha'}</title>
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body { font-family: 'Courier New', monospace; font-size: 14px; padding: 10px; max-width: 300px; }
+          .via { page-break-after: always; margin-bottom: 20px; }
+          .via:last-child { page-break-after: auto; }
+          .via-label { text-align: center; font-size: 16px; font-weight: bold; background: #000; color: #fff; padding: 4px 8px; margin-bottom: 8px; letter-spacing: 2px; }
           .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
           .header h1 { font-size: 18px; }
           .header h2 { font-size: 22px; font-weight: bold; }
@@ -194,46 +253,13 @@ export default function StorePedidosPage() {
           .footer { text-align: center; margin-top: 12px; border-top: 2px dashed #000; padding-top: 8px; font-size: 12px; }
           .obs { background: #f0f0f0; padding: 6px; margin: 6px 0; border-radius: 4px; }
           .payment { font-weight: bold; margin-top: 6px; }
-          @media print { body { max-width: 100%; } }
+          @media print { body { max-width: 100%; } .via { page-break-after: always; } .via:last-child { page-break-after: auto; } }
+          @media screen { .separator { border-top: 3px dashed #ccc; margin: 20px 0; } }
         </style>
       </head>
       <body>
-        <div class="header">
-          <h1>CIA DA PIZZA</h1>
-          <h2>PEDIDO #${order.id}</h2>
-          <p>${new Date(order.created_at).toLocaleString('pt-BR')}</p>
-          <p><strong>${ORDER_TYPE_LABELS[order.order_type] || order.order_type}</strong></p>
-        </div>
-        <div class="info">
-          <p><strong>Cliente:</strong> ${order.customer_name}</p>
-          ${order.customer_phone ? `<p><strong>Tel:</strong> ${order.customer_phone}</p>` : ''}
-          ${order.customer_address ? `<p><strong>End:</strong> ${order.customer_address}</p>` : ''}
-        </div>
-        ${order.notes ? `<div class="obs"><strong>OBS:</strong> ${order.notes}</div>` : ''}
-        <div class="items">
-          <p style="font-weight:bold;margin-bottom:6px;">ITENS:</p>
-          ${items
-            .map(
-              (item) => `
-            <div class="item">
-              <span>${item.quantity}x ${item.product_name}${item.size ? ` (${item.size})` : ''}</span>
-              <span>R$ ${(item.unit_price * item.quantity).toFixed(2).replace('.', ',')}</span>
-            </div>
-            ${item.notes ? `<div style="font-size:12px;color:#666;margin-left:16px;">- ${item.notes}</div>` : ''}
-          `,
-            )
-            .join('')}
-        </div>
-        ${order.delivery_fee && order.delivery_fee > 0 ? `<div class="item"><span>Taxa entrega</span><span>R$ ${order.delivery_fee.toFixed(2).replace('.', ',')}</span></div>` : ''}
-        <div class="total">TOTAL: R$ ${order.total.toFixed(2).replace('.', ',')}</div>
-        <div class="payment">
-          Pagamento: ${payLabel}
-          ${order.payment_method === 'dinheiro' && order.change_for && order.change_for > 0 ? `<br>Troco para: R$ ${order.change_for.toFixed(2).replace('.', ',')}` : ''}
-        </div>
-        <div class="footer">
-          <p>*** CIA DA PIZZA ***</p>
-          <p>Obrigado pela preferencia!</p>
-        </div>
+        ${cozinhaHtml}
+        ${isDelivery ? `<div class="separator"></div>${entregaHtml}` : ''}
       </body>
       </html>
     `;
@@ -451,17 +477,27 @@ export default function StorePedidosPage() {
                     </p>
                     <div className="space-y-1.5">
                       {order.items.map((item) => (
-                        <div key={item.id} className="flex justify-between text-sm">
-                          <span className="text-gray-300">
-                            {item.quantity}x {item.product_name}
-                            {item.size && <span className="text-gray-500"> ({item.size})</span>}
-                            {item.notes && (
-                              <span className="text-amber-400 italic"> - {item.notes}</span>
-                            )}
-                          </span>
-                          <span className="text-gray-400 ml-4">
-                            R$ {(item.unit_price * item.quantity).toFixed(2).replace('.', ',')}
-                          </span>
+                        <div key={item.id} className="text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-gray-300">
+                              {item.quantity}x {item.product_name}
+                              {item.size && <span className="text-gray-500"> ({item.size})</span>}
+                            </span>
+                            <span className="text-gray-400 ml-4">
+                              R$ {(item.unit_price * item.quantity).toFixed(2).replace('.', ',')}
+                            </span>
+                          </div>
+                          {item.borda && (
+                            <p className="text-xs text-purple-400 ml-4">
+                              Borda: {item.borda}
+                              {item.borda_price && item.borda_price > 0
+                                ? ` (+R$ ${(item.borda_price * item.quantity).toFixed(2).replace('.', ',')})`
+                                : ' (gratis)'}
+                            </p>
+                          )}
+                          {item.notes && (
+                            <p className="text-xs text-amber-400 italic ml-4">- {item.notes}</p>
+                          )}
                         </div>
                       ))}
                     </div>

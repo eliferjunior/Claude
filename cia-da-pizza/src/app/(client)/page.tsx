@@ -35,34 +35,41 @@ const categories = [
   { name: 'Bebidas', icon: '🥤', description: 'Refrigerantes e sucos', href: '/cardapio' },
 ];
 
-const stores = [
+const highlights = [
   {
-    name: 'Loja 1 - Helio Palermo',
-    address: 'Av. Dr. Helio Palermo, 2811, Franca/SP',
-    phone: '(16) 3711-1111',
-    hours: '18:00 - 23:00',
-    tags: ['Rodizio', 'Retirada'],
+    icon: '🔥',
+    title: 'Massa Artesanal',
+    description: 'Massa fresca feita diariamente com ingredientes selecionados',
   },
   {
-    name: 'Loja 2 - Parque Progresso',
-    address: 'Franca/SP',
-    phone: '(16) 3711-2222',
-    hours: '18:00 - 23:00',
-    tags: ['Delivery', 'Retirada'],
+    icon: '🛵',
+    title: 'Delivery Rapido',
+    description: 'Entrega em 30 a 45 minutos, quentinha na sua porta',
   },
   {
-    name: 'Loja 4 - Delivery',
-    address: 'Av. Adhemar Pereira de Barros, 1474, Franca/SP',
-    phone: '(16) 3711-4444',
-    hours: '18:00 - 23:30',
-    tags: ['Delivery'],
+    icon: '🧀',
+    title: 'Borda Recheada Gratis',
+    description: 'Seg a Qui, pizza Grande com borda gratis: cheddar, catupiry ou chocolate',
   },
   {
-    name: 'Loja 6 - Pulicano',
-    address: 'Franca/SP',
-    phone: '(16) 3711-6666',
-    hours: '18:00 - 23:00',
-    tags: ['Rodizio', 'Retirada'],
+    icon: '👨‍🍳',
+    title: 'Qualidade Garantida',
+    description: 'Mais de 28 anos de tradicao servindo Franca com o melhor sabor',
+  },
+];
+
+const howItWorks = [
+  { step: '1', title: 'Escolha a loja', description: 'Selecione a unidade mais proxima de voce' },
+  {
+    step: '2',
+    title: 'Monte seu pedido',
+    description: 'Escolha entre mais de 50 sabores e acompanhamentos',
+  },
+  { step: '3', title: 'Pague na entrega', description: 'PIX, dinheiro ou cartao - voce escolhe' },
+  {
+    step: '4',
+    title: 'Receba em casa',
+    description: 'Delivery rapido ou retire na loja, como preferir',
   },
 ];
 
@@ -251,100 +258,64 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Stores Section */}
+      {/* Highlights / Diferenciais */}
       <section className="py-12 sm:py-16 lg:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400">
-              Nossas Unidades
+              Por que escolher a Cia da Pizza?
             </h2>
             <p className="mt-2 sm:mt-3 text-gray-400 text-sm sm:text-lg font-light tracking-wide">
-              4 lojas para melhor atender voce
+              Qualidade, sabor e rapidez em cada pedido
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            {stores.map((store) => (
+            {highlights.map((item) => (
               <div
-                key={store.name}
-                className="bg-gray-900/80 border border-gray-800/60 rounded-xl shadow-xl p-4 sm:p-6 hover:scale-[1.02] hover:border-red-500/30 transition-all duration-300 group"
+                key={item.title}
+                className="bg-gray-900/80 border border-gray-800/60 rounded-xl p-5 sm:p-6 text-center hover:border-red-500/30 hover:bg-gray-800/40 transition-all duration-300 group"
               >
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-red-500/10 border border-red-500/20 group-hover:bg-red-500/20 transition-colors duration-300">
-                  <svg
-                    className="h-6 w-6 text-red-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-bold text-white mb-1">{store.name}</h3>
-                <p className="text-sm text-gray-400 mb-3">{store.address}</p>
-
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {store.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className={`text-xs font-semibold px-2.5 py-1 rounded-lg ${
-                        tag === 'Rodizio'
-                          ? 'bg-red-500/20 text-red-300 border border-red-500/30'
-                          : tag === 'Delivery'
-                            ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                            : 'bg-green-500/20 text-green-300 border border-green-500/30'
-                      }`}
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="space-y-2 text-sm text-gray-300">
-                  <p className="flex items-center gap-2">
-                    <svg
-                      className="h-4 w-4 text-red-400"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-                      />
-                    </svg>
-                    {store.phone}
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <svg
-                      className="h-4 w-4 text-red-400"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    {store.hours}
-                  </p>
-                </div>
+                <span className="text-4xl mb-4 block group-hover:scale-110 transition-transform duration-300">
+                  {item.icon}
+                </span>
+                <h3 className="text-base sm:text-lg font-bold text-white mb-2">{item.title}</h3>
+                <p className="text-sm text-gray-400 leading-relaxed">{item.description}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Como Funciona */}
+      <section className="py-12 sm:py-16 lg:py-20 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-gray-950 via-red-950/10 to-gray-950" />
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400">
+              Como Funciona
+            </h2>
+            <p className="mt-2 sm:mt-3 text-gray-400 text-sm sm:text-lg font-light tracking-wide">
+              Pedir e facil e rapido
+            </p>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {howItWorks.map((item) => (
+              <div key={item.step} className="text-center">
+                <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-red-600 to-yellow-500 flex items-center justify-center text-xl sm:text-2xl font-extrabold text-white mb-3 sm:mb-4 shadow-lg shadow-red-600/30">
+                  {item.step}
+                </div>
+                <h3 className="text-sm sm:text-base font-bold text-white mb-1">{item.title}</h3>
+                <p className="text-xs sm:text-sm text-gray-400">{item.description}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-8 sm:mt-10 text-center">
+            <Link
+              href="/pedido"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-semibold py-3 px-6 sm:px-8 rounded-xl transition-all duration-300 shadow-lg shadow-red-600/25 hover:shadow-red-500/40 hover:scale-[1.02] text-base sm:text-lg"
+            >
+              Pedir Agora
+            </Link>
           </div>
         </div>
       </section>
@@ -505,30 +476,6 @@ export default function HomePage() {
 
       {/* WhatsApp - only on home page */}
       <WhatsAppButton />
-
-      {/* Area Restrita */}
-      <section className="py-4 sm:py-6">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="border-t border-gray-800/30 pt-4">
-            <p className="text-center text-xs text-gray-600 mb-2">Area Restrita</p>
-            <div className="flex items-center justify-center gap-4">
-              <Link
-                href="/admin/login"
-                className="text-xs text-gray-600 hover:text-gray-500 transition-colors"
-              >
-                Acesso Administrativo
-              </Link>
-              <span className="text-gray-700">|</span>
-              <Link
-                href="/loja/login"
-                className="text-xs text-gray-600 hover:text-gray-500 transition-colors"
-              >
-                Acesso Loja
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }

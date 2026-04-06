@@ -212,6 +212,18 @@ function migrateDatabase(): void {
     // Column already exists
   }
 
+  // Add borda and borda_price to order_items
+  try {
+    db.exec(`ALTER TABLE order_items ADD COLUMN borda TEXT`);
+  } catch {
+    // Column already exists
+  }
+  try {
+    db.exec(`ALTER TABLE order_items ADD COLUMN borda_price REAL DEFAULT 0`);
+  } catch {
+    // Column already exists
+  }
+
   // Add reservation slots per time to stores
   try {
     db.exec(`ALTER TABLE stores ADD COLUMN max_reservations_per_slot INTEGER DEFAULT 5`);
