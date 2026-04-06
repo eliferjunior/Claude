@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { dbGet, dbInsert, dbDelete } from '@/lib/database';
 import bcrypt from 'bcryptjs';
 import { checkRateLimit } from '@/lib/rate-limit';
 
@@ -30,11 +30,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Usuario e senha sao obrigatorios' }, { status: 400 });
     }
 
-    const store = db
-      .prepare(
-        'SELECT id, name, login_username, login_password_hash FROM stores WHERE login_username = ?',
-      )
-      .get(username) as StoreRow | undefined;
+    const store = await dbGet<StoreRow>(
+      'stores',
+      { login_username: username },
+      'id, name, login_username, login_password_hash',
+    );
 
     if (!store || !store.login_password_hash) {
       return NextResponse.json({ error: 'Credenciais invalidas' }, { status: 401 });
@@ -49,9 +49,12 @@ export async function POST(request: NextRequest) {
     const token = crypto.randomUUID();
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
-    db.prepare(
-      'INSERT INTO sessions (token, user_type, user_id, expires_at) VALUES (?, ?, ?, ?)',
-    ).run(token, 'store', store.id, expiresAt);
+    await dbInsert('sessions', {
+      token,
+      user_type: 'store',
+      user_id: store.id,
+      expires_at: expiresAt,
+    });
 
     const response = NextResponse.json({
       store_id: store.id,
@@ -77,7 +80,7 @@ export async function DELETE(request: NextRequest) {
     const token = request.cookies.get('store_session')?.value;
 
     if (token) {
-      db.prepare('DELETE FROM sessions WHERE token = ?').run(token);
+      await dbDelete('sessions', { token });
     }
 
     const response = NextResponse.json({ success: true });

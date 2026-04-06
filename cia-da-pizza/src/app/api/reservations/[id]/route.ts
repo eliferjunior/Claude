@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { dbGet, dbUpdate } from '@/lib/database';
 import { requireAnyAuth } from '@/lib/auth-helpers';
 
 const VALID_STATUSES = ['pending', 'confirmed', 'cancelled'];
@@ -27,26 +27,21 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       );
     }
 
-    const existing = db.prepare('SELECT * FROM reservations WHERE id = ?').get(id) as
-      | { store_id: number }
-      | undefined;
+    const existing = await dbGet<{ store_id: number }>('reservations', { id });
 
     if (!existing) {
       return NextResponse.json({ error: 'Reservation not found' }, { status: 404 });
     }
 
-    // Store users can only update their own reservations
     if (auth.session.type === 'store' && existing.store_id !== auth.session.store.storeId) {
       return NextResponse.json({ error: 'Reservation not found' }, { status: 404 });
     }
 
-    db.prepare('UPDATE reservations SET status = ? WHERE id = ?').run(status, id);
+    await dbUpdate('reservations', { id }, { status });
 
-    const reservation = db.prepare('SELECT * FROM reservations WHERE id = ?').get(id);
-
+    const reservation = await dbGet('reservations', { id });
     return NextResponse.json(reservation);
   } catch (error) {
-    // Error logged silently
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

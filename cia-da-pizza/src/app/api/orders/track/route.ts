@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { dbTrackOrder } from '@/lib/database';
 
 export const dynamic = 'force-dynamic';
-
-type OrderRow = {
-  id: number;
-  store_name: string;
-  [key: string]: unknown;
-};
 
 // Public endpoint for customers to track their orders by ID or phone
 export async function GET(request: NextRequest) {
@@ -21,47 +15,13 @@ export async function GET(request: NextRequest) {
 
     const sanitized = search.trim().substring(0, 100);
 
-    // Try to find by order ID first
-    const orderId = parseInt(sanitized, 10);
-    let order: OrderRow | undefined;
+    const result = await dbTrackOrder(sanitized);
 
-    if (!isNaN(orderId) && orderId > 0) {
-      order = db
-        .prepare(
-          `
-        SELECT o.*, s.name as store_name
-        FROM orders o
-        JOIN stores s ON o.store_id = s.id
-        WHERE o.id = ?
-      `,
-        )
-        .get(orderId) as OrderRow | undefined;
-    }
-
-    // If not found by ID, search by phone
-    if (!order) {
-      order = db
-        .prepare(
-          `
-        SELECT o.*, s.name as store_name
-        FROM orders o
-        JOIN stores s ON o.store_id = s.id
-        WHERE o.customer_phone LIKE ?
-        ORDER BY o.created_at DESC
-        LIMIT 1
-      `,
-        )
-        .get(`%${sanitized}%`) as OrderRow | undefined;
-    }
-
-    if (!order) {
+    if (!result) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
-    // Get order items
-    const items = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(order.id);
-
-    return NextResponse.json({ ...order, items });
+    return NextResponse.json({ ...result.order, items: result.items });
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

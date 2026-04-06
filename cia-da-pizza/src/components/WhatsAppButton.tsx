@@ -13,7 +13,7 @@ export default function WhatsAppButton() {
       try {
         const res = await fetch('/api/settings');
         if (!res.ok) {
-          setNumber('16937114444');
+          setNumber('1637070904');
           setMessage('Ola! Gostaria de fazer um pedido na Cia da Pizza');
           setVisible(true);
           return;
@@ -27,12 +27,12 @@ export default function WhatsAppButton() {
           );
           setVisible(true);
         } else {
-          setNumber('16937114444');
+          setNumber('1637070904');
           setMessage('Ola! Gostaria de fazer um pedido na Cia da Pizza');
           setVisible(true);
         }
       } catch {
-        setNumber('16937114444');
+        setNumber('1637070904');
         setMessage('Ola! Gostaria de fazer um pedido na Cia da Pizza');
         setVisible(true);
       }

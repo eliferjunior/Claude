@@ -85,7 +85,9 @@ CREATE TABLE IF NOT EXISTS order_items (
   size TEXT,
   quantity INTEGER NOT NULL DEFAULT 1,
   unit_price REAL NOT NULL,
-  notes TEXT
+  notes TEXT,
+  borda TEXT,
+  borda_price REAL DEFAULT 0
 );
 
 -- Reservations

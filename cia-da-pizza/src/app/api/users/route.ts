@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { dbRaw, dbRawGet, dbRawRun } from '@/lib/database';
 import { requireAdminAuth } from '@/lib/auth-helpers';
 import bcrypt from 'bcryptjs';
 
@@ -8,13 +8,12 @@ export async function GET(request: NextRequest) {
     const auth = requireAdminAuth(request);
     if (auth.error) return auth.error;
 
-    const users = db
-      .prepare('SELECT id, username, name, role, created_at FROM admin_users ORDER BY id ASC')
-      .all();
+    const users = await dbRaw(
+      'SELECT id, username, name, role, created_at FROM admin_users ORDER BY id ASC',
+    );
 
     return NextResponse.json(users);
   } catch (error) {
-    // Error logged silently
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -45,9 +44,10 @@ export async function POST(request: NextRequest) {
     const validRoles = ['admin', 'manager', 'editor'];
     const userRole = role && validRoles.includes(role) ? role : 'admin';
 
-    const existing = db
-      .prepare('SELECT id FROM admin_users WHERE username = ?')
-      .get(username.trim());
+    const existing = await dbRawGet(
+      'SELECT id FROM admin_users WHERE username = ?',
+      [username.trim()],
+    );
 
     if (existing) {
       return NextResponse.json({ error: 'Username already exists' }, { status: 409 });
@@ -55,17 +55,18 @@ export async function POST(request: NextRequest) {
 
     const passwordHash = await bcrypt.hash(password, 10);
 
-    const result = db
-      .prepare('INSERT INTO admin_users (username, password_hash, name, role) VALUES (?, ?, ?, ?)')
-      .run(username.trim(), passwordHash, name.trim(), userRole);
+    const result = await dbRawRun(
+      'INSERT INTO admin_users (username, password_hash, name, role) VALUES (?, ?, ?, ?)',
+      [username.trim(), passwordHash, name.trim(), userRole],
+    );
 
-    const user = db
-      .prepare('SELECT id, username, name, role, created_at FROM admin_users WHERE id = ?')
-      .get(result.lastInsertRowid);
+    const user = await dbRawGet(
+      'SELECT id, username, name, role, created_at FROM admin_users WHERE id = ?',
+      [result.lastInsertRowid],
+    );
 
     return NextResponse.json(user, { status: 201 });
   } catch (error) {
-    // Error logged silently
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

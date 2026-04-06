@@ -119,6 +119,58 @@ export default function StoreReservasPage() {
     return `${day}/${month}/${year}`;
   }
 
+  function printReservation(reservation: Reservation) {
+    const html = `
+      <html>
+      <head>
+        <title>Reserva #${reservation.id}</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: 'Courier New', monospace; font-size: 14px; padding: 10px; max-width: 300px; }
+          .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 8px; margin-bottom: 10px; }
+          .header h1 { font-size: 18px; }
+          .header h2 { font-size: 20px; font-weight: bold; }
+          .info { margin-bottom: 8px; }
+          .info p { margin: 4px 0; }
+          .highlight { font-size: 20px; font-weight: bold; text-align: center; margin: 12px 0; padding: 8px; border: 2px solid #000; }
+          .footer { text-align: center; margin-top: 12px; border-top: 2px dashed #000; padding-top: 8px; font-size: 12px; }
+          .status { text-align: center; font-size: 14px; font-weight: bold; background: #000; color: #fff; padding: 4px 8px; margin-bottom: 8px; letter-spacing: 2px; }
+          @media print { body { max-width: 100%; } }
+        </style>
+      </head>
+      <body>
+        <div class="status">RESERVA</div>
+        <div class="header">
+          <h1>CIA DA PIZZA</h1>
+          <h2>RESERVA #${reservation.id}</h2>
+          <p>${new Date(reservation.created_at).toLocaleString('pt-BR')}</p>
+        </div>
+        <div class="highlight">
+          ${formatDate(reservation.date)} as ${reservation.time}<br>
+          ${reservation.guests} ${reservation.guests === 1 ? 'pessoa' : 'pessoas'}
+        </div>
+        <div class="info">
+          <p><strong>Cliente:</strong> ${reservation.customer_name}</p>
+          ${reservation.customer_phone ? `<p><strong>Tel:</strong> ${reservation.customer_phone}</p>` : ''}
+          ${reservation.customer_email ? `<p><strong>Email:</strong> ${reservation.customer_email}</p>` : ''}
+        </div>
+        ${reservation.notes ? `<div class="info" style="background:#f0f0f0;padding:6px;border-radius:4px;"><strong>OBS:</strong> ${reservation.notes}</div>` : ''}
+        <div class="footer">
+          <p>*** CIA DA PIZZA ***</p>
+          <p>Reserva ${reservation.status === 'confirmed' ? 'Confirmada' : 'Pendente'}</p>
+        </div>
+      </body>
+      </html>
+    `;
+    const printWindow = window.open('', '_blank', 'width=350,height=500');
+    if (printWindow) {
+      printWindow.document.write(html);
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+    }
+  }
+
   const today = new Date().toISOString().split('T')[0];
   const pendingCount = reservations.filter((r) => r.status === 'pending').length;
   const confirmedCount = reservations.filter((r) => r.status === 'confirmed').length;
@@ -322,6 +374,20 @@ export default function StoreReservasPage() {
                     Cancelar
                   </button>
                 )}
+                <button
+                  onClick={() => printReservation(reservation)}
+                  className="px-4 py-2 rounded-lg bg-gray-800 text-blue-400 text-sm font-medium hover:bg-gray-700 transition-colors flex items-center gap-1.5"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                    />
+                  </svg>
+                  Imprimir
+                </button>
               </div>
             </div>
           ))}

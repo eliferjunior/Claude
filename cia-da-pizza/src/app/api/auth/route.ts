@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { dbGet, dbInsert, dbGetSessionWithUser, dbDelete } from '@/lib/database';
 import bcrypt from 'bcryptjs';
 import { checkRateLimit } from '@/lib/rate-limit';
 
@@ -23,9 +23,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Username and password are required' }, { status: 400 });
     }
 
-    const user = db.prepare('SELECT * FROM admin_users WHERE username = ?').get(username) as
-      | { id: number; username: string; password_hash: string; name: string; role: string }
-      | undefined;
+    const user = await dbGet<{
+      id: number;
+      username: string;
+      password_hash: string;
+      name: string;
+      role: string;
+    }>('admin_users', { username });
 
     if (!user) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
@@ -40,9 +44,12 @@ export async function POST(request: NextRequest) {
     const token = crypto.randomUUID();
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
-    db.prepare(
-      'INSERT INTO sessions (token, user_type, user_id, expires_at) VALUES (?, ?, ?, ?)',
-    ).run(token, 'admin', user.id, expiresAt);
+    await dbInsert('sessions', {
+      token,
+      user_type: 'admin',
+      user_id: user.id,
+      expires_at: expiresAt,
+    });
 
     const response = NextResponse.json({
       id: user.id,
@@ -73,14 +80,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const session = db
-      .prepare(
-        `SELECT s.user_id, u.username, u.name, u.role
-         FROM sessions s
-         JOIN admin_users u ON s.user_id = u.id
-         WHERE s.token = ? AND s.user_type = 'admin' AND s.expires_at > datetime('now')`,
-      )
-      .get(token) as { user_id: number; username: string; name: string; role: string } | undefined;
+    const session = (await dbGetSessionWithUser(token, 'admin')) as {
+      user_id: number;
+      username: string;
+      name: string;
+      role: string;
+    } | null;
 
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -104,7 +109,7 @@ export async function DELETE(request: NextRequest) {
     const token = request.cookies.get('session_token')?.value;
 
     if (token) {
-      db.prepare('DELETE FROM sessions WHERE token = ?').run(token);
+      await dbDelete('sessions', { token });
     }
 
     const response = NextResponse.json({ success: true });

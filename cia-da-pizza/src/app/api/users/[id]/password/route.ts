@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { dbGet, dbUpdate } from '@/lib/database';
 import { requireAdminAuth } from '@/lib/auth-helpers';
 import bcrypt from 'bcryptjs';
 
@@ -15,7 +15,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
     }
 
-    const existing = db.prepare('SELECT id FROM admin_users WHERE id = ?').get(userId);
+    const existing = await dbGet('admin_users', { id: userId });
 
     if (!existing) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -37,11 +37,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     const passwordHash = await bcrypt.hash(new_password, 10);
 
-    db.prepare('UPDATE admin_users SET password_hash = ? WHERE id = ?').run(passwordHash, userId);
+    await dbUpdate('admin_users', { id: userId }, { password_hash: passwordHash });
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    // Error logged silently
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

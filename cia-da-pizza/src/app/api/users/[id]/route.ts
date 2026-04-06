@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { dbRawGet, dbRawRun, dbGet } from '@/lib/database';
 import { requireAdminAuth } from '@/lib/auth-helpers';
 import bcrypt from 'bcryptjs';
 
@@ -15,9 +15,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
     }
 
-    const user = db
-      .prepare('SELECT id, username, name, role, created_at FROM admin_users WHERE id = ?')
-      .get(userId);
+    const user = await dbRawGet(
+      'SELECT id, username, name, role, created_at FROM admin_users WHERE id = ?',
+      [userId],
+    );
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -25,7 +26,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     return NextResponse.json(user);
   } catch (error) {
-    // Error logged silently
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -42,7 +42,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
     }
 
-    const existing = db.prepare('SELECT id FROM admin_users WHERE id = ?').get(userId);
+    const existing = await dbGet('admin_users', { id: userId });
 
     if (!existing) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -66,9 +66,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     if (body.username && typeof body.username === 'string' && body.username.trim().length > 0) {
-      const duplicateUser = db
-        .prepare('SELECT id FROM admin_users WHERE username = ? AND id != ?')
-        .get(body.username.trim(), userId);
+      const duplicateUser = await dbRawGet(
+        'SELECT id FROM admin_users WHERE username = ? AND id != ?',
+        [body.username.trim(), userId],
+      );
 
       if (duplicateUser) {
         return NextResponse.json({ error: 'Username already exists' }, { status: 409 });
@@ -89,15 +90,15 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     values.push(userId);
-    db.prepare(`UPDATE admin_users SET ${updates.join(', ')} WHERE id = ?`).run(...values);
+    await dbRawRun(`UPDATE admin_users SET ${updates.join(', ')} WHERE id = ?`, values);
 
-    const user = db
-      .prepare('SELECT id, username, name, role, created_at FROM admin_users WHERE id = ?')
-      .get(userId);
+    const user = await dbRawGet(
+      'SELECT id, username, name, role, created_at FROM admin_users WHERE id = ?',
+      [userId],
+    );
 
     return NextResponse.json(user);
   } catch (error) {
-    // Error logged silently
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -121,21 +122,17 @@ export async function DELETE(
       return NextResponse.json({ error: 'Cannot delete your own account' }, { status: 400 });
     }
 
-    const existing = db.prepare('SELECT id FROM admin_users WHERE id = ?').get(userId);
+    const existing = await dbGet('admin_users', { id: userId });
 
     if (!existing) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Delete user sessions
-    db.prepare('DELETE FROM sessions WHERE user_id = ? AND user_type = ?').run(userId, 'admin');
-
-    // Delete user
-    db.prepare('DELETE FROM admin_users WHERE id = ?').run(userId);
+    await dbRawRun('DELETE FROM sessions WHERE user_id = ? AND user_type = ?', [userId, 'admin']);
+    await dbRawRun('DELETE FROM admin_users WHERE id = ?', [userId]);
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    // Error logged silently
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

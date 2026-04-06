@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { dbRawGet, dbRaw } from '@/lib/database';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,17 +13,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'store_id and date are required' }, { status: 400 });
     }
 
-    const store = db
-      .prepare('SELECT max_reservations_per_slot FROM stores WHERE id = ? AND active = 1')
-      .get(parseInt(storeId, 10)) as { max_reservations_per_slot: number } | undefined;
+    const store = await dbRawGet<{ max_reservations_per_slot: number }>(
+      'SELECT max_reservations_per_slot FROM stores WHERE id = ? AND active = 1',
+      [parseInt(storeId, 10)],
+    );
 
     const maxPerSlot = store?.max_reservations_per_slot || 5;
 
-    const slots = db
-      .prepare(
-        "SELECT time, COUNT(*) as count FROM reservations WHERE store_id = ? AND date = ? AND status != 'cancelled' GROUP BY time",
-      )
-      .all(parseInt(storeId, 10), date) as { time: string; count: number }[];
+    const slots = await dbRaw<{ time: string; count: number }>(
+      "SELECT time, COUNT(*) as count FROM reservations WHERE store_id = ? AND date = ? AND status != 'cancelled' GROUP BY time",
+      [parseInt(storeId, 10), date],
+    );
 
     const slotMap: Record<string, number> = {};
     for (const s of slots) {

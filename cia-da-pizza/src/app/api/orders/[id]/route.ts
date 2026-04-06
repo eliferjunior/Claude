@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { dbGetOrderWithItems, dbGet, dbUpdate } from '@/lib/database';
 import { requireAnyAuth } from '@/lib/auth-helpers';
 
 const VALID_STATUSES = ['pending', 'confirmed', 'preparing', 'ready', 'delivered', 'cancelled'];
@@ -14,21 +14,14 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
     }
 
-    const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(id) as
-      | { store_id: number }
-      | undefined;
-    if (!order) {
+    const storeId = auth.session.type === 'store' ? auth.session.store.storeId : undefined;
+
+    const result = await dbGetOrderWithItems(id, storeId);
+    if (!result) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
-    // Store users can only see their own orders
-    if (auth.session.type === 'store' && order.store_id !== auth.session.store.storeId) {
-      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
-    }
-
-    const items = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(id);
-
-    return NextResponse.json({ ...order, items });
+    return NextResponse.json({ ...result.order, items: result.items });
   } catch (error) {
     // Error logged silently
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -58,9 +51,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       );
     }
 
-    const existing = db.prepare('SELECT * FROM orders WHERE id = ?').get(id) as
-      | { store_id: number }
-      | undefined;
+    const existing = await dbGet<{ id: number; store_id: number }>('orders', { id });
     if (!existing) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
@@ -70,12 +61,9 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
-    db.prepare("UPDATE orders SET status = ?, updated_at = datetime('now') WHERE id = ?").run(
-      status,
-      id,
-    );
+    await dbUpdate('orders', { id }, { status, updated_at: new Date().toISOString() });
 
-    const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(id);
+    const order = await dbGet('orders', { id });
     return NextResponse.json(order);
   } catch (error) {
     // Error logged silently

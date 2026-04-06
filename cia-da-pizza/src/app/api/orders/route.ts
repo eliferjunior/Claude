@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { dbGetOrders, dbGet, dbCreateOrder } from '@/lib/database';
 import { requireAnyAuth } from '@/lib/auth-helpers';
 import { sanitizeString, validateEmail, validatePhone } from '@/lib/auth';
 
@@ -19,54 +19,48 @@ export async function GET(request: NextRequest) {
     const limitParam = searchParams.get('limit');
     const offsetParam = searchParams.get('offset');
 
-    let query = 'SELECT * FROM orders WHERE 1=1';
-    const params: (string | number)[] = [];
+    const filters: {
+      storeId?: number;
+      status?: string;
+      search?: string;
+      dateFrom?: string;
+      dateTo?: string;
+      limit?: number;
+      offset?: number;
+    } = {};
 
     // If store session, force filter by their store_id
     if (auth.session.type === 'store') {
-      query += ' AND store_id = ?';
-      params.push(auth.session.store.storeId);
+      filters.storeId = auth.session.store.storeId;
     } else if (storeId) {
-      query += ' AND store_id = ?';
-      params.push(parseInt(storeId, 10));
+      filters.storeId = parseInt(storeId, 10);
     }
 
     if (status) {
-      query += ' AND status = ?';
-      params.push(status);
+      filters.status = status;
     }
 
     if (search) {
-      const sanitizedSearch = sanitizeString(search, 100) ?? '';
-      query += ' AND (customer_name LIKE ? OR customer_phone LIKE ?)';
-      params.push(`%${sanitizedSearch}%`, `%${sanitizedSearch}%`);
+      filters.search = sanitizeString(search, 100) ?? '';
     }
 
     if (dateFrom) {
-      query += ' AND date(created_at) >= ?';
-      params.push(dateFrom);
+      filters.dateFrom = dateFrom;
     }
 
     if (dateTo) {
-      query += ' AND date(created_at) <= ?';
-      params.push(dateTo);
+      filters.dateTo = dateTo;
     }
 
-    query += ' ORDER BY created_at DESC';
-
     if (limitParam) {
-      const limit = Math.max(1, Math.min(parseInt(limitParam, 10) || 100, 1000));
-      query += ' LIMIT ?';
-      params.push(limit);
+      filters.limit = Math.max(1, Math.min(parseInt(limitParam, 10) || 100, 1000));
 
       if (offsetParam) {
-        const offset = Math.max(0, parseInt(offsetParam, 10) || 0);
-        query += ' OFFSET ?';
-        params.push(offset);
+        filters.offset = Math.max(0, parseInt(offsetParam, 10) || 0);
       }
     }
 
-    const orders = db.prepare(query).all(...params);
+    const orders = await dbGetOrders(filters);
     return NextResponse.json(orders);
   } catch (error) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -113,8 +107,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify store exists
-    const store = db.prepare('SELECT id FROM stores WHERE id = ? AND active = 1').get(store_id);
-    if (!store) {
+    const store = await dbGet<{ id: number; active: number }>('stores', { id: store_id });
+    if (!store || !store.active) {
       return NextResponse.json({ error: 'Store not found' }, { status: 404 });
     }
 
@@ -140,21 +134,16 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const product = db
-        .prepare(
-          'SELECT id, name, price_small, price_medium, price_large FROM products WHERE id = ? AND active = 1',
-        )
-        .get(item.product_id) as
-        | {
-            id: number;
-            name: string;
-            price_small: number | null;
-            price_medium: number | null;
-            price_large: number | null;
-          }
-        | undefined;
+      const product = await dbGet<{
+        id: number;
+        name: string;
+        active: number;
+        price_small: number | null;
+        price_medium: number | null;
+        price_large: number | null;
+      }>('products', { id: item.product_id });
 
-      if (!product) {
+      if (!product || !product.active) {
         return NextResponse.json(
           { error: `Product with id ${item.product_id} not found or inactive` },
           { status: 400 },
@@ -206,60 +195,33 @@ export async function POST(request: NextRequest) {
     // Add delivery fee for delivery orders
     let deliveryFee = 0;
     if (order_type === 'delivery') {
-      const feeSetting = db
-        .prepare("SELECT value FROM settings WHERE key = 'delivery_fee'")
-        .get() as { value: string } | undefined;
+      const feeSetting = await dbGet<{ key: string; value: string }>('settings', {
+        key: 'delivery_fee',
+      });
       deliveryFee = feeSetting ? parseFloat(feeSetting.value) || 10 : 10;
       total = Math.round((total + deliveryFee) * 100) / 100;
     }
 
-    const insertOrder = db.prepare(
-      `INSERT INTO orders (store_id, customer_name, customer_phone, customer_address, customer_email, order_type, notes, total, delivery_fee, payment_method, change_for)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    const orderData = {
+      store_id,
+      customer_name: customerName,
+      customer_phone: customerPhone,
+      customer_address: customerAddress,
+      customer_email: customerEmail,
+      order_type,
+      notes,
+      total,
+      delivery_fee: deliveryFee,
+      payment_method: paymentMethod,
+      change_for: changeFor,
+    };
+
+    const result = await dbCreateOrder(orderData, validatedItems);
+
+    return NextResponse.json(
+      { id: result.orderId, total, delivery_fee: deliveryFee },
+      { status: 201 },
     );
-
-    const insertItem = db.prepare(
-      `INSERT INTO order_items (order_id, product_id, product_name, size, quantity, unit_price, notes, borda, borda_price)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    );
-
-    const createOrder = db.transaction(() => {
-      const result = insertOrder.run(
-        store_id,
-        customerName,
-        customerPhone,
-        customerAddress,
-        customerEmail,
-        order_type,
-        notes,
-        total,
-        deliveryFee,
-        paymentMethod,
-        changeFor,
-      );
-
-      const orderId = result.lastInsertRowid;
-
-      for (const vItem of validatedItems) {
-        insertItem.run(
-          orderId,
-          vItem.product_id,
-          vItem.product_name,
-          vItem.size,
-          vItem.quantity,
-          vItem.unit_price,
-          vItem.notes,
-          vItem.borda,
-          vItem.borda_price,
-        );
-      }
-
-      return orderId;
-    });
-
-    const orderId = createOrder();
-
-    return NextResponse.json({ id: orderId, total, delivery_fee: deliveryFee }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

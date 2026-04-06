@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { dbAll, dbInsert, dbGet } from '@/lib/database';
 import { requireAdminAuth } from '@/lib/auth-helpers';
 import { sanitizeString } from '@/lib/auth';
 
 export async function GET() {
   try {
-    const categories = db.prepare('SELECT * FROM categories ORDER BY order_position ASC').all();
+    const categories = await dbAll('categories', { orderBy: 'order_position' });
 
     return NextResponse.json(categories);
   } catch (error) {
@@ -30,13 +30,9 @@ export async function POST(request: NextRequest) {
       ? Math.max(0, Math.min(body.order_position, 9999))
       : 0;
 
-    const result = db
-      .prepare('INSERT INTO categories (name, order_position) VALUES (?, ?)')
-      .run(name, orderPosition);
+    const inserted = await dbInsert('categories', { name, order_position: orderPosition });
 
-    const category = db
-      .prepare('SELECT * FROM categories WHERE id = ?')
-      .get(result.lastInsertRowid);
+    const category = await dbGet('categories', { id: (inserted as { id: number }).id });
 
     return NextResponse.json(category, { status: 201 });
   } catch (error) {

@@ -219,7 +219,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                     </svg>
                   </a>
                   <a
-                    href="https://wa.me/5516937114444"
+                    href="https://wa.me/551637070904"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-center h-10 w-10 rounded-xl bg-gray-800/50 border border-gray-700/50 text-gray-400 hover:bg-green-600 hover:text-white hover:border-transparent hover:scale-110 transition-all duration-300"

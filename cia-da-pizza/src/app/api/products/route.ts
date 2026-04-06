@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { dbGetProducts, dbInsert, dbGetProduct } from '@/lib/database';
 import { requireAdminAuth } from '@/lib/auth-helpers';
 import { sanitizeString } from '@/lib/auth';
 
@@ -12,32 +12,12 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search');
     const active = searchParams.get('active');
 
-    let query = `
-      SELECT p.*, c.name AS category_name
-      FROM products p
-      JOIN categories c ON p.category_id = c.id
-      WHERE 1=1
-    `;
-    const params: (string | number)[] = [];
+    const filters: { categoryId?: number; search?: string; active?: number } = {};
+    if (categoryId) filters.categoryId = parseInt(categoryId, 10);
+    if (search) filters.search = search;
+    if (active) filters.active = parseInt(active, 10);
 
-    if (categoryId) {
-      query += ' AND p.category_id = ?';
-      params.push(parseInt(categoryId, 10));
-    }
-
-    if (search) {
-      query += ' AND (p.name LIKE ? OR p.description LIKE ?)';
-      params.push(`%${search}%`, `%${search}%`);
-    }
-
-    if (active) {
-      query += ' AND p.active = ?';
-      params.push(parseInt(active, 10));
-    }
-
-    query += ' ORDER BY c.order_position ASC, p.name ASC';
-
-    const products = db.prepare(query).all(...params);
+    const products = await dbGetProducts(filters);
     return NextResponse.json(products);
   } catch (error) {
     // Error logged silently
@@ -59,29 +39,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'category_id and name are required' }, { status: 400 });
     }
 
-    const result = db
-      .prepare(
-        `INSERT INTO products (category_id, name, description, price_small, price_medium, price_large, image_url)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      )
-      .run(
-        categoryId,
-        name,
-        sanitizeString(body.description, 1000),
-        Number.isFinite(body.price_small) ? body.price_small : null,
-        Number.isFinite(body.price_medium) ? body.price_medium : null,
-        Number.isFinite(body.price_large) ? body.price_large : null,
-        sanitizeString(body.image_url, 500),
-      );
+    const inserted = await dbInsert('products', {
+      category_id: categoryId,
+      name,
+      description: sanitizeString(body.description, 1000),
+      price_small: Number.isFinite(body.price_small) ? body.price_small : null,
+      price_medium: Number.isFinite(body.price_medium) ? body.price_medium : null,
+      price_large: Number.isFinite(body.price_large) ? body.price_large : null,
+      image_url: sanitizeString(body.image_url, 500),
+    });
 
-    const product = db
-      .prepare(
-        `SELECT p.*, c.name AS category_name
-         FROM products p
-         JOIN categories c ON p.category_id = c.id
-         WHERE p.id = ?`,
-      )
-      .get(result.lastInsertRowid);
+    const product = await dbGetProduct((inserted as { id: number }).id);
 
     return NextResponse.json(product, { status: 201 });
   } catch (error) {

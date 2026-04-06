@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { dbGet, dbRawRun, dbRawGet } from '@/lib/database';
 import { requireAdminAuth } from '@/lib/auth-helpers';
 import { sanitizeString } from '@/lib/auth';
 
@@ -13,7 +13,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
     }
 
-    const existing = db.prepare('SELECT id FROM promotions WHERE id = ?').get(id);
+    const existing = await dbGet('promotions', { id });
     if (!existing) {
       return NextResponse.json({ error: 'Promotion not found' }, { status: 404 });
     }
@@ -27,7 +27,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       }
     }
 
-    db.prepare(
+    await dbRawRun(
       `UPDATE promotions SET
         title = COALESCE(?, title),
         description = COALESCE(?, description),
@@ -40,24 +40,24 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         active = COALESCE(?, active),
         banner_color = COALESCE(?, banner_color)
        WHERE id = ?`,
-    ).run(
-      sanitizeString(body.title, 200),
-      body.description !== undefined ? sanitizeString(body.description, 1000) : null,
-      body.image_url !== undefined ? sanitizeString(body.image_url, 500) : null,
-      Number.isFinite(body.discount_percent) ? body.discount_percent : null,
-      Number.isFinite(body.discount_value) ? body.discount_value : null,
-      body.promo_code !== undefined ? sanitizeString(body.promo_code, 50) : null,
-      body.start_date || null,
-      body.end_date || null,
-      body.active !== undefined ? (body.active ? 1 : 0) : null,
-      sanitizeString(body.banner_color, 20),
-      id,
+      [
+        sanitizeString(body.title, 200),
+        body.description !== undefined ? sanitizeString(body.description, 1000) : null,
+        body.image_url !== undefined ? sanitizeString(body.image_url, 500) : null,
+        Number.isFinite(body.discount_percent) ? body.discount_percent : null,
+        Number.isFinite(body.discount_value) ? body.discount_value : null,
+        body.promo_code !== undefined ? sanitizeString(body.promo_code, 50) : null,
+        body.start_date || null,
+        body.end_date || null,
+        body.active !== undefined ? (body.active ? 1 : 0) : null,
+        sanitizeString(body.banner_color, 20),
+        id,
+      ],
     );
 
-    const promotion = db.prepare('SELECT * FROM promotions WHERE id = ?').get(id);
+    const promotion = await dbRawGet('SELECT * FROM promotions WHERE id = ?', [id]);
     return NextResponse.json(promotion);
   } catch (error) {
-    // Error logged silently
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -72,10 +72,9 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
     }
 
-    db.prepare('DELETE FROM promotions WHERE id = ?').run(id);
+    await dbRawRun('DELETE FROM promotions WHERE id = ?', [id]);
     return NextResponse.json({ message: 'Promotion deleted' });
   } catch (error) {
-    // Error logged silently
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { dbGet, dbRawRun, dbDelete } from '@/lib/database';
 import { requireAdminAuth } from '@/lib/auth-helpers';
 import { sanitizeString } from '@/lib/auth';
 
@@ -15,7 +15,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     const body = await request.json();
 
-    const existing = db.prepare('SELECT * FROM categories WHERE id = ?').get(id);
+    const existing = await dbGet('categories', { id });
     if (!existing) {
       return NextResponse.json({ error: 'Category not found' }, { status: 404 });
     }
@@ -26,11 +26,12 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       : null;
     const active = body.active !== undefined ? (body.active ? 1 : 0) : null;
 
-    db.prepare(
+    await dbRawRun(
       'UPDATE categories SET name = COALESCE(?, name), order_position = COALESCE(?, order_position), active = COALESCE(?, active) WHERE id = ?',
-    ).run(name, orderPosition, active, id);
+      [name, orderPosition, active, id],
+    );
 
-    const category = db.prepare('SELECT * FROM categories WHERE id = ?').get(id);
+    const category = await dbGet('categories', { id });
     return NextResponse.json(category);
   } catch (error) {
     // Error logged silently
@@ -48,12 +49,12 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
     }
 
-    const existing = db.prepare('SELECT * FROM categories WHERE id = ?').get(id);
+    const existing = await dbGet('categories', { id });
     if (!existing) {
       return NextResponse.json({ error: 'Category not found' }, { status: 404 });
     }
 
-    db.prepare('DELETE FROM categories WHERE id = ?').run(id);
+    await dbDelete('categories', { id });
 
     return NextResponse.json({ message: 'Category deleted' });
   } catch (error) {

@@ -175,10 +175,15 @@ export default function StorePedidosPage() {
     return null;
   }
 
-  function buildReceiptHtml(order: Order, via: 'cozinha' | 'entrega') {
+  function buildReceiptHtml(order: Order, via: 'cozinha' | 'entrega' | 'balcao') {
     const items = order.items || [];
     const payLabel = PAYMENT_LABELS[order.payment_method || 'pix'] || order.payment_method || 'N/A';
-    const viaLabel = via === 'cozinha' ? 'VIA COZINHA' : 'VIA ENTREGADOR';
+    const viaLabels: Record<string, string> = {
+      cozinha: 'VIA COZINHA',
+      entrega: 'VIA ENTREGADOR',
+      balcao: 'VIA BALCAO',
+    };
+    const viaLabel = viaLabels[via] || 'VIA COZINHA';
     const isDelivery = order.order_type === 'delivery';
 
     const itemsHtml = items
@@ -221,7 +226,7 @@ export default function StorePedidosPage() {
         </div>
         <div class="footer">
           <p>*** CIA DA PIZZA ***</p>
-          <p>${via === 'cozinha' ? 'Via Cozinha' : 'Via Entregador'}</p>
+          <p>${via === 'cozinha' ? 'Via Cozinha' : via === 'entrega' ? 'Via Entregador' : 'Via Balcao'}</p>
         </div>
       </div>
     `;
@@ -229,13 +234,18 @@ export default function StorePedidosPage() {
 
   function printOrder(order: Order) {
     const isDelivery = order.order_type === 'delivery';
+    const isPickup = order.order_type === 'pickup';
     const cozinhaHtml = buildReceiptHtml(order, 'cozinha');
-    const entregaHtml = isDelivery ? buildReceiptHtml(order, 'entrega') : '';
+    const secondViaHtml = isDelivery
+      ? buildReceiptHtml(order, 'entrega')
+      : isPickup
+        ? buildReceiptHtml(order, 'balcao')
+        : '';
 
     const html = `
       <html>
       <head>
-        <title>Pedido #${order.id} - ${isDelivery ? '2 Vias' : 'Cozinha'}</title>
+        <title>Pedido #${order.id} - ${isDelivery ? '2 Vias (Cozinha + Entregador)' : isPickup ? '2 Vias (Cozinha + Balcao)' : 'Cozinha'}</title>
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body { font-family: 'Courier New', monospace; font-size: 14px; padding: 10px; max-width: 300px; }
@@ -259,7 +269,7 @@ export default function StorePedidosPage() {
       </head>
       <body>
         ${cozinhaHtml}
-        ${isDelivery ? `<div class="separator"></div>${entregaHtml}` : ''}
+        ${secondViaHtml ? `<div class="separator"></div>${secondViaHtml}` : ''}
       </body>
       </html>
     `;
