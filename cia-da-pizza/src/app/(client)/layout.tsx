@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import PromoBanner from '@/components/PromoBanner';
+import CookieConsent from '@/components/CookieConsent';
 import { CartProvider } from '@/contexts/CartContext';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
@@ -250,6 +251,14 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                 &copy; {new Date().getFullYear()} Cia da Pizza - Franca/SP. Todos os direitos
                 reservados.
               </p>
+              <p className="mt-2">
+                <Link
+                  href="/politica-privacidade"
+                  className="text-xs text-gray-500 hover:text-red-400 transition-colors duration-300"
+                >
+                  Politica de Privacidade (LGPD)
+                </Link>
+              </p>
               {/* Area restrita */}
               <div className="mt-6 pt-4 border-t border-gray-800/30">
                 <p className="text-xs text-gray-500 mb-3 uppercase tracking-widest">
@@ -299,6 +308,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             </div>
           </div>
         </footer>
+        <CookieConsent />
       </div>
     </CartProvider>
   );

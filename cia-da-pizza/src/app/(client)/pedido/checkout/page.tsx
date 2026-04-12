@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useCart } from '@/contexts/CartContext';
 
 const steps = ['Loja', 'Tipo', 'Cardapio', 'Finalizar'];
@@ -43,6 +44,7 @@ export default function CheckoutPage() {
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [lgpdConsent, setLgpdConsent] = useState(false);
 
   // Load saved customer data from localStorage
   useEffect(() => {
@@ -82,6 +84,7 @@ export default function CheckoutPage() {
   const canSubmit =
     customerName.trim() !== '' &&
     paymentMethod !== '' &&
+    lgpdConsent &&
     (!isDelivery ||
       (addressStreet.trim() !== '' &&
         addressNumber.trim() !== '' &&
@@ -384,6 +387,29 @@ export default function CheckoutPage() {
               <span className="text-red-400">{formatPrice(cartTotal)}</span>
             </div>
           </div>
+        </div>
+
+        {/* LGPD Consent */}
+        <div className="bg-gray-900 rounded-xl p-5">
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={lgpdConsent}
+              onChange={(e) => setLgpdConsent(e.target.checked)}
+              className="mt-1 h-4 w-4 rounded border-gray-600 bg-gray-800 text-red-600 focus:ring-red-500 focus:ring-offset-0 shrink-0"
+            />
+            <span className="text-sm text-gray-400">
+              Li e concordo com a{' '}
+              <Link
+                href="/politica-privacidade"
+                target="_blank"
+                className="text-red-400 hover:underline font-medium"
+              >
+                Politica de Privacidade
+              </Link>{' '}
+              e autorizo o uso dos meus dados para processamento do pedido, conforme a LGPD.
+            </span>
+          </label>
         </div>
 
         {/* Error */}

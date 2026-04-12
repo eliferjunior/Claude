@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Credenciais invalidas' }, { status: 401 });
     }
 
-    const passwordMatch = bcrypt.compareSync(password, store.login_password_hash);
+    const passwordMatch = await bcrypt.compare(password, store.login_password_hash);
 
     if (!passwordMatch) {
       return NextResponse.json({ error: 'Credenciais invalidas' }, { status: 401 });

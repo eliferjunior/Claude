@@ -14,6 +14,14 @@ type AdminUser = {
 
 const SESSION_COOKIE = 'cia_session';
 const SESSION_SECRET = process.env.SESSION_SECRET || 'cia-da-pizza-secret-key-change-in-production';
+if (
+  process.env.NODE_ENV === 'production' &&
+  SESSION_SECRET === 'cia-da-pizza-secret-key-change-in-production'
+) {
+  console.warn(
+    '[SECURITY] SESSION_SECRET nao foi configurado! Defina SESSION_SECRET nas variaveis de ambiente.',
+  );
+}
 const SESSION_MAX_AGE = 60 * 60 * 24; // 24 hours in seconds
 
 type SessionPayload = {
@@ -44,10 +52,7 @@ export function verifyPassword(password: string, hash: string): boolean {
  */
 function signPayload(payload: SessionPayload): string {
   const data = Buffer.from(JSON.stringify(payload)).toString('base64url');
-  const signature = crypto
-    .createHmac('sha256', SESSION_SECRET)
-    .update(data)
-    .digest('base64url');
+  const signature = crypto.createHmac('sha256', SESSION_SECRET).update(data).digest('base64url');
   return `${data}.${signature}`;
 }
 
@@ -59,10 +64,7 @@ function verifyToken(token: string): SessionPayload | null {
   if (parts.length !== 2) return null;
 
   const [data, signature] = parts;
-  const expectedSig = crypto
-    .createHmac('sha256', SESSION_SECRET)
-    .update(data)
-    .digest('base64url');
+  const expectedSig = crypto.createHmac('sha256', SESSION_SECRET).update(data).digest('base64url');
 
   if (signature !== expectedSig) return null;
 
@@ -158,12 +160,11 @@ export async function destroySession(): Promise<void> {
  */
 export async function authenticate(
   username: string,
-  password: string
+  password: string,
 ): Promise<Omit<AdminUser, 'password_hash'> | null> {
-  const user = await dbRawGet<AdminUser>(
-    'SELECT * FROM admin_users WHERE username = ?',
-    [username],
-  );
+  const user = await dbRawGet<AdminUser>('SELECT * FROM admin_users WHERE username = ?', [
+    username,
+  ]);
 
   if (!user) return null;
 
@@ -194,17 +195,12 @@ export function verifyStoreToken(token: string): StoreSessionPayload | null {
   if (parts.length !== 2) return null;
 
   const [data, signature] = parts;
-  const expectedSig = crypto
-    .createHmac('sha256', SESSION_SECRET)
-    .update(data)
-    .digest('base64url');
+  const expectedSig = crypto.createHmac('sha256', SESSION_SECRET).update(data).digest('base64url');
 
   if (signature !== expectedSig) return null;
 
   try {
-    const payload = JSON.parse(
-      Buffer.from(data, 'base64url').toString()
-    ) as StoreSessionPayload;
+    const payload = JSON.parse(Buffer.from(data, 'base64url').toString()) as StoreSessionPayload;
     if (payload.exp < Date.now()) return null;
     return payload;
   } catch {
@@ -215,9 +211,9 @@ export function verifyStoreToken(token: string): StoreSessionPayload | null {
 /**
  * Get the store session from a NextRequest. Returns the payload or null.
  */
-export function getStoreSession(
-  request: { cookies: { get: (name: string) => { value: string } | undefined } }
-): StoreSessionPayload | null {
+export function getStoreSession(request: {
+  cookies: { get: (name: string) => { value: string } | undefined };
+}): StoreSessionPayload | null {
   const token = request.cookies.get(STORE_SESSION_COOKIE)?.value;
   if (!token) return null;
   return verifyStoreToken(token);
@@ -258,10 +254,7 @@ export function validatePhone(phone: string | null): boolean {
 /**
  * Sanitize a string input: trim and enforce max length.
  */
-export function sanitizeString(
-  value: unknown,
-  maxLength: number = 500
-): string | null {
+export function sanitizeString(value: unknown, maxLength: number = 500): string | null {
   if (value === null || value === undefined) return null;
   const str = String(value).trim();
   if (str.length === 0) return null;

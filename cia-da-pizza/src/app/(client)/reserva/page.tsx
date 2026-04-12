@@ -101,6 +101,7 @@ function ReservaContent() {
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [notes, setNotes] = useState('');
+  const [lgpdConsent, setLgpdConsent] = useState(false);
 
   const next14Days = useMemo(() => getNext14Days(), []);
 
@@ -510,6 +511,29 @@ function ReservaContent() {
               </div>
             </div>
 
+            {/* LGPD Consent */}
+            <div className="mt-4">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={lgpdConsent}
+                  onChange={(e) => setLgpdConsent(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-gray-600 bg-gray-800 text-red-600 focus:ring-red-500 focus:ring-offset-0 shrink-0"
+                />
+                <span className="text-sm text-gray-400">
+                  Li e concordo com a{' '}
+                  <Link
+                    href="/politica-privacidade"
+                    target="_blank"
+                    className="text-red-400 hover:underline font-medium"
+                  >
+                    Politica de Privacidade
+                  </Link>{' '}
+                  e autorizo o uso dos meus dados para a reserva, conforme a LGPD.
+                </span>
+              </label>
+            </div>
+
             {submitError && (
               <div className="mt-4 bg-red-900/50 border border-red-700 rounded-xl p-4 text-red-300 text-sm">
                 {submitError}
@@ -525,7 +549,7 @@ function ReservaContent() {
               </button>
               <button
                 onClick={handleSubmit}
-                disabled={submitting || !customerName.trim()}
+                disabled={submitting || !customerName.trim() || !lgpdConsent}
                 className="rounded-xl bg-red-600 px-8 py-3 font-bold text-white hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? 'Enviando...' : 'Confirmar Reserva'}
@@ -540,7 +564,13 @@ function ReservaContent() {
 
 export default function ReservaPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-900 flex items-center justify-center"><div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-red-600 border-t-transparent" /></div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-red-600 border-t-transparent" />
+        </div>
+      }
+    >
       <ReservaContent />
     </Suspense>
   );
