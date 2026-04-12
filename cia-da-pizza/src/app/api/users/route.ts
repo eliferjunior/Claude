@@ -5,7 +5,7 @@ import bcrypt from 'bcryptjs';
 
 export async function GET(request: NextRequest) {
   try {
-    const auth = requireAdminAuth(request);
+    const auth = await requireAdminAuth(request);
     if (auth.error) return auth.error;
 
     const users = await dbRaw(
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const auth = requireAdminAuth(request);
+    const auth = await requireAdminAuth(request);
     if (auth.error) return auth.error;
 
     const body = await request.json();
@@ -44,10 +44,9 @@ export async function POST(request: NextRequest) {
     const validRoles = ['admin', 'manager', 'editor'];
     const userRole = role && validRoles.includes(role) ? role : 'admin';
 
-    const existing = await dbRawGet(
-      'SELECT id FROM admin_users WHERE username = ?',
-      [username.trim()],
-    );
+    const existing = await dbRawGet('SELECT id FROM admin_users WHERE username = ?', [
+      username.trim(),
+    ]);
 
     if (existing) {
       return NextResponse.json({ error: 'Username already exists' }, { status: 409 });

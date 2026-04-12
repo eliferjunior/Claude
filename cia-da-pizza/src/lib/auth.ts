@@ -1,8 +1,16 @@
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { cookies } from 'next/headers';
-import db from './db';
-import type { AdminUser } from './db';
+import { dbRawGet } from './database';
+
+type AdminUser = {
+  id: number;
+  username: string;
+  password_hash: string;
+  name: string;
+  role: string;
+  created_at: string;
+};
 
 const SESSION_COOKIE = 'cia_session';
 const SESSION_SECRET = process.env.SESSION_SECRET || 'cia-da-pizza-secret-key-change-in-production';
@@ -125,9 +133,10 @@ export async function requireAuth(): Promise<SessionPayload> {
   }
 
   // Verify user still exists in database
-  const user = db
-    .prepare('SELECT id, username, name, role FROM admin_users WHERE id = ?')
-    .get(session.userId) as Pick<AdminUser, 'id' | 'username' | 'name' | 'role'> | undefined;
+  const user = await dbRawGet<Pick<AdminUser, 'id' | 'username' | 'name' | 'role'>>(
+    'SELECT id, username, name, role FROM admin_users WHERE id = ?',
+    [session.userId],
+  );
 
   if (!user) {
     throw new Error('Unauthorized');
@@ -151,9 +160,10 @@ export async function authenticate(
   username: string,
   password: string
 ): Promise<Omit<AdminUser, 'password_hash'> | null> {
-  const user = db
-    .prepare('SELECT * FROM admin_users WHERE username = ?')
-    .get(username) as AdminUser | undefined;
+  const user = await dbRawGet<AdminUser>(
+    'SELECT * FROM admin_users WHERE username = ?',
+    [username],
+  );
 
   if (!user) return null;
 

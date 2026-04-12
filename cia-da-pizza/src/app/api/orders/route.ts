@@ -7,7 +7,7 @@ const VALID_ORDER_TYPES = ['delivery', 'pickup', 'dine_in'];
 
 export async function GET(request: NextRequest) {
   try {
-    const auth = requireAnyAuth(request);
+    const auth = await requireAnyAuth(request);
     if (auth.error) return auth.error;
 
     const { searchParams } = new URL(request.url);

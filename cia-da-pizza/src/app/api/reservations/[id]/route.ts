@@ -6,7 +6,7 @@ const VALID_STATUSES = ['pending', 'confirmed', 'cancelled'];
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const auth = requireAnyAuth(request);
+    const auth = await requireAnyAuth(request);
     if (auth.error) return auth.error;
 
     const id = parseInt(params.id, 10);

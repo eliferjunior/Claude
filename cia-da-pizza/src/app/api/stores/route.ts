@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const auth = requireAdminAuth(request);
+    const auth = await requireAdminAuth(request);
     if (auth.error) return auth.error;
 
     const body = await request.json();
@@ -65,10 +65,9 @@ export async function POST(request: NextRequest) {
       ],
     );
 
-    const store = await dbRawGet(
-      `SELECT ${STORE_SAFE_COLUMNS} FROM stores WHERE id = ?`,
-      [result.lastInsertRowid],
-    );
+    const store = await dbRawGet(`SELECT ${STORE_SAFE_COLUMNS} FROM stores WHERE id = ?`, [
+      result.lastInsertRowid,
+    ]);
 
     return NextResponse.json(store, { status: 201 });
   } catch (error) {

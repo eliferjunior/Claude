@@ -37,7 +37,7 @@ export async function GET() {
 
 export async function PUT(request: NextRequest) {
   try {
-    const auth = requireAdminAuth(request);
+    const auth = await requireAdminAuth(request);
     if (auth.error) return auth.error;
 
     const body = await request.json();

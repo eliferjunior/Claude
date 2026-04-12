@@ -5,7 +5,7 @@ import { sanitizeString } from '@/lib/auth';
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const auth = requireAdminAuth(request);
+    const auth = await requireAdminAuth(request);
     if (auth.error) return auth.error;
 
     const id = parseInt(params.id, 10);
@@ -64,7 +64,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const auth = requireAdminAuth(request);
+    const auth = await requireAdminAuth(request);
     if (auth.error) return auth.error;
 
     const id = parseInt(params.id, 10);

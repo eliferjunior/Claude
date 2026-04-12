@@ -3,7 +3,7 @@ import { requireStoreAuth } from '@/lib/auth-helpers';
 
 export async function GET(request: NextRequest) {
   try {
-    const auth = requireStoreAuth(request);
+    const auth = await requireStoreAuth(request);
     if (auth.error) return auth.error;
 
     return NextResponse.json({

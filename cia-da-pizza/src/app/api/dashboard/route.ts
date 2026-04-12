@@ -4,7 +4,7 @@ import { requireAdminAuth } from '@/lib/auth-helpers';
 
 export async function GET(request: NextRequest) {
   try {
-    const auth = requireAdminAuth(request);
+    const auth = await requireAdminAuth(request);
     if (auth.error) return auth.error;
 
     const now = new Date();
